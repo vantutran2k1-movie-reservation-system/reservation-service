@@ -49,7 +49,7 @@ func BindAndValidate(c *gin.Context, obj any) []*ValidationError {
 
 	if len(validationErrors) == 0 {
 		validationErrors = append(validationErrors, &ValidationError{
-			Message: err.Error(),
+			Message: "Missing request body",
 		})
 	}
 
