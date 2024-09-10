@@ -9,6 +9,7 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.POST("/api/users", controllers.CreateUser)
+	router.POST("/api/users/login", controllers.LoginUser)
 
 	return router
 }
