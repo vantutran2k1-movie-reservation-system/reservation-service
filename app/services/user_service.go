@@ -7,7 +7,6 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +21,7 @@ var CreateUser = func(db *gorm.DB, email string, password string) (*models.User,
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	hashedPassword, err := generateHashedPassword(password)
+	hashedPassword, err := utils.GenerateHashedPassword(password)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -51,7 +50,7 @@ var LoginUser = func(db *gorm.DB, email string, password string) (string, *error
 		return "", errors.InternalServerError(err.Error())
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
+	if err := utils.CompareHashAndPassword(u.PasswordHash, password); err != nil {
 		return "", errors.BadRequestError("Invalid password")
 	}
 
@@ -61,13 +60,4 @@ var LoginUser = func(db *gorm.DB, email string, password string) (string, *error
 	}
 
 	return token, nil
-}
-
-func generateHashedPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-
-	return string(hashedPassword), nil
 }
