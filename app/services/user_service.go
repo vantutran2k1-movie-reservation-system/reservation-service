@@ -55,7 +55,7 @@ var LoginUser = func(db *gorm.DB, email string, password string) (string, *error
 		return "", errors.BadRequestError("Invalid password")
 	}
 
-	token, err := utils.GenerateToken(u.ID)
+	token, err := utils.GenerateJwtToken(u.ID)
 	if err != nil {
 		return "", errors.InternalServerError(err.Error())
 	}
@@ -63,5 +63,10 @@ var LoginUser = func(db *gorm.DB, email string, password string) (string, *error
 	if err := sessions.CreateSession(token, u.ID); err != nil {
 		return "", errors.InternalServerError(err.Error())
 	}
-	return token, nil
+
+	if err := CreateLoginToken(db, token, u.ID); err != nil {
+		return "", errors.InternalServerError(err.Error())
+	}
+
+	return token.TokenValue, nil
 }
