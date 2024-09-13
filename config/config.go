@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
+var RedisClient *redis.Client
 
 func InitDB() {
 	dbHost := os.Getenv("DB_HOST")
@@ -25,4 +28,22 @@ func InitDB() {
 	}
 
 	DB = db
+}
+
+func InitRedis() {
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPort := os.Getenv("REDIS_PORT")
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+	redisDatabase, err := strconv.Atoi(os.Getenv("REDIS_DATABASE"))
+	if err != nil {
+		log.Fatalf("Redis database must be an integer")
+	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
+		Password: redisPassword,
+		DB:       redisDatabase,
+	})
+
+	RedisClient = rdb
 }

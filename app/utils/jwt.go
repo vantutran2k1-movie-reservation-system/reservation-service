@@ -11,15 +11,15 @@ import (
 )
 
 func GenerateToken(userID uuid.UUID) (string, error) {
-	jwtExpiresAfterStr := os.Getenv("JWT_EXPIRES_AFTER_MINUTES")
+	jwtExpiresAfterStr := os.Getenv("JWT_TOKEN_EXPIRES_AFTER_MINUTES")
 	jwtExpiresAfter, err := strconv.Atoi(jwtExpiresAfterStr)
 	if err != nil {
-		return "", fmt.Errorf("invalid token expiry hours: %v", err)
+		return "", fmt.Errorf("invalid token expiry minutes: %v", err)
 	}
 
 	claims := jwt.MapClaims{
 		"user_id": userID,
-		"exp":     time.Now().Add(time.Duration(jwtExpiresAfter) * time.Hour).Unix(),
+		"exp":     time.Now().Add(time.Duration(jwtExpiresAfter) * time.Minute).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -11,5 +11,19 @@ services:
     ports:
       - "${DB_PORT}:${DB_PORT}"
 
+  redis:
+    image: redis:7.4.0-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    volumes:
+      - redis_data:/var/lib/redis/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_DATABASE=${REDIS_DATABASE}
+
 volumes:
   postgres_data:
+  redis_data:

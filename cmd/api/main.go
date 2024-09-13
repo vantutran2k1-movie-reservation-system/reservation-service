@@ -15,6 +15,7 @@ func main() {
 	}
 
 	config.InitDB()
+	config.InitRedis()
 
 	router := routes.SetupRouter()
 	if err := router.Run(":" + os.Getenv("APP_PORT")); err != nil {

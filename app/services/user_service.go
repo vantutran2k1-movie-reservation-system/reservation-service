@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/sessions"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"gorm.io/gorm"
 )
@@ -59,5 +60,8 @@ var LoginUser = func(db *gorm.DB, email string, password string) (string, *error
 		return "", errors.InternalServerError(err.Error())
 	}
 
+	if err := sessions.CreateSession(token, u.ID); err != nil {
+		return "", errors.InternalServerError(err.Error())
+	}
 	return token, nil
 }
