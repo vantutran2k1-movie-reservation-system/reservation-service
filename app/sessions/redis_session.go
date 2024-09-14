@@ -31,3 +31,11 @@ func CreateSession(token *utils.AuthToken, userID uuid.UUID) error {
 
 	return nil
 }
+
+func DeleteSession(tokenValue string) error {
+	if err := config.RedisClient.Del(context.Background(), tokenValue).Err(); err != nil {
+		return err
+	}
+
+	return nil
+}

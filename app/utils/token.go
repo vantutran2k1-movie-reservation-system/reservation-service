@@ -2,8 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -50,4 +52,14 @@ func GenerateJwtToken(userID uuid.UUID) (*AuthToken, error) {
 	}
 
 	return &t, nil
+}
+
+func GetAuthTokenFromRequest(req *http.Request) string {
+	token := req.Header.Get("Authorization")
+	tokenParts := strings.Split(token, " ")
+	if len(tokenParts) == 2 {
+		token = tokenParts[1]
+	}
+
+	return token
 }

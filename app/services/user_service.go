@@ -70,3 +70,15 @@ var LoginUser = func(db *gorm.DB, email string, password string) (string, *error
 
 	return token.TokenValue, nil
 }
+
+var LogoutUser = func(db *gorm.DB, tokenValue string) *errors.ApiError {
+	if err := sessions.DeleteSession(tokenValue); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	if err := RevokeLoginToken(db, tokenValue); err != nil {
+		return err
+	}
+
+	return nil
+}
