@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
 type Session struct {
-	UserID uuid.UUID
+	UserID uuid.UUID `json:"user_id"`
 }
 
-func CreateSession(token *utils.AuthToken, userID uuid.UUID) error {
+func CreateSession(token *auth.AuthToken, userID uuid.UUID) error {
 	s := Session{UserID: userID}
 	sessionData, err := json.Marshal(s)
 	if err != nil {
@@ -30,6 +30,20 @@ func CreateSession(token *utils.AuthToken, userID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func GetSession(tokenValue string) (*Session, error) {
+	sessionString, err := config.RedisClient.Get(context.Background(), tokenValue).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	var s Session
+	if err := json.Unmarshal([]byte(sessionString), &s); err != nil {
+		return nil, err
+	}
+
+	return &s, nil
 }
 
 func DeleteSession(tokenValue string) error {

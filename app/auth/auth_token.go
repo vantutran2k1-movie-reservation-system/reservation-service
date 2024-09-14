@@ -1,4 +1,4 @@
-package utils
+package auth
 
 import (
 	"fmt"
@@ -23,6 +23,8 @@ type JwtClaims struct {
 	jwt.RegisteredClaims
 }
 
+var JwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
+
 func GenerateJwtToken(userID uuid.UUID) (*AuthToken, error) {
 	jwtExpiresAfterStr := os.Getenv("JWT_TOKEN_EXPIRES_AFTER_MINUTES")
 	jwtExpiresAfter, err := strconv.Atoi(jwtExpiresAfterStr)
@@ -40,7 +42,7 @@ func GenerateJwtToken(userID uuid.UUID) (*AuthToken, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	tokenString, err := token.SignedString(JwtKey)
 	if err != nil {
 		return nil, err
 	}

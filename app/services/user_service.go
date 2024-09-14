@@ -4,10 +4,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/sessions"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +22,7 @@ var CreateUser = func(db *gorm.DB, email string, password string) (*models.User,
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	hashedPassword, err := utils.GenerateHashedPassword(password)
+	hashedPassword, err := auth.GenerateHashedPassword(password)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -51,11 +51,11 @@ var LoginUser = func(db *gorm.DB, email string, password string) (string, *error
 		return "", errors.InternalServerError(err.Error())
 	}
 
-	if err := utils.CompareHashAndPassword(u.PasswordHash, password); err != nil {
+	if err := auth.CompareHashAndPassword(u.PasswordHash, password); err != nil {
 		return "", errors.BadRequestError("Invalid password")
 	}
 
-	token, err := utils.GenerateJwtToken(u.ID)
+	token, err := auth.GenerateJwtToken(u.ID)
 	if err != nil {
 		return "", errors.InternalServerError(err.Error())
 	}

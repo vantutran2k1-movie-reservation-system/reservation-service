@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
@@ -44,7 +44,7 @@ var LoginUser = func(c *gin.Context) {
 }
 
 var LogoutUser = func(c *gin.Context) {
-	tokenValue := utils.GetAuthTokenFromRequest(c.Request)
+	tokenValue := auth.GetAuthTokenFromRequest(c.Request)
 	if err := services.LogoutUser(config.DB, tokenValue); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

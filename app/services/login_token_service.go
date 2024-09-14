@@ -4,13 +4,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"gorm.io/gorm"
 )
 
-var CreateLoginToken = func(db *gorm.DB, token *utils.AuthToken, userID uuid.UUID) *errors.ApiError {
+var CreateLoginToken = func(db *gorm.DB, token *auth.AuthToken, userID uuid.UUID) *errors.ApiError {
 	err := db.Where("token_value = ? AND expires_at > ?", token.TokenValue, time.Now().UTC()).First(&models.LoginToken{}).Error
 
 	if err == nil {
