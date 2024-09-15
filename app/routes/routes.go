@@ -22,6 +22,7 @@ func SetupRouter() *gin.Engine {
 		profiles := apiV1.Group("/profiles")
 		{
 			profiles.POST("/", middlewares.AuthMiddleware(), controllers.CreateUserProfile)
+			profiles.PUT("/", middlewares.AuthMiddleware(), controllers.UpdateUserProfile)
 		}
 	}
 

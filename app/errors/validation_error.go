@@ -111,20 +111,12 @@ func getErrorMsg(fe validator.FieldError) string {
 
 func isValidDate(fl validator.FieldLevel) bool {
 	dateStr := fl.Field().String()
-	if dateStr == "" {
-		return true
-	}
-
 	_, err := time.Parse("2006-01-02", dateStr)
 	return err == nil
 }
 
 func isBeforeToday(fl validator.FieldLevel) bool {
 	dateStr := fl.Field().String()
-	if dateStr == "" {
-		return true
-	}
-
 	date, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
 		return false
@@ -134,10 +126,6 @@ func isBeforeToday(fl validator.FieldLevel) bool {
 
 func isValidPhoneNumber(fl validator.FieldLevel) bool {
 	phone := fl.Field().String()
-	if phone == "" {
-		return true
-	}
-
 	phoneNumberRegex := regexp.MustCompile(`^\+?[\d\s-]{7,15}$`)
 	return phoneNumberRegex.MatchString(phone)
 }
