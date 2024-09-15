@@ -52,3 +52,20 @@ var RevokeLoginToken = func(db *gorm.DB, tokenValue string) *errors.ApiError {
 
 	return nil
 }
+
+var RevokeUserLoginTokens = func(db *gorm.DB, userID uuid.UUID) *errors.ApiError {
+	var tokens []*models.LoginToken
+	if err := db.Where("user_id = ? AND expires_at > ?", userID, time.Now().UTC()).Find(&tokens).Error; err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	for _, t := range tokens {
+		t.ExpiresAt = time.Now().UTC()
+	}
+
+	if err := db.Save(&tokens).Error; err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
+}

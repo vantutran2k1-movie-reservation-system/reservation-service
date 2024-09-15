@@ -11,11 +11,12 @@ func SetupRouter() *gin.Engine {
 
 	apiV1 := router.Group("/api/v1")
 	{
-		user := apiV1.Group("/users")
+		users := apiV1.Group("/users")
 		{
-			user.POST("/", controllers.CreateUser)
-			user.POST("/login", controllers.LoginUser)
-			user.POST("/logout", middlewares.AuthMiddleware(), controllers.LogoutUser)
+			users.POST("/", controllers.CreateUser)
+			users.POST("/login", controllers.LoginUser)
+			users.POST("/logout", middlewares.AuthMiddleware(), controllers.LogoutUser)
+			users.PUT("/password", middlewares.AuthMiddleware(), controllers.UpdatePassword)
 		}
 	}
 
