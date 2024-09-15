@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -9,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
@@ -41,10 +41,10 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func GetUserID(c *gin.Context) (uuid.UUID, error) {
+func GetUserID(c *gin.Context) (uuid.UUID, *errors.ApiError) {
 	userID, exist := c.Get("user_id")
 	if !exist {
-		return uuid.Nil, errors.New("can not get user id from request")
+		return uuid.Nil, errors.InternalServerError("Can not get user id from request")
 	}
 
 	return userID.(uuid.UUID), nil

@@ -18,6 +18,11 @@ func SetupRouter() *gin.Engine {
 			users.POST("/logout", middlewares.AuthMiddleware(), controllers.LogoutUser)
 			users.PUT("/password", middlewares.AuthMiddleware(), controllers.UpdatePassword)
 		}
+
+		profiles := apiV1.Group("/profiles")
+		{
+			profiles.POST("/", middlewares.AuthMiddleware(), controllers.CreateUserProfile)
+		}
 	}
 
 	return router

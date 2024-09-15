@@ -5,15 +5,27 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 )
 
 type ValidationError struct {
 	Field   string `json:"field,omitempty"`
 	Message string `json:"message"`
+}
+
+func RegisterCustomValidators() {
+	v, ok := binding.Validator.Engine().(*validator.Validate)
+	if ok {
+		v.RegisterValidation("date", isValidDate)
+		v.RegisterValidation("beforeToday", isBeforeToday)
+		v.RegisterValidation("phoneNumber", isValidPhoneNumber)
+	}
 }
 
 func BindAndValidate(c *gin.Context, obj any) []*ValidationError {
@@ -95,4 +107,37 @@ func getErrorMsg(fe validator.FieldError) string {
 		return "Should be a valid phone number"
 	}
 	return fe.Error()
+}
+
+func isValidDate(fl validator.FieldLevel) bool {
+	dateStr := fl.Field().String()
+	if dateStr == "" {
+		return true
+	}
+
+	_, err := time.Parse("2006-01-02", dateStr)
+	return err == nil
+}
+
+func isBeforeToday(fl validator.FieldLevel) bool {
+	dateStr := fl.Field().String()
+	if dateStr == "" {
+		return true
+	}
+
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return false
+	}
+	return !date.After(time.Now())
+}
+
+func isValidPhoneNumber(fl validator.FieldLevel) bool {
+	phone := fl.Field().String()
+	if phone == "" {
+		return true
+	}
+
+	phoneNumberRegex := regexp.MustCompile(`^\+?[\d\s-]{7,15}$`)
+	return phoneNumberRegex.MatchString(phone)
 }

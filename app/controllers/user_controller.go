@@ -63,7 +63,7 @@ var UpdatePassword = func(c *gin.Context) {
 
 	userID, err := middlewares.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
