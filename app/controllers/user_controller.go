@@ -12,20 +12,28 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
-var CreateUser = func(c *gin.Context) {
+type UserController struct {
+	UserService services.UserService
+}
+
+func NewUserController(userService *services.UserService) *UserController {
+	return &UserController{UserService: *userService}
+}
+
+func (c *UserController) CreateUser(ctx *gin.Context) {
 	var req payloads.CreateUserRequest
-	if errs := errors.BindAndValidate(c, &req); len(errs) > 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": errs})
+	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
 		return
 	}
 
-	u, err := services.CreateUser(config.DB, req.Email, req.Password)
+	u, err := c.UserService.CreateUser(req.Email, req.Password)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": map[string]any{"email": u.Email}})
+	ctx.JSON(http.StatusCreated, gin.H{"data": map[string]any{"email": u.Email}})
 }
 
 var LoginUser = func(c *gin.Context) {

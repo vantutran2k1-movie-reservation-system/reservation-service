@@ -8,11 +8,26 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"gorm.io/gorm"
 )
 
-var CreateUser = func(db *gorm.DB, email string, password string) (*models.User, *errors.ApiError) {
-	err := db.Where(&models.User{Email: email}).First(&models.User{}).Error
+type UserService interface {
+	CreateUser(email string, password string) (*models.User, *errors.ApiError)
+}
+
+type userService struct {
+	userRepo repositories.UserRepository
+	db       *gorm.DB
+}
+
+func NewUserService(userRepo repositories.UserRepository, db *gorm.DB) UserService {
+	return &userService{userRepo: userRepo, db: db}
+}
+
+func (s *userService) CreateUser(email string, password string) (*models.User, *errors.ApiError) {
+	_, err := s.userRepo.FindUserByEmail(email)
 
 	if err == nil {
 		return nil, errors.BadRequestError("Email %s already exists", email)
@@ -34,7 +49,14 @@ var CreateUser = func(db *gorm.DB, email string, password string) (*models.User,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
-	if err := db.Create(&u).Error; err != nil {
+	err = transaction.WithTransaction(s.db, func(tx *gorm.DB) error {
+		if err := s.userRepo.CreateUser(tx, &u); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 

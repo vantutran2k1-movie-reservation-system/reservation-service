@@ -4,24 +4,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/routes"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
-	errors.RegisterCustomValidators()
-
-	config.InitDB()
-	config.InitRedis()
-
-	router := routes.SetupRouter()
-	if err := router.Run(":" + os.Getenv("APP_PORT")); err != nil {
+	app := app.InitApp()
+	if err := app.Router.Run(":" + os.Getenv("APP_PORT")); err != nil {
 		log.Fatal(err)
 		return
 	}
