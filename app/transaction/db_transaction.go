@@ -2,7 +2,7 @@ package transaction
 
 import "gorm.io/gorm"
 
-func WithTransaction(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+func ExecuteInTransaction(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 	tx := db.Begin()
 
 	defer func() {

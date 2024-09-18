@@ -9,11 +9,20 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+const USER_ID = "user_id"
+
+type AuthMiddleware struct {
+	userSessionRepo repositories.UserSessionRepository
+}
+
+func NewAuthMiddleware(userSessionRepo repositories.UserSessionRepository) *AuthMiddleware {
+	return &AuthMiddleware{userSessionRepo: userSessionRepo}
+}
+
+func (m *AuthMiddleware) RequireAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenValue := auth.GetAuthTokenFromRequest(c.Request)
 		if tokenValue == "" {
@@ -30,19 +39,19 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		s, err := services.GetSession(config.RedisClient, tokenValue)
+		s, err := m.userSessionRepo.GetUserSession(m.userSessionRepo.GetUserSessionID(tokenValue))
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			return
 		}
 
-		c.Set("user_id", s.UserID)
+		c.Set(USER_ID, s.UserID)
 		c.Next()
 	}
 }
 
 func GetUserID(c *gin.Context) (uuid.UUID, *errors.ApiError) {
-	userID, exist := c.Get("user_id")
+	userID, exist := c.Get(USER_ID)
 	if !exist {
 		return uuid.Nil, errors.InternalServerError("Can not get user id from request")
 	}

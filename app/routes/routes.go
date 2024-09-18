@@ -18,6 +18,7 @@ func RegisterRoutes() *gin.Engine {
 		users := apiV1.Group("/users")
 		{
 			users.POST("/", controllers.UserController.CreateUser)
+			users.POST("/login", controllers.UserController.LoginUser)
 		}
 	}
 
@@ -25,7 +26,9 @@ func RegisterRoutes() *gin.Engine {
 }
 
 type Repositories struct {
-	UserRepository repositories.UserRepository
+	UserRepository        repositories.UserRepository
+	LoginTokenRepository  repositories.LoginTokenRepository
+	UserSessionRepository repositories.UserSessionRepository
 }
 
 type Services struct {
@@ -38,7 +41,9 @@ type Controllers struct {
 
 func setupRepositories() *Repositories {
 	return &Repositories{
-		UserRepository: repositories.NewUserRepository(config.DB),
+		UserRepository:        repositories.NewUserRepository(config.DB),
+		LoginTokenRepository:  repositories.NewLoginTokenRepository(config.DB),
+		UserSessionRepository: repositories.NewUserSessionRepository(config.RedisClient),
 	}
 }
 
@@ -46,7 +51,13 @@ func setupServices() *Services {
 	repositories := setupRepositories()
 
 	return &Services{
-		UserService: services.NewUserService(repositories.UserRepository, config.DB),
+		UserService: services.NewUserService(
+			config.DB,
+			config.RedisClient,
+			repositories.UserRepository,
+			repositories.LoginTokenRepository,
+			repositories.UserSessionRepository,
+		),
 	}
 }
 
