@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
@@ -49,15 +50,15 @@ func (c *UserController) LoginUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": map[string]any{"token": token}})
 }
 
-// var LogoutUser = func(c *gin.Context) {
-// 	tokenValue := auth.GetAuthTokenFromRequest(c.Request)
-// 	if err := services.LogoutUser(config.DB, config.RedisClient, tokenValue); err != nil {
-// 		c.JSON(err.StatusCode, gin.H{"error": err.Error()})
-// 		return
-// 	}
+func (c *UserController) LogoutUser(ctx *gin.Context) {
+	tokenValue := auth.GetAuthTokenFromRequest(ctx.Request)
+	if err := c.UserService.LogoutUser(tokenValue); err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{"data": "User logout successfully"})
-// }
+	ctx.JSON(http.StatusOK, gin.H{"data": "Logout user successfully"})
+}
 
 // var UpdatePassword = func(c *gin.Context) {
 // 	var req payloads.UpdatePasswordRequest

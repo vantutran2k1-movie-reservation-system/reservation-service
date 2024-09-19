@@ -16,6 +16,7 @@ import (
 type UserService interface {
 	CreateUser(email string, password string) (*models.User, *errors.ApiError)
 	LoginUser(email string, password string) (string, *errors.ApiError)
+	LogoutUser(tokenValue string) *errors.ApiError
 }
 
 type userService struct {
@@ -65,14 +66,9 @@ func (s *userService) CreateUser(email string, password string) (*models.User, *
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
-	err = transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		if err := s.userRepo.CreateUser(tx, &u); err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
+	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.userRepo.CreateUser(tx, &u)
+	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 
@@ -98,11 +94,11 @@ func (s *userService) LoginUser(email string, password string) (string, *errors.
 		return "", errors.InternalServerError(err.Error())
 	}
 
-	if _, err := s.loginTokenRepo.GetActiveLoginToken(token.TokenValue); err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return "", errors.InternalServerError("Token %s already exists", token.TokenValue)
-		}
-
+	_, err = s.loginTokenRepo.GetActiveLoginToken(token.TokenValue)
+	if err == nil {
+		return "", errors.InternalServerError("Token value already exists")
+	}
+	if !errors.IsRecordNotFoundError(err) {
 		return "", errors.InternalServerError(err.Error())
 	}
 
@@ -131,17 +127,30 @@ func (s *userService) LoginUser(email string, password string) (string, *errors.
 	return token.TokenValue, nil
 }
 
-// var LogoutUser = func(db *gorm.DB, rdb *redis.Client, tokenValue string) *errors.ApiError {
-// 	if err := DeleteSession(rdb, tokenValue); err != nil {
-// 		return errors.InternalServerError(err.Error())
-// 	}
+func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
+	token, err := s.loginTokenRepo.GetActiveLoginToken(tokenValue)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return errors.BadRequestError("Token not found")
+		}
 
-// 	if err := RevokeLoginToken(db, tokenValue); err != nil {
-// 		return err
-// 	}
+		return errors.InternalServerError(err.Error())
+	}
 
-// 	return nil
-// }
+	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.loginTokenRepo.RevokeLoginToken(tx, token)
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	if err := transaction.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
+		return s.userSessionRepo.DeleteUserSession(s.userSessionRepo.GetUserSessionID(token.TokenValue))
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
+}
 
 // var UpdatePassword = func(db *gorm.DB, rdb *redis.Client, userID uuid.UUID, newPassword string) *errors.ApiError {
 // 	var u models.User
