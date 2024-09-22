@@ -11,5 +11,5 @@ type LoginUserRequest struct {
 }
 
 type UpdatePasswordRequest struct {
-	NewPassword string `json:"new_password" binding:"required,min=8,max=32"`
+	Password string `json:"password" binding:"required,min=8,max=32"`
 }

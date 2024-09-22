@@ -28,8 +28,8 @@ func RegisterCustomValidators() {
 	}
 }
 
-func BindAndValidate(c *gin.Context, obj any) []*ValidationError {
-	err := c.ShouldBindJSON(obj)
+func BindAndValidate(ctx *gin.Context, obj any) []*ValidationError {
+	err := ctx.ShouldBindJSON(obj)
 	if err == nil {
 		return nil
 	}

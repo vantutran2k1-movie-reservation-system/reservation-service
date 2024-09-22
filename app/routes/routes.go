@@ -25,6 +25,7 @@ func RegisterRoutes() *gin.Engine {
 			users.POST("/", controllers.UserController.CreateUser)
 			users.POST("/login", controllers.UserController.LoginUser)
 			users.POST("/logout", authMiddleware, controllers.UserController.LogoutUser)
+			users.PUT("/password", authMiddleware, controllers.UserController.UpdateUserPassword)
 		}
 	}
 

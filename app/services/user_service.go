@@ -17,6 +17,7 @@ type UserService interface {
 	CreateUser(email string, password string) (*models.User, *errors.ApiError)
 	LoginUser(email string, password string) (string, *errors.ApiError)
 	LogoutUser(tokenValue string) *errors.ApiError
+	UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError
 }
 
 type userService struct {
@@ -152,35 +153,47 @@ func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
 	return nil
 }
 
-// var UpdatePassword = func(db *gorm.DB, rdb *redis.Client, userID uuid.UUID, newPassword string) *errors.ApiError {
-// 	var u models.User
-// 	if err := db.Where(&models.User{ID: userID}).First(&u).Error; err != nil {
-// 		return errors.InternalServerError(err.Error())
-// 	}
+func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError {
+	u, err := s.userRepo.GetUser(userID)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return errors.BadRequestError("Invalid user id")
+		}
 
-// 	if err := auth.CompareHashAndPassword(u.PasswordHash, newPassword); err == nil {
-// 		return errors.BadRequestError("New password can not be the same as current value")
-// 	}
+		return errors.InternalServerError(err.Error())
+	}
 
-// 	p, err := auth.GenerateHashedPassword(newPassword)
-// 	if err != nil {
-// 		return errors.InternalServerError(err.Error())
-// 	}
+	if err := auth.CompareHashAndPassword(u.PasswordHash, password); err == nil {
+		return errors.BadRequestError("New password can not be the same as current value")
+	}
 
-// 	u.PasswordHash = p
-// 	u.UpdatedAt = time.Now().UTC()
+	p, err := auth.GenerateHashedPassword(password)
+	if err != nil {
+		return errors.InternalServerError(err.Error())
+	}
 
-// 	if err := db.Save(&u).Error; err != nil {
-// 		return errors.InternalServerError(err.Error())
-// 	}
+	u.PasswordHash = p
+	u.UpdatedAt = time.Now().UTC()
 
-// 	if err := DeleteUserSessions(rdb, userID); err != nil {
-// 		return errors.InternalServerError(err.Error())
-// 	}
+	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		if err := s.userRepo.UpdateUser(tx, u); err != nil {
+			return err
+		}
 
-// 	if err := RevokeUserLoginTokens(db, userID); err != nil {
-// 		return err
-// 	}
+		if err := s.loginTokenRepo.RevokeUserLoginTokens(tx, u.ID); err != nil {
+			return err
+		}
 
-// 	return nil
-// }
+		return nil
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	if err := transaction.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
+		return s.userSessionRepo.DeleteUserSessions(userID)
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
+}
