@@ -14,6 +14,7 @@ import (
 )
 
 type UserService interface {
+	GetUser(userID uuid.UUID) (*models.User, *errors.ApiError)
 	CreateUser(email string, password string) (*models.User, *errors.ApiError)
 	LoginUser(email string, password string) (string, *errors.ApiError)
 	LogoutUser(tokenValue string) *errors.ApiError
@@ -42,6 +43,19 @@ func NewUserService(
 		loginTokenRepo:  loginTokenRepo,
 		userSessionRepo: userSessionRepo,
 	}
+}
+
+func (s *userService) GetUser(userID uuid.UUID) (*models.User, *errors.ApiError) {
+	u, err := s.userRepo.GetUser(userID)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, errors.BadRequestError("User does not exist")
+		}
+
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return u, nil
 }
 
 func (s *userService) CreateUser(email string, password string) (*models.User, *errors.ApiError) {
@@ -157,7 +171,7 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 	u, err := s.userRepo.GetUser(userID)
 	if err != nil {
 		if errors.IsRecordNotFoundError(err) {
-			return errors.BadRequestError("Invalid user id")
+			return errors.BadRequestError("User does not exist")
 		}
 
 		return errors.InternalServerError(err.Error())

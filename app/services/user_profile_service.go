@@ -41,7 +41,7 @@ var UpdateUserProfile = func(db *gorm.DB, userID uuid.UUID, firstName, lastName 
 	var p models.UserProfile
 	if err := db.Where(&models.UserProfile{UserID: userID}).First(&p).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.BadRequestError("Profile for user %s does not exist", userID)
+			return nil, errors.BadRequestError("Profile for user does not exist")
 		}
 
 		return nil, errors.InternalServerError(err.Error())

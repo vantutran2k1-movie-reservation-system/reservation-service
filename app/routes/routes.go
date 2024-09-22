@@ -22,6 +22,7 @@ func RegisterRoutes() *gin.Engine {
 	{
 		users := apiV1.Group("/users")
 		{
+			users.GET("/", authMiddleware, controllers.UserController.GetUser)
 			users.POST("/", controllers.UserController.CreateUser)
 			users.POST("/login", controllers.UserController.LoginUser)
 			users.POST("/logout", authMiddleware, controllers.UserController.LogoutUser)

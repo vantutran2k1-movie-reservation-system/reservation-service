@@ -19,6 +19,22 @@ func NewUserController(userService *services.UserService) *UserController {
 	return &UserController{UserService: *userService}
 }
 
+func (c *UserController) GetUser(ctx *gin.Context) {
+	userID, err := middlewares.GetUserID(ctx)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := c.UserService.GetUser(userID)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": map[string]any{"email": u.Email}})
+}
+
 func (c *UserController) CreateUser(ctx *gin.Context) {
 	var req payloads.CreateUserRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
