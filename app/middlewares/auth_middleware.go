@@ -22,7 +22,7 @@ func NewAuthMiddleware(userSessionRepo repositories.UserSessionRepository) *Auth
 	return &AuthMiddleware{userSessionRepo: userSessionRepo}
 }
 
-func (m *AuthMiddleware) RequireAuthMiddleware() gin.HandlerFunc {
+func (m *AuthMiddleware) RequireJwtAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		tokenValue := auth.GetAuthTokenFromRequest(ctx.Request)
 		if tokenValue == "" {
@@ -36,6 +36,25 @@ func (m *AuthMiddleware) RequireAuthMiddleware() gin.HandlerFunc {
 		})
 		if err != nil || !token.Valid {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			return
+		}
+
+		s, err := m.userSessionRepo.GetUserSession(m.userSessionRepo.GetUserSessionID(tokenValue))
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			return
+		}
+
+		ctx.Set(USER_ID, s.UserID)
+		ctx.Next()
+	}
+}
+
+func (m *AuthMiddleware) RequireBasicAuthMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		tokenValue := auth.GetAuthTokenFromRequest(ctx.Request)
+		if tokenValue == "" {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
 			return
 		}
 

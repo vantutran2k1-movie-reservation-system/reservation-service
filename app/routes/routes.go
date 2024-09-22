@@ -14,7 +14,7 @@ func RegisterRoutes() *gin.Engine {
 	services := setupServices(repositories)
 	controllers := setupControllers(services)
 
-	authMiddleware := middlewares.NewAuthMiddleware(repositories.UserSessionRepository).RequireAuthMiddleware()
+	authMiddleware := middlewares.NewAuthMiddleware(repositories.UserSessionRepository).RequireBasicAuthMiddleware()
 
 	router := gin.Default()
 

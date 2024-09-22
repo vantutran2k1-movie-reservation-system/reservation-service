@@ -26,7 +26,7 @@ type JwtClaims struct {
 var JwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 func GenerateJwtToken(userID uuid.UUID) (*AuthToken, error) {
-	jwtExpiresAfterStr := os.Getenv("JWT_TOKEN_EXPIRES_AFTER_MINUTES")
+	jwtExpiresAfterStr := os.Getenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES")
 	jwtExpiresAfter, err := strconv.Atoi(jwtExpiresAfterStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid token expiry minutes: %v", err)
@@ -49,6 +49,23 @@ func GenerateJwtToken(userID uuid.UUID) (*AuthToken, error) {
 
 	t := AuthToken{
 		TokenValue:    tokenString,
+		CreatedAt:     time.Now().UTC(),
+		ValidDuration: validDuration,
+	}
+
+	return &t, nil
+}
+
+func GenerateBasicToken(userID uuid.UUID) (*AuthToken, error) {
+	tokenExpiresAfterStr := os.Getenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES")
+	tokenExpiresAfter, err := strconv.Atoi(tokenExpiresAfterStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid token expiry minutes: %v", err)
+	}
+
+	validDuration := time.Duration(tokenExpiresAfter) * time.Minute
+	t := AuthToken{
+		TokenValue:    uuid.NewString(),
 		CreatedAt:     time.Now().UTC(),
 		ValidDuration: validDuration,
 	}

@@ -90,7 +90,7 @@ func (s *userService) LoginUser(email string, password string) (string, *errors.
 		return "", errors.BadRequestError("Invalid password")
 	}
 
-	token, err := auth.GenerateJwtToken(u.ID)
+	token, err := auth.GenerateBasicToken(u.ID)
 	if err != nil {
 		return "", errors.InternalServerError(err.Error())
 	}
