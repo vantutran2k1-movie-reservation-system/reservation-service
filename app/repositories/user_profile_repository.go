@@ -1,0 +1,33 @@
+package repositories
+
+import (
+	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"gorm.io/gorm"
+)
+
+type UserProfileRepository interface {
+	GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error)
+	CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
+}
+
+type userProfileRepository struct {
+	db *gorm.DB
+}
+
+func NewUserProfileRepository(db *gorm.DB) UserProfileRepository {
+	return &userProfileRepository{db: db}
+}
+
+func (r *userProfileRepository) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error) {
+	var p models.UserProfile
+	if err := r.db.Where(&models.UserProfile{UserID: userID}).First(&p).Error; err != nil {
+		return nil, err
+	}
+
+	return &p, nil
+}
+
+func (r *userProfileRepository) CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
+	return tx.Create(profile).Error
+}

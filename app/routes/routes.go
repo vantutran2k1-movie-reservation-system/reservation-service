@@ -28,6 +28,11 @@ func RegisterRoutes() *gin.Engine {
 			users.POST("/logout", authMiddleware, controllers.UserController.LogoutUser)
 			users.PUT("/password", authMiddleware, controllers.UserController.UpdateUserPassword)
 		}
+
+		profiles := apiV1.Group("/profiles")
+		{
+			profiles.POST("/", authMiddleware, controllers.UserProfileController.CreateUserProfile)
+		}
 	}
 
 	return router
@@ -37,14 +42,17 @@ type Repositories struct {
 	UserRepository        repositories.UserRepository
 	LoginTokenRepository  repositories.LoginTokenRepository
 	UserSessionRepository repositories.UserSessionRepository
+	UserProfileRepository repositories.UserProfileRepository
 }
 
 type Services struct {
-	UserService services.UserService
+	UserService        services.UserService
+	UserProfileService services.UserProfileService
 }
 
 type Controllers struct {
-	UserController controllers.UserController
+	UserController        controllers.UserController
+	UserProfileController controllers.UserProfileController
 }
 
 func setupRepositories() *Repositories {
@@ -52,6 +60,7 @@ func setupRepositories() *Repositories {
 		UserRepository:        repositories.NewUserRepository(config.DB),
 		LoginTokenRepository:  repositories.NewLoginTokenRepository(config.DB),
 		UserSessionRepository: repositories.NewUserSessionRepository(config.RedisClient),
+		UserProfileRepository: repositories.NewUserProfileRepository(config.DB),
 	}
 }
 
@@ -64,11 +73,16 @@ func setupServices(repositories *Repositories) *Services {
 			repositories.LoginTokenRepository,
 			repositories.UserSessionRepository,
 		),
+		UserProfileService: services.NewUserProfileService(
+			config.DB,
+			repositories.UserProfileRepository,
+		),
 	}
 }
 
 func setupControllers(services *Services) *Controllers {
 	return &Controllers{
-		UserController: *controllers.NewUserController(&services.UserService),
+		UserController:        *controllers.NewUserController(&services.UserService),
+		UserProfileController: *controllers.NewUserProfileController(&services.UserProfileService),
 	}
 }

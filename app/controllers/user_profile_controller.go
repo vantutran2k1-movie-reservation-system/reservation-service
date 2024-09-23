@@ -12,26 +12,34 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
-var CreateUserProfile = func(c *gin.Context) {
+type UserProfileController struct {
+	UserProfileService services.UserProfileService
+}
+
+func NewUserProfileController(userProfileService *services.UserProfileService) *UserProfileController {
+	return &UserProfileController{UserProfileService: *userProfileService}
+}
+
+func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 	var req payloads.CreateUserProfileRequest
-	if errs := errors.BindAndValidate(c, &req); len(errs) > 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": errs})
+	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
 		return
 	}
 
-	userID, err := middlewares.GetUserID(c)
+	userID, err := middlewares.GetUserID(ctx)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	p, err := services.CreateUserProfile(config.DB, userID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
+	p, err := c.UserProfileService.CreateUserProfile(userID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
+	ctx.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
 }
 
 var UpdateUserProfile = func(c *gin.Context) {
