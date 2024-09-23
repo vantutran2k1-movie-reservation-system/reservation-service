@@ -13,6 +13,7 @@ import (
 
 type UserProfileService interface {
 	CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
+	UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
 }
 
 type userProfileService struct {
@@ -50,6 +51,30 @@ func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, last
 	}
 
 	return &p, nil
+}
+
+func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
+	p, err := s.userProfileRepo.GetProfileByUserID(userID)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, errors.BadRequestError("User profile does not exist")
+		}
+
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	p.FirstName = firstName
+	p.LastName = lastName
+	p.PhoneNumber = phoneNumber
+	p.DateOfBirth = dateOfBirth
+	p.UpdatedAt = time.Now().UTC()
+	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.userProfileRepo.UpdateUserProfile(tx, p)
+	}); err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return p, nil
 }
 
 var UpdateUserProfile = func(db *gorm.DB, userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {

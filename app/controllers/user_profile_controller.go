@@ -9,7 +9,6 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
 type UserProfileController struct {
@@ -42,26 +41,26 @@ func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
 }
 
-var UpdateUserProfile = func(c *gin.Context) {
-	var req payloads.UpdateUserProfileRequest
-	if errs := errors.BindAndValidate(c, &req); len(errs) > 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": errs})
+func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
+	var req payloads.CreateUserProfileRequest
+	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
 		return
 	}
 
-	userID, err := middlewares.GetUserID(c)
+	userID, err := middlewares.GetUserID(ctx)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	p, err := services.UpdateUserProfile(config.DB, userID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
+	p, err := c.UserProfileService.UpdateUserProfile(userID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": buildUserProfileResponseData(p)})
+	ctx.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
 }
 
 func buildUserProfileResponseData(p *models.UserProfile) map[string]any {

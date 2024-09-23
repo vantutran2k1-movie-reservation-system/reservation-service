@@ -32,6 +32,7 @@ func RegisterRoutes() *gin.Engine {
 		profiles := apiV1.Group("/profiles")
 		{
 			profiles.POST("/", authMiddleware, controllers.UserProfileController.CreateUserProfile)
+			profiles.PUT("/", authMiddleware, controllers.UserProfileController.UpdateUserProfile)
 		}
 	}
 

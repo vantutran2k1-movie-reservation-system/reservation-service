@@ -9,6 +9,7 @@ import (
 type UserProfileRepository interface {
 	GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error)
 	CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
+	UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
 }
 
 type userProfileRepository struct {
@@ -30,4 +31,8 @@ func (r *userProfileRepository) GetProfileByUserID(userID uuid.UUID) (*models.Us
 
 func (r *userProfileRepository) CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
 	return tx.Create(profile).Error
+}
+
+func (r *userProfileRepository) UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
+	return tx.Save(profile).Error
 }
