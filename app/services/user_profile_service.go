@@ -12,6 +12,7 @@ import (
 )
 
 type UserProfileService interface {
+	GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError)
 	CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
 	UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
 }
@@ -23,6 +24,19 @@ type userProfileService struct {
 
 func NewUserProfileService(db *gorm.DB, userProfileRepo repositories.UserProfileRepository) UserProfileService {
 	return &userProfileService{db: db, userProfileRepo: userProfileRepo}
+}
+
+func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError) {
+	p, err := s.userProfileRepo.GetProfileByUserID(userID)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, errors.BadRequestError("User profile does not exist")
+		}
+
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return p, nil
 }
 
 func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
@@ -75,26 +89,4 @@ func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, last
 	}
 
 	return p, nil
-}
-
-var UpdateUserProfile = func(db *gorm.DB, userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
-	var p models.UserProfile
-	if err := db.Where(&models.UserProfile{UserID: userID}).First(&p).Error; err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.BadRequestError("Profile for user does not exist")
-		}
-
-		return nil, errors.InternalServerError(err.Error())
-	}
-
-	p.FirstName = firstName
-	p.LastName = lastName
-	p.PhoneNumber = phoneNumber
-	p.DateOfBirth = dateOfBirth
-	p.UpdatedAt = time.Now().UTC()
-	if err := db.Save(&p).Error; err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-
-	return &p, nil
 }

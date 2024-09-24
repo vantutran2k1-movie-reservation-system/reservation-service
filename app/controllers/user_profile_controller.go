@@ -19,6 +19,22 @@ func NewUserProfileController(userProfileService *services.UserProfileService) *
 	return &UserProfileController{UserProfileService: *userProfileService}
 }
 
+func (c *UserProfileController) GetProfileByUserID(ctx *gin.Context) {
+	userID, err := middlewares.GetUserID(ctx)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	p, err := c.UserProfileService.GetProfileByUserID(userID)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
+}
+
 func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 	var req payloads.CreateUserProfileRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
