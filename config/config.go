@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -13,6 +15,7 @@ import (
 
 var DB *gorm.DB
 var RedisClient *redis.Client
+var MinioClient *minio.Client
 
 func InitDB() {
 	dbHost := os.Getenv("DB_HOST")
@@ -46,4 +49,22 @@ func InitRedis() {
 	})
 
 	RedisClient = rdb
+}
+
+func InitMinio() {
+	minioHost := os.Getenv("MINIO_HOST")
+	minioPort := os.Getenv("MINIO_PORT")
+	minioAccessKey := os.Getenv("MINIO_ACCESS_KEY")
+	minioSecretKey := os.Getenv("MINIO_SECRET_KEY")
+	useSSL := false
+
+	minioClient, err := minio.New(fmt.Sprintf("%s:%s", minioHost, minioPort), &minio.Options{
+		Creds:  credentials.NewStaticV4(minioAccessKey, minioSecretKey, ""),
+		Secure: useSSL,
+	})
+	if err != nil {
+		log.Fatalf("Failed to connect to Minio: %v", err)
+	}
+
+	MinioClient = minioClient
 }

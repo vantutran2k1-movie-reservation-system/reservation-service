@@ -23,6 +23,7 @@ func InitApp() *App {
 
 	config.InitDB()
 	config.InitRedis()
+	config.InitMinio()
 
 	router := routes.RegisterRoutes()
 	return &App{
