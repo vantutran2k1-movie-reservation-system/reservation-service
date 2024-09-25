@@ -8,11 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
 )
-
-const USER_ID = "user_id"
 
 type AuthMiddleware struct {
 	userSessionRepo repositories.UserSessionRepository
@@ -45,7 +44,7 @@ func (m *AuthMiddleware) RequireJwtAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(USER_ID, s.UserID)
+		ctx.Set(constants.USER_ID, s.UserID)
 		ctx.Next()
 	}
 }
@@ -64,13 +63,13 @@ func (m *AuthMiddleware) RequireBasicAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(USER_ID, s.UserID)
+		ctx.Set(constants.USER_ID, s.UserID)
 		ctx.Next()
 	}
 }
 
 func GetUserID(ctx *gin.Context) (uuid.UUID, *errors.ApiError) {
-	userID, exist := ctx.Get(USER_ID)
+	userID, exist := ctx.Get(constants.USER_ID)
 	if !exist {
 		return uuid.Nil, errors.InternalServerError("Can not get user id from request")
 	}

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
@@ -77,6 +78,27 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
+}
+
+func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
+	userID, err := middlewares.GetUserID(ctx)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	files, err := middlewares.GetUploadedFiles(ctx, constants.PROFILE_PICTURE_REQUEST_FORM_KEY)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := c.UserProfileService.UpdateProfilePicture(userID, files[0]); err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": "Profile picture is updated successfully"})
 }
 
 func buildUserProfileResponseData(p *models.UserProfile) map[string]any {
