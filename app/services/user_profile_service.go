@@ -21,6 +21,7 @@ type UserProfileService interface {
 	CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
 	UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
 	UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) *errors.ApiError
+	DeleteProfilePicture(userID uuid.UUID) *errors.ApiError
 }
 
 type userProfileService struct {
@@ -124,6 +125,16 @@ func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multip
 
 	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.userProfileRepo.UpdateProfilePicture(tx, userID, objectName)
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
+}
+
+func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiError {
+	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.userProfileRepo.DeleteProfilePicture(tx, userID)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
 	}

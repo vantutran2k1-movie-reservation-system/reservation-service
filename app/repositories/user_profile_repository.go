@@ -13,6 +13,7 @@ type UserProfileRepository interface {
 	CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
 	UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
 	UpdateProfilePicture(tx *gorm.DB, userID uuid.UUID, profilePictureUrl string) error
+	DeleteProfilePicture(tx *gorm.DB, userID uuid.UUID) error
 }
 
 type userProfileRepository struct {
@@ -50,4 +51,20 @@ func (r *userProfileRepository) UpdateProfilePicture(tx *gorm.DB, userID uuid.UU
 	p.UpdatedAt = time.Now().UTC()
 
 	return tx.Save(p).Error
+}
+
+func (r *userProfileRepository) DeleteProfilePicture(tx *gorm.DB, userID uuid.UUID) error {
+	p, err := r.GetProfileByUserID(userID)
+	if err != nil {
+		return err
+	}
+
+	if p.ProfilePictureUrl != nil {
+		p.ProfilePictureUrl = nil
+		p.UpdatedAt = time.Now().UTC()
+
+		return tx.Save(p).Error
+	}
+
+	return nil
 }

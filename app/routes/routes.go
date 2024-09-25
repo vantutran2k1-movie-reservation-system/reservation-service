@@ -27,8 +27,10 @@ func RegisterRoutes() *gin.Engine {
 		{
 			users.GET("/", authMiddleware, c.UserController.GetUser)
 			users.POST("/", c.UserController.CreateUser)
+
 			users.POST("/login", c.UserController.LoginUser)
 			users.POST("/logout", authMiddleware, c.UserController.LogoutUser)
+
 			users.PUT("/password", authMiddleware, c.UserController.UpdateUserPassword)
 		}
 
@@ -38,6 +40,7 @@ func RegisterRoutes() *gin.Engine {
 			profiles.GET("/", c.UserProfileController.GetProfileByUserID)
 			profiles.POST("/", c.UserProfileController.CreateUserProfile)
 			profiles.PUT("/", c.UserProfileController.UpdateUserProfile)
+
 			profiles.PUT(
 				"/profile-picture",
 				filesUploadMiddleware.RequireNumberOfUploadedFilesMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, 1),
@@ -45,6 +48,7 @@ func RegisterRoutes() *gin.Engine {
 				filesUploadMiddleware.NotExceedMaxSizeLimitMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, middlewares.GetMaxProfilePictureFileSize()),
 				c.UserProfileController.UpdateProfilePicture,
 			)
+			profiles.DELETE("/profile-picture", c.UserProfileController.DeleteProfilePicture)
 		}
 	}
 

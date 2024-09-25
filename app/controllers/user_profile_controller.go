@@ -33,7 +33,7 @@ func (c *UserProfileController) GetProfileByUserID(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
+	ctx.JSON(http.StatusOK, gin.H{"data": buildUserProfileResponseData(p)})
 }
 
 func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
@@ -77,7 +77,7 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
+	ctx.JSON(http.StatusOK, gin.H{"data": buildUserProfileResponseData(p)})
 }
 
 func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
@@ -99,6 +99,21 @@ func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": "Profile picture is updated successfully"})
+}
+
+func (c *UserProfileController) DeleteProfilePicture(ctx *gin.Context) {
+	userID, err := middlewares.GetUserID(ctx)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := c.UserProfileService.DeleteProfilePicture(userID); err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": "Profile picture is deleted successfully"})
 }
 
 func buildUserProfileResponseData(p *models.UserProfile) map[string]any {
