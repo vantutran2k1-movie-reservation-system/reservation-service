@@ -9,6 +9,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 )
 
 type UserController struct {
@@ -32,7 +33,7 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": map[string]any{"email": u.Email}})
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(u)})
 }
 
 func (c *UserController) CreateUser(ctx *gin.Context) {
@@ -48,7 +49,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"data": map[string]any{"email": u.Email}})
+	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(u)})
 }
 
 func (c *UserController) LoginUser(ctx *gin.Context) {
@@ -64,7 +65,7 @@ func (c *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": map[string]any{"token": token}})
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(token)})
 }
 
 func (c *UserController) LogoutUser(ctx *gin.Context) {

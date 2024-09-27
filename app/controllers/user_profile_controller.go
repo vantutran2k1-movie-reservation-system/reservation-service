@@ -7,9 +7,9 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 )
 
 type UserProfileController struct {
@@ -33,7 +33,7 @@ func (c *UserProfileController) GetProfileByUserID(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": buildUserProfileResponseData(p)})
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(p)})
 }
 
 func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
@@ -55,7 +55,7 @@ func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"data": buildUserProfileResponseData(p)})
+	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(p)})
 }
 
 func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
@@ -77,7 +77,7 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": buildUserProfileResponseData(p)})
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(p)})
 }
 
 func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
@@ -114,19 +114,4 @@ func (c *UserProfileController) DeleteProfilePicture(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": "Profile picture is deleted successfully"})
-}
-
-func buildUserProfileResponseData(p *models.UserProfile) map[string]any {
-	data := map[string]any{
-		"first_name": p.FirstName,
-		"last_name":  p.LastName,
-	}
-	if p.PhoneNumber != nil {
-		data["phone_number"] = p.PhoneNumber
-	}
-	if p.DateOfBirth != nil {
-		data["date_of_birth"] = p.DateOfBirth
-	}
-
-	return data
 }

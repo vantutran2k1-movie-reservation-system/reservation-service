@@ -16,7 +16,7 @@ import (
 type UserService interface {
 	GetUser(userID uuid.UUID) (*models.User, *errors.ApiError)
 	CreateUser(email string, password string) (*models.User, *errors.ApiError)
-	LoginUser(email string, password string) (string, *errors.ApiError)
+	LoginUser(email string, password string) (*models.LoginToken, *errors.ApiError)
 	LogoutUser(tokenValue string) *errors.ApiError
 	UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError
 }
@@ -90,43 +90,44 @@ func (s *userService) CreateUser(email string, password string) (*models.User, *
 	return &u, nil
 }
 
-func (s *userService) LoginUser(email string, password string) (string, *errors.ApiError) {
+func (s *userService) LoginUser(email string, password string) (*models.LoginToken, *errors.ApiError) {
 	u, err := s.userRepo.FindUserByEmail(email)
 	if err != nil {
 		if errors.IsRecordNotFoundError(err) {
-			return "", errors.BadRequestError("Invalid email %s", email)
+			return nil, errors.BadRequestError("Invalid email %s", email)
 		}
 
-		return "", errors.InternalServerError(err.Error())
+		return nil, errors.InternalServerError(err.Error())
 	}
 
 	if err := auth.CompareHashAndPassword(u.PasswordHash, password); err != nil {
-		return "", errors.BadRequestError("Invalid password")
+		return nil, errors.BadRequestError("Invalid password")
 	}
 
 	token, err := auth.GenerateBasicToken(u.ID)
 	if err != nil {
-		return "", errors.InternalServerError(err.Error())
+		return nil, errors.InternalServerError(err.Error())
 	}
 
 	_, err = s.loginTokenRepo.GetActiveLoginToken(token.TokenValue)
 	if err == nil {
-		return "", errors.InternalServerError("Token value already exists")
+		return nil, errors.InternalServerError("Token value already exists")
 	}
 	if !errors.IsRecordNotFoundError(err) {
-		return "", errors.InternalServerError(err.Error())
+		return nil, errors.InternalServerError(err.Error())
 	}
 
+	t := models.LoginToken{
+		ID:         uuid.New(),
+		UserID:     u.ID,
+		TokenValue: token.TokenValue,
+		CreatedAt:  token.CreatedAt,
+		ExpiresAt:  token.CreatedAt.Add(token.ValidDuration),
+	}
 	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.loginTokenRepo.CreateLoginToken(tx, &models.LoginToken{
-			ID:         uuid.New(),
-			UserID:     u.ID,
-			TokenValue: token.TokenValue,
-			CreatedAt:  token.CreatedAt,
-			ExpiresAt:  token.CreatedAt.Add(token.ValidDuration),
-		})
+		return s.loginTokenRepo.CreateLoginToken(tx, &t)
 	}); err != nil {
-		return "", errors.InternalServerError(err.Error())
+		return nil, errors.InternalServerError(err.Error())
 	}
 
 	if err := transaction.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
@@ -136,10 +137,10 @@ func (s *userService) LoginUser(email string, password string) (string, *errors.
 			&models.UserSession{UserID: u.ID},
 		)
 	}); err != nil {
-		return "", errors.InternalServerError(err.Error())
+		return nil, errors.InternalServerError(err.Error())
 	}
 
-	return token.TokenValue, nil
+	return &t, nil
 }
 
 func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
