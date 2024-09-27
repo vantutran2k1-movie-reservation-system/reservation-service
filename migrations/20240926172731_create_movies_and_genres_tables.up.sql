@@ -7,7 +7,7 @@ CREATE TABLE movies (
     language VARCHAR(50),
     rating FLOAT CHECK (rating >= 0 AND rating <= 5),
     created_at TIMESTAMPTZ DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
-    expires_at TIMESTAMPTZ DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+    updated_at TIMESTAMPTZ DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
 );
 
 CREATE INDEX idx_movies_title ON movies(title);

@@ -50,6 +50,11 @@ func RegisterRoutes() *gin.Engine {
 			)
 			profiles.DELETE("/profile-picture", c.UserProfileController.DeleteProfilePicture)
 		}
+
+		movies := apiV1.Group("/movies")
+		{
+			movies.POST("/", authMiddleware, c.MovieController.CreateMovie)
+		}
 	}
 
 	return router
@@ -60,16 +65,19 @@ type Repositories struct {
 	LoginTokenRepository  repositories.LoginTokenRepository
 	UserSessionRepository repositories.UserSessionRepository
 	UserProfileRepository repositories.UserProfileRepository
+	MovieRepository       repositories.MovieRepository
 }
 
 type Services struct {
 	UserService        services.UserService
 	UserProfileService services.UserProfileService
+	MovieService       services.MovieService
 }
 
 type Controllers struct {
 	UserController        controllers.UserController
 	UserProfileController controllers.UserProfileController
+	MovieController       controllers.MovieController
 }
 
 type Middlewares struct {
@@ -83,6 +91,7 @@ func setupRepositories() *Repositories {
 		LoginTokenRepository:  repositories.NewLoginTokenRepository(config.DB),
 		UserSessionRepository: repositories.NewUserSessionRepository(config.RedisClient),
 		UserProfileRepository: repositories.NewUserProfileRepository(config.DB),
+		MovieRepository:       repositories.NewMovieRepository(config.DB),
 	}
 }
 
@@ -100,6 +109,10 @@ func setupServices(repositories *Repositories) *Services {
 			config.MinioClient,
 			repositories.UserProfileRepository,
 		),
+		MovieService: services.NewMovieService(
+			config.DB,
+			repositories.MovieRepository,
+		),
 	}
 }
 
@@ -107,6 +120,7 @@ func setupControllers(services *Services) *Controllers {
 	return &Controllers{
 		UserController:        *controllers.NewUserController(&services.UserService),
 		UserProfileController: *controllers.NewUserProfileController(&services.UserProfileService),
+		MovieController:       *controllers.NewMovieController(&services.MovieService),
 	}
 }
 
