@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
@@ -21,13 +20,13 @@ func NewUserController(userService *services.UserService) *UserController {
 }
 
 func (c *UserController) GetUser(ctx *gin.Context) {
-	userID, err := middlewares.GetUserID(ctx)
+	s, err := middlewares.GetUserSession(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	u, err := c.UserService.GetUser(userID)
+	u, err := c.UserService.GetUser(s.UserID)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -69,8 +68,8 @@ func (c *UserController) LoginUser(ctx *gin.Context) {
 }
 
 func (c *UserController) LogoutUser(ctx *gin.Context) {
-	tokenValue := auth.GetAuthTokenFromRequest(ctx.Request)
-	if err := c.UserService.LogoutUser(tokenValue); err != nil {
+	t := utils.GetAuthorizationHeader(ctx.Request)
+	if err := c.UserService.LogoutUser(t); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
@@ -85,13 +84,13 @@ func (c *UserController) UpdateUserPassword(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := middlewares.GetUserID(ctx)
+	s, err := middlewares.GetUserSession(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := c.UserService.UpdateUserPassword(userID, req.Password); err != nil {
+	if err := c.UserService.UpdateUserPassword(s.UserID, req.Password); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}

@@ -18,7 +18,7 @@ func RegisterRoutes() *gin.Engine {
 
 	router := gin.Default()
 
-	authMiddleware := m.AuthMiddleware.RequireBasicAuthMiddleware()
+	authMiddleware := m.AuthMiddleware.RequireAuthMiddleware()
 	filesUploadMiddleware := m.FilesUploadMiddleware
 
 	apiV1 := router.Group("/api/v1")

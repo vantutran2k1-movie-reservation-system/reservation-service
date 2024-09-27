@@ -21,13 +21,13 @@ func NewUserProfileController(userProfileService *services.UserProfileService) *
 }
 
 func (c *UserProfileController) GetProfileByUserID(ctx *gin.Context) {
-	userID, err := middlewares.GetUserID(ctx)
+	s, err := middlewares.GetUserSession(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	p, err := c.UserProfileService.GetProfileByUserID(userID)
+	p, err := c.UserProfileService.GetProfileByUserID(s.UserID)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -43,13 +43,13 @@ func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := middlewares.GetUserID(ctx)
+	s, err := middlewares.GetUserSession(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	p, err := c.UserProfileService.CreateUserProfile(userID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
+	p, err := c.UserProfileService.CreateUserProfile(s.UserID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -65,13 +65,13 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := middlewares.GetUserID(ctx)
+	s, err := middlewares.GetUserSession(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	p, err := c.UserProfileService.UpdateUserProfile(userID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
+	p, err := c.UserProfileService.UpdateUserProfile(s.UserID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -81,7 +81,7 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 }
 
 func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
-	userID, err := middlewares.GetUserID(ctx)
+	s, err := middlewares.GetUserSession(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -93,7 +93,7 @@ func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.UserProfileService.UpdateProfilePicture(userID, files[0]); err != nil {
+	if err := c.UserProfileService.UpdateProfilePicture(s.UserID, files[0]); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
@@ -102,13 +102,13 @@ func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
 }
 
 func (c *UserProfileController) DeleteProfilePicture(ctx *gin.Context) {
-	userID, err := middlewares.GetUserID(ctx)
+	s, err := middlewares.GetUserSession(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := c.UserProfileService.DeleteProfilePicture(userID); err != nil {
+	if err := c.UserProfileService.DeleteProfilePicture(s.UserID); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}

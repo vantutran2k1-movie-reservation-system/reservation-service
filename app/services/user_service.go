@@ -104,7 +104,7 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 		return nil, errors.BadRequestError("Invalid password")
 	}
 
-	token, err := auth.GenerateBasicToken(u.ID)
+	token, err := auth.NewTokenGenerator().GenerateToken()
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -134,7 +134,7 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 		return s.userSessionRepo.CreateUserSession(
 			s.userSessionRepo.GetUserSessionID(token.TokenValue),
 			token.ValidDuration,
-			&models.UserSession{UserID: u.ID},
+			&models.UserSession{UserID: u.ID, Email: u.Email},
 		)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
