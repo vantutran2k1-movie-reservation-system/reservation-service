@@ -33,8 +33,12 @@ func (r *userRepository) GetUser(userID uuid.UUID) (*models.User, error) {
 
 func (r *userRepository) FindUserByEmail(email string) (*models.User, error) {
 	var u models.User
-	err := r.db.Where(&models.User{Email: email}).First(&u).Error
-	return &u, err
+
+	if err := r.db.Where(&models.User{Email: email}).First(&u).Error; err != nil {
+		return nil, err
+	}
+
+	return &u, nil
 }
 
 func (r *userRepository) CreateUser(tx *gorm.DB, user *models.User) error {
