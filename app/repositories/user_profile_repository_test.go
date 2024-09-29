@@ -17,8 +17,6 @@ func TestUserProfileRepository_GetProfileByUserID_Success(t *testing.T) {
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	expectedProfile := test.GenerateRandomUserProfile()
 
 	mock.ExpectQuery(`SELECT \* FROM "user_profiles" WHERE "user_profiles"."user_id" = \$1 ORDER BY "user_profiles"."id" LIMIT \$2`).
@@ -26,7 +24,7 @@ func TestUserProfileRepository_GetProfileByUserID_Success(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "user_id", "first_name", "last_name", "phone_number", "date_of_birth", "profile_picture_url", "bio", "created_at", "updated_at"}).
 			AddRow(expectedProfile.ID, expectedProfile.UserID, expectedProfile.FirstName, expectedProfile.LastName, expectedProfile.PhoneNumber, expectedProfile.DateOfBirth, expectedProfile.ProfilePictureUrl, expectedProfile.Bio, expectedProfile.CreatedAt, expectedProfile.UpdatedAt))
 
-	profile, err := repo.GetProfileByUserID(expectedProfile.UserID)
+	profile, err := NewUserProfileRepository(db).GetProfileByUserID(expectedProfile.UserID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, profile)
@@ -48,15 +46,13 @@ func TestUserProfileRepository_GetProfileByUserID_NotFound(t *testing.T) {
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	userID := uuid.New()
 
 	mock.ExpectQuery(`SELECT \* FROM "user_profiles" WHERE "user_profiles"."user_id" = \$1 ORDER BY "user_profiles"."id" LIMIT \$2`).
 		WithArgs(userID, 1).
 		WillReturnError(gorm.ErrRecordNotFound)
 
-	profile, err := repo.GetProfileByUserID(userID)
+	profile, err := NewUserProfileRepository(db).GetProfileByUserID(userID)
 
 	assert.Nil(t, profile)
 	assert.Error(t, err)
@@ -71,8 +67,6 @@ func TestUserProfileRepository_CreateUserProfile_Success(t *testing.T) {
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	profile := test.GenerateRandomUserProfile()
 
 	mock.ExpectBegin()
@@ -82,7 +76,7 @@ func TestUserProfileRepository_CreateUserProfile_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	tx := db.Begin()
-	err := repo.CreateUserProfile(tx, profile)
+	err := NewUserProfileRepository(db).CreateUserProfile(tx, profile)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -100,8 +94,6 @@ func TestUserProfileRepository_CreateUserProfile_Failure(t *testing.T) {
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	profile := test.GenerateRandomUserProfile()
 
 	mock.ExpectBegin()
@@ -111,7 +103,7 @@ func TestUserProfileRepository_CreateUserProfile_Failure(t *testing.T) {
 	mock.ExpectRollback()
 
 	tx := db.Begin()
-	err := repo.CreateUserProfile(tx, profile)
+	err := NewUserProfileRepository(db).CreateUserProfile(tx, profile)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -130,8 +122,6 @@ func TestUserProfileRepository_UpdateUserProfile_Success(t *testing.T) {
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	profile := test.GenerateRandomUserProfile()
 
 	mock.ExpectBegin()
@@ -141,7 +131,7 @@ func TestUserProfileRepository_UpdateUserProfile_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	tx := db.Begin()
-	err := repo.UpdateUserProfile(tx, profile)
+	err := NewUserProfileRepository(db).UpdateUserProfile(tx, profile)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -159,8 +149,6 @@ func TestUserProfileRepository_UpdateUserProfile_Failure(t *testing.T) {
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	profile := test.GenerateRandomUserProfile()
 
 	mock.ExpectBegin()
@@ -170,7 +158,7 @@ func TestUserProfileRepository_UpdateUserProfile_Failure(t *testing.T) {
 	mock.ExpectRollback()
 
 	tx := db.Begin()
-	err := repo.UpdateUserProfile(tx, profile)
+	err := NewUserProfileRepository(db).UpdateUserProfile(tx, profile)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -189,8 +177,6 @@ func TestUserProfileRepository_UpdateProfilePicture_Success(t *testing.T) {
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	id := uuid.New()
 	userID := uuid.New()
 	createdAt := time.Now().UTC()
@@ -208,7 +194,7 @@ func TestUserProfileRepository_UpdateProfilePicture_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	tx := db.Begin()
-	err := repo.UpdateProfilePicture(tx, userID, profilePictureUrl)
+	err := NewUserProfileRepository(db).UpdateProfilePicture(tx, userID, profilePictureUrl)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -226,8 +212,6 @@ func TestUserProfileRepository_UpdateProfilePicture_Failure_GetProfile(t *testin
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	userID := uuid.New()
 	profilePictureUrl := "http://example.com/new_profile_picture.jpg"
 
@@ -238,7 +222,7 @@ func TestUserProfileRepository_UpdateProfilePicture_Failure_GetProfile(t *testin
 	mock.ExpectRollback()
 
 	tx := db.Begin()
-	err := repo.UpdateProfilePicture(tx, userID, profilePictureUrl)
+	err := NewUserProfileRepository(db).UpdateProfilePicture(tx, userID, profilePictureUrl)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -257,8 +241,6 @@ func TestUserProfileRepository_UpdateProfilePicture_Failure_Update(t *testing.T)
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	id := uuid.New()
 	userID := uuid.New()
 	createdAt := time.Now().UTC()
@@ -276,7 +258,7 @@ func TestUserProfileRepository_UpdateProfilePicture_Failure_Update(t *testing.T)
 	mock.ExpectRollback()
 
 	tx := db.Begin()
-	err := repo.UpdateProfilePicture(tx, userID, profilePictureUrl)
+	err := NewUserProfileRepository(db).UpdateProfilePicture(tx, userID, profilePictureUrl)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -295,8 +277,6 @@ func TestUserProfileRepository_DeleteProfilePicture_Success(t *testing.T) {
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	id := uuid.New()
 	userID := uuid.New()
 	createdAt := time.Now().UTC()
@@ -314,7 +294,7 @@ func TestUserProfileRepository_DeleteProfilePicture_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	tx := db.Begin()
-	err := repo.DeleteProfilePicture(tx, userID)
+	err := NewUserProfileRepository(db).DeleteProfilePicture(tx, userID)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -332,8 +312,6 @@ func TestUserProfileRepository_DeleteProfilePicture_Failure_GetProfile(t *testin
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	userID := uuid.New()
 
 	mock.ExpectBegin()
@@ -343,7 +321,7 @@ func TestUserProfileRepository_DeleteProfilePicture_Failure_GetProfile(t *testin
 	mock.ExpectRollback()
 
 	tx := db.Begin()
-	err := repo.DeleteProfilePicture(tx, userID)
+	err := NewUserProfileRepository(db).DeleteProfilePicture(tx, userID)
 	if err == nil {
 		tx.Commit()
 	} else {
@@ -362,8 +340,6 @@ func TestUserProfileRepository_DeleteProfilePicture_NoProfilePicture(t *testing.
 		test.TearDownTestDB(db, mock)
 	}()
 
-	repo := NewUserProfileRepository(db)
-
 	userID := uuid.New()
 
 	mock.ExpectBegin()
@@ -373,7 +349,7 @@ func TestUserProfileRepository_DeleteProfilePicture_NoProfilePicture(t *testing.
 			AddRow(uuid.New(), userID, "John", "Doe", nil, nil, nil, nil, time.Now().UTC(), time.Now().UTC()))
 
 	tx := db.Begin()
-	err := repo.DeleteProfilePicture(tx, userID)
+	err := NewUserProfileRepository(db).DeleteProfilePicture(tx, userID)
 
 	assert.NoError(t, err)
 
