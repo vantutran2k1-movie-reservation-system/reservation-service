@@ -1,6 +1,8 @@
 package test
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 )
@@ -27,5 +29,15 @@ func GenerateRandomUserProfile() *models.UserProfile {
 		DateOfBirth:       &dateOfBirth,
 		ProfilePictureUrl: &profilePictureUrl,
 		Bio:               &bio,
+	}
+}
+
+func GenerateRandomLoginToken() *models.LoginToken {
+	return &models.LoginToken{
+		ID:         uuid.New(),
+		UserID:     uuid.New(),
+		TokenValue: "sample_token_value",
+		CreatedAt:  time.Now().Add(-1 * time.Hour),
+		ExpiresAt:  time.Now().Add(24 * time.Hour),
 	}
 }
