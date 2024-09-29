@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Test_GetUser_Success(t *testing.T) {
+func TestUserRepository_GetUser_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -38,7 +38,7 @@ func Test_GetUser_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_GetUser_UserNotFound(t *testing.T) {
+func TestUserRepository_GetUser_UserNotFound(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -61,7 +61,7 @@ func Test_GetUser_UserNotFound(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_GetUser_QueryError(t *testing.T) {
+func TestUserRepository_GetUser_QueryError(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -84,7 +84,7 @@ func Test_GetUser_QueryError(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_FindUserByEmail_Success(t *testing.T) {
+func TestUserRepository_FindUserByEmail_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -111,7 +111,7 @@ func Test_FindUserByEmail_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_FindUserByEmail_UserNotFound(t *testing.T) {
+func TestUserRepository_FindUserByEmail_UserNotFound(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -134,7 +134,7 @@ func Test_FindUserByEmail_UserNotFound(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_FindUserByEmail_QueryError(t *testing.T) {
+func TestUserRepository_FindUserByEmail_QueryError(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -157,7 +157,7 @@ func Test_FindUserByEmail_QueryError(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_CreateUser_Success(t *testing.T) {
+func TestUserRepository_CreateUser_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -185,7 +185,7 @@ func Test_CreateUser_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_CreateUser_Failure(t *testing.T) {
+func TestUserRepository_CreateUser_Failure(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -214,7 +214,7 @@ func Test_CreateUser_Failure(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_UpdateUser_Success(t *testing.T) {
+func TestUserRepository_UpdateUser_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -242,7 +242,7 @@ func Test_UpdateUser_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_UpdateUser_Failure(t *testing.T) {
+func TestUserRepository_UpdateUser_Failure(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)

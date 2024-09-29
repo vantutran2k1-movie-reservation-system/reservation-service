@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Test_GetProfileByUserID_Success(t *testing.T) {
+func TestUserProfileRepository_GetProfileByUserID_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -42,7 +42,7 @@ func Test_GetProfileByUserID_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_GetProfileByUserID_NotFound(t *testing.T) {
+func TestUserProfileRepository_GetProfileByUserID_NotFound(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -65,7 +65,7 @@ func Test_GetProfileByUserID_NotFound(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_CreateUserProfile_Success(t *testing.T) {
+func TestUserProfileRepository_CreateUserProfile_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -94,7 +94,7 @@ func Test_CreateUserProfile_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_CreateUserProfile_Failure(t *testing.T) {
+func TestUserProfileRepository_CreateUserProfile_Failure(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -124,7 +124,7 @@ func Test_CreateUserProfile_Failure(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_UpdateUserProfile_Success(t *testing.T) {
+func TestUserProfileRepository_UpdateUserProfile_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -153,7 +153,7 @@ func Test_UpdateUserProfile_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_UpdateUserProfile_Failure(t *testing.T) {
+func TestUserProfileRepository_UpdateUserProfile_Failure(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -183,7 +183,7 @@ func Test_UpdateUserProfile_Failure(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_UpdateProfilePicture_Success(t *testing.T) {
+func TestUserProfileRepository_UpdateProfilePicture_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -220,7 +220,7 @@ func Test_UpdateProfilePicture_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_UpdateProfilePicture_Failure_GetProfile(t *testing.T) {
+func TestUserProfileRepository_UpdateProfilePicture_Failure_GetProfile(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -251,7 +251,7 @@ func Test_UpdateProfilePicture_Failure_GetProfile(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_UpdateProfilePicture_Failure_Update(t *testing.T) {
+func TestUserProfileRepository_UpdateProfilePicture_Failure_Update(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -289,7 +289,7 @@ func Test_UpdateProfilePicture_Failure_Update(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_DeleteProfilePicture_Success(t *testing.T) {
+func TestUserProfileRepository_DeleteProfilePicture_Success(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -326,7 +326,7 @@ func Test_DeleteProfilePicture_Success(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_DeleteProfilePicture_Failure_GetProfile(t *testing.T) {
+func TestUserProfileRepository_DeleteProfilePicture_Failure_GetProfile(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
@@ -356,7 +356,7 @@ func Test_DeleteProfilePicture_Failure_GetProfile(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func Test_DeleteProfilePicture_NoProfilePicture(t *testing.T) {
+func TestUserProfileRepository_DeleteProfilePicture_NoProfilePicture(t *testing.T) {
 	db, mock := test.SetupTestDB(t)
 	defer func() {
 		test.TearDownTestDB(db, mock)
