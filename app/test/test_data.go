@@ -11,3 +11,21 @@ func GenerateRandomUser() *models.User {
 		Email: "john.doe@example.com",
 	}
 }
+
+func GenerateRandomUserProfile() *models.UserProfile {
+	phoneNumber := "123-456-7890"
+	dateOfBirth := "1990-01-01"
+	profilePictureUrl := "http://example.com/profile.jpg"
+	bio := "This is a sample bio."
+
+	return &models.UserProfile{
+		ID:                uuid.New(),
+		UserID:            uuid.New(),
+		FirstName:         "John",
+		LastName:          "Doe",
+		PhoneNumber:       &phoneNumber,
+		DateOfBirth:       &dateOfBirth,
+		ProfilePictureUrl: &profilePictureUrl,
+		Bio:               &bio,
+	}
+}
