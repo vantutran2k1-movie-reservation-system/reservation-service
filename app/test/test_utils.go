@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-redis/redismock/v9"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -28,4 +30,13 @@ func TearDownTestDB(db *gorm.DB, mock sqlmock.Sqlmock) {
 	sqlDB, _ := db.DB()
 	sqlDB.Close()
 	mock.ExpectClose()
+}
+
+func SetupTestRedis() (*redis.Client, redismock.ClientMock) {
+	redisClient, mock := redismock.NewClientMock()
+	return redisClient, mock
+}
+
+func TearDownTestRedis(mock redismock.ClientMock) error {
+	return mock.ExpectationsWereMet()
 }

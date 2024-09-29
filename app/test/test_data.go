@@ -41,3 +41,10 @@ func GenerateRandomLoginToken() *models.LoginToken {
 		ExpiresAt:  time.Now().Add(24 * time.Hour),
 	}
 }
+
+func GenerateRandomUserSession() *models.UserSession {
+	return &models.UserSession{
+		UserID: uuid.New(),
+		Email:  "john.doe@example.com",
+	}
+}
