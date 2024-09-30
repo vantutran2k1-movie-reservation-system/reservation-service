@@ -4,13 +4,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 )
 
 func GenerateRandomUser() *models.User {
 	return &models.User{
-		ID:    uuid.New(),
-		Email: "john.doe@example.com",
+		ID:           uuid.New(),
+		Email:        "john.doe@example.com",
+		PasswordHash: "Hashed password",
 	}
 }
 
@@ -46,5 +48,13 @@ func GenerateRandomUserSession() *models.UserSession {
 	return &models.UserSession{
 		UserID: uuid.New(),
 		Email:  "john.doe@example.com",
+	}
+}
+
+func GenerateRandomAuthToken() *auth.AuthToken {
+	return &auth.AuthToken{
+		TokenValue:    "sample_token_value",
+		CreatedAt:     time.Now().Add(-1 * time.Hour),
+		ValidDuration: time.Duration(24 * time.Hour),
 	}
 }

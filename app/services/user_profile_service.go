@@ -25,13 +25,24 @@ type UserProfileService interface {
 }
 
 type userProfileService struct {
-	db              *gorm.DB
-	minioClient     *minio.Client
-	userProfileRepo repositories.UserProfileRepository
+	db                 *gorm.DB
+	minioClient        *minio.Client
+	transactionManager transaction.TransactionManager
+	userProfileRepo    repositories.UserProfileRepository
 }
 
-func NewUserProfileService(db *gorm.DB, minioClient *minio.Client, userProfileRepo repositories.UserProfileRepository) UserProfileService {
-	return &userProfileService{db: db, minioClient: minioClient, userProfileRepo: userProfileRepo}
+func NewUserProfileService(
+	db *gorm.DB,
+	minioClient *minio.Client,
+	transactionManager transaction.TransactionManager,
+	userProfileRepo repositories.UserProfileRepository,
+) UserProfileService {
+	return &userProfileService{
+		db:                 db,
+		minioClient:        minioClient,
+		transactionManager: transactionManager,
+		userProfileRepo:    userProfileRepo,
+	}
 }
 
 func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError) {
@@ -66,7 +77,7 @@ func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, last
 		CreatedAt:   time.Now().UTC(),
 		UpdatedAt:   time.Now().UTC(),
 	}
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.userProfileRepo.CreateUserProfile(tx, &p)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -90,7 +101,7 @@ func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, last
 	p.PhoneNumber = phoneNumber
 	p.DateOfBirth = dateOfBirth
 	p.UpdatedAt = time.Now().UTC()
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.userProfileRepo.UpdateUserProfile(tx, p)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -123,7 +134,7 @@ func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multip
 		return errors.InternalServerError(err.Error())
 	}
 
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.userProfileRepo.UpdateProfilePicture(tx, userID, objectName)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
@@ -133,7 +144,7 @@ func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multip
 }
 
 func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiError {
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.userProfileRepo.DeleteProfilePicture(tx, userID)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())

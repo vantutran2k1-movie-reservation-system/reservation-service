@@ -7,11 +7,11 @@ type Authenticator interface {
 	IsPasswordsMatch(hashedPassword, rawPassword string) bool
 }
 
-type bcryptAuthenticator struct{}
-
 func NewAuthenticator() Authenticator {
 	return &bcryptAuthenticator{}
 }
+
+type bcryptAuthenticator struct{}
 
 func (a *bcryptAuthenticator) GenerateHashedPassword(rawPassword string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)

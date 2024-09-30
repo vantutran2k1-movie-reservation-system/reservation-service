@@ -22,29 +22,35 @@ type UserService interface {
 }
 
 type userService struct {
-	db              *gorm.DB
-	rdb             *redis.Client
-	authenticator   auth.Authenticator
-	userRepo        repositories.UserRepository
-	loginTokenRepo  repositories.LoginTokenRepository
-	userSessionRepo repositories.UserSessionRepository
+	db                 *gorm.DB
+	rdb                *redis.Client
+	authenticator      auth.Authenticator
+	tokenGenerator     auth.TokenGenerator
+	transactionManager transaction.TransactionManager
+	userRepo           repositories.UserRepository
+	loginTokenRepo     repositories.LoginTokenRepository
+	userSessionRepo    repositories.UserSessionRepository
 }
 
 func NewUserService(
 	db *gorm.DB,
 	rdb *redis.Client,
 	authenticator auth.Authenticator,
+	tokenGenerator auth.TokenGenerator,
+	transactionManager transaction.TransactionManager,
 	userRepo repositories.UserRepository,
 	loginTokenRepo repositories.LoginTokenRepository,
 	userSessionRepo repositories.UserSessionRepository,
 ) UserService {
 	return &userService{
-		db:              db,
-		rdb:             rdb,
-		authenticator:   authenticator,
-		userRepo:        userRepo,
-		loginTokenRepo:  loginTokenRepo,
-		userSessionRepo: userSessionRepo,
+		db:                 db,
+		rdb:                rdb,
+		authenticator:      authenticator,
+		tokenGenerator:     tokenGenerator,
+		transactionManager: transactionManager,
+		userRepo:           userRepo,
+		loginTokenRepo:     loginTokenRepo,
+		userSessionRepo:    userSessionRepo,
 	}
 }
 
@@ -84,7 +90,7 @@ func (s *userService) CreateUser(email string, password string) (*models.User, *
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.userRepo.CreateUser(tx, &u)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -127,13 +133,13 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 		CreatedAt:  token.CreatedAt,
 		ExpiresAt:  token.CreatedAt.Add(token.ValidDuration),
 	}
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.loginTokenRepo.CreateLoginToken(tx, &t)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	if err := transaction.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
+	if err := s.transactionManager.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
 		return s.userSessionRepo.CreateUserSession(
 			s.userSessionRepo.GetUserSessionID(token.TokenValue),
 			token.ValidDuration,
@@ -156,13 +162,13 @@ func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
 		return errors.InternalServerError(err.Error())
 	}
 
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.loginTokenRepo.RevokeLoginToken(tx, token)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
 	}
 
-	if err := transaction.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
+	if err := s.transactionManager.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
 		return s.userSessionRepo.DeleteUserSession(s.userSessionRepo.GetUserSessionID(token.TokenValue))
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
@@ -193,7 +199,7 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 	u.PasswordHash = p
 	u.UpdatedAt = time.Now().UTC()
 
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		if err := s.userRepo.UpdateUser(tx, u); err != nil {
 			return err
 		}
@@ -207,7 +213,7 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 		return errors.InternalServerError(err.Error())
 	}
 
-	if err := transaction.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
+	if err := s.transactionManager.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
 		return s.userSessionRepo.DeleteUserSessions(userID)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())

@@ -8,6 +8,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
@@ -102,6 +103,8 @@ func setupServices(repositories *Repositories) *Services {
 			config.DB,
 			config.RedisClient,
 			auth.NewAuthenticator(),
+			auth.NewTokenGenerator(),
+			transaction.NewTransactionManager(),
 			repositories.UserRepository,
 			repositories.LoginTokenRepository,
 			repositories.UserSessionRepository,
@@ -109,10 +112,12 @@ func setupServices(repositories *Repositories) *Services {
 		UserProfileService: services.NewUserProfileService(
 			config.DB,
 			config.MinioClient,
+			transaction.NewTransactionManager(),
 			repositories.UserProfileRepository,
 		),
 		MovieService: services.NewMovieService(
 			config.DB,
+			transaction.NewTransactionManager(),
 			repositories.MovieRepository,
 		),
 	}

@@ -16,12 +16,21 @@ type MovieService interface {
 }
 
 type movieService struct {
-	db        *gorm.DB
-	movieRepo repositories.MovieRepository
+	db                 *gorm.DB
+	transactionManager transaction.TransactionManager
+	movieRepo          repositories.MovieRepository
 }
 
-func NewMovieService(db *gorm.DB, movieRepo repositories.MovieRepository) MovieService {
-	return &movieService{db: db, movieRepo: movieRepo}
+func NewMovieService(
+	db *gorm.DB,
+	transactionManager transaction.TransactionManager,
+	movieRepo repositories.MovieRepository,
+) MovieService {
+	return &movieService{
+		db:                 db,
+		transactionManager: transactionManager,
+		movieRepo:          movieRepo,
+	}
 }
 
 func (s *movieService) CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
@@ -36,7 +45,7 @@ func (s *movieService) CreateMovie(title string, description *string, releaseDat
 		CreatedAt:       time.Now().UTC(),
 		UpdatedAt:       time.Now().UTC(),
 	}
-	if err := transaction.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.movieRepo.CreateMovie(tx, &m)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
