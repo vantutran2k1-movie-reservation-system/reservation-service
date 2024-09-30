@@ -21,12 +21,12 @@ type TokenGenerator interface {
 }
 
 func NewTokenGenerator() TokenGenerator {
-	return &UuidTokenGenerator{}
+	return &uuidTokenGenerator{}
 }
 
-type UuidTokenGenerator struct{}
+type uuidTokenGenerator struct{}
 
-func (g *UuidTokenGenerator) GenerateToken() (*AuthToken, error) {
+func (g *uuidTokenGenerator) GenerateToken() (*AuthToken, error) {
 	tokenExpiresAfterStr := os.Getenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES")
 	tokenExpiresAfter, err := strconv.Atoi(tokenExpiresAfterStr)
 	if err != nil {

@@ -24,6 +24,7 @@ type UserService interface {
 type userService struct {
 	db              *gorm.DB
 	rdb             *redis.Client
+	authenticator   auth.Authenticator
 	userRepo        repositories.UserRepository
 	loginTokenRepo  repositories.LoginTokenRepository
 	userSessionRepo repositories.UserSessionRepository
@@ -32,6 +33,7 @@ type userService struct {
 func NewUserService(
 	db *gorm.DB,
 	rdb *redis.Client,
+	authenticator auth.Authenticator,
 	userRepo repositories.UserRepository,
 	loginTokenRepo repositories.LoginTokenRepository,
 	userSessionRepo repositories.UserSessionRepository,
@@ -39,6 +41,7 @@ func NewUserService(
 	return &userService{
 		db:              db,
 		rdb:             rdb,
+		authenticator:   authenticator,
 		userRepo:        userRepo,
 		loginTokenRepo:  loginTokenRepo,
 		userSessionRepo: userSessionRepo,
@@ -69,7 +72,7 @@ func (s *userService) CreateUser(email string, password string) (*models.User, *
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	hashedPassword, err := auth.GenerateHashedPassword(password)
+	hashedPassword, err := s.authenticator.GenerateHashedPassword(password)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -100,7 +103,7 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	if err := auth.CompareHashAndPassword(u.PasswordHash, password); err != nil {
+	if !s.authenticator.IsPasswordsMatch(u.PasswordHash, password) {
 		return nil, errors.BadRequestError("Invalid password")
 	}
 
@@ -178,11 +181,11 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 		return errors.InternalServerError(err.Error())
 	}
 
-	if err := auth.CompareHashAndPassword(u.PasswordHash, password); err == nil {
+	if s.authenticator.IsPasswordsMatch(u.PasswordHash, password) {
 		return errors.BadRequestError("New password can not be the same as current value")
 	}
 
-	p, err := auth.GenerateHashedPassword(password)
+	p, err := s.authenticator.GenerateHashedPassword(password)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}

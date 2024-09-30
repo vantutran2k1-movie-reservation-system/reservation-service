@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/controllers"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
@@ -100,6 +101,7 @@ func setupServices(repositories *Repositories) *Services {
 		UserService: services.NewUserService(
 			config.DB,
 			config.RedisClient,
+			auth.NewAuthenticator(),
 			repositories.UserRepository,
 			repositories.LoginTokenRepository,
 			repositories.UserSessionRepository,
