@@ -7,15 +7,15 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	mocks "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/db"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"gorm.io/gorm"
 )
 
 func TestUserRepository_GetUser_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	expectedUser := utils.GenerateRandomUser()
@@ -38,9 +38,9 @@ func TestUserRepository_GetUser_Success(t *testing.T) {
 }
 
 func TestUserRepository_GetUser_UserNotFound(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()
@@ -59,9 +59,9 @@ func TestUserRepository_GetUser_UserNotFound(t *testing.T) {
 }
 
 func TestUserRepository_GetUser_QueryError(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()
@@ -80,9 +80,9 @@ func TestUserRepository_GetUser_QueryError(t *testing.T) {
 }
 
 func TestUserRepository_FindUserByEmail_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	expectedUser := utils.GenerateRandomUser()
@@ -105,9 +105,9 @@ func TestUserRepository_FindUserByEmail_Success(t *testing.T) {
 }
 
 func TestUserRepository_FindUserByEmail_UserNotFound(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	email := "notfound@example.com"
@@ -126,9 +126,9 @@ func TestUserRepository_FindUserByEmail_UserNotFound(t *testing.T) {
 }
 
 func TestUserRepository_FindUserByEmail_QueryError(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	email := "john.doe@example.com"
@@ -147,9 +147,9 @@ func TestUserRepository_FindUserByEmail_QueryError(t *testing.T) {
 }
 
 func TestUserRepository_CreateUser_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	user := utils.GenerateRandomUser()
@@ -173,9 +173,9 @@ func TestUserRepository_CreateUser_Success(t *testing.T) {
 }
 
 func TestUserRepository_CreateUser_Failure(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	user := utils.GenerateRandomUser()
@@ -200,9 +200,9 @@ func TestUserRepository_CreateUser_Failure(t *testing.T) {
 }
 
 func TestUserRepository_UpdateUser_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	user := utils.GenerateRandomUser()
@@ -226,9 +226,9 @@ func TestUserRepository_UpdateUser_Success(t *testing.T) {
 }
 
 func TestUserRepository_UpdateUser_Failure(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	user := utils.GenerateRandomUser()

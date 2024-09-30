@@ -10,14 +10,14 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	mocks "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/db"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 )
 
 func TestUserSessionRepository_GetUserSession_Success(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionID := "test-session-id"
@@ -37,9 +37,9 @@ func TestUserSessionRepository_GetUserSession_Success(t *testing.T) {
 }
 
 func TestUserSessionRepository_GetUserSession_NotFound(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionID := "non-existent-session-id"
@@ -53,9 +53,9 @@ func TestUserSessionRepository_GetUserSession_NotFound(t *testing.T) {
 }
 
 func TestUserSessionRepository_GetUserSession_JsonUnmarshalError(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionID := "test-session-id"
@@ -68,9 +68,9 @@ func TestUserSessionRepository_GetUserSession_JsonUnmarshalError(t *testing.T) {
 }
 
 func TestUserSessionRepository_CreateUserSession_Success(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionID := "test-session-id"
@@ -88,9 +88,9 @@ func TestUserSessionRepository_CreateUserSession_Success(t *testing.T) {
 }
 
 func TestUserSessionRepository_CreateUserSession_MarshalError(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionID := "test-session-id"
@@ -105,9 +105,9 @@ func TestUserSessionRepository_CreateUserSession_MarshalError(t *testing.T) {
 }
 
 func TestUserSessionRepository_CreateUserSession_SetError(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionID := "test-session-id"
@@ -125,9 +125,9 @@ func TestUserSessionRepository_CreateUserSession_SetError(t *testing.T) {
 }
 
 func TestUserSessionRepository_DeleteUserSession_Success(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionID := "test-session-id"
@@ -140,9 +140,9 @@ func TestUserSessionRepository_DeleteUserSession_Success(t *testing.T) {
 }
 
 func TestUserSessionRepository_DeleteUserSession_Error(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionID := "test-session-id"
@@ -155,9 +155,9 @@ func TestUserSessionRepository_DeleteUserSession_Error(t *testing.T) {
 }
 
 func TestUserSessionRepository_DeleteUserSessions_Success(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionKey := "session-key"
@@ -175,9 +175,9 @@ func TestUserSessionRepository_DeleteUserSessions_Success(t *testing.T) {
 }
 
 func TestUserSessionRepository_DeleteUserSessions_ErrorScanningKeys(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	mock.ExpectScan(0, "*", 100).SetErr(errors.New("scan error"))
@@ -189,9 +189,9 @@ func TestUserSessionRepository_DeleteUserSessions_ErrorScanningKeys(t *testing.T
 }
 
 func TestUserSessionRepository_DeleteUserSessions_ErrorGettingKey(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	userID := uuid.New()
@@ -206,9 +206,9 @@ func TestUserSessionRepository_DeleteUserSessions_ErrorGettingKey(t *testing.T) 
 }
 
 func TestUserSessionRepository_DeleteUserSessions_ErrorDeletingKey(t *testing.T) {
-	redisClient, mock := mocks.SetupTestRedis()
+	redisClient, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mocks.TearDownTestRedis(mock))
+		require.NoError(t, mock_db.TearDownTestRedis(mock))
 	}()
 
 	sessionKey := "session-key"

@@ -8,16 +8,16 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	mocks "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/db"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"gorm.io/gorm"
 )
 
 func TestLoginTokenRepository_GetActiveLoginToken_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	expectedToken := utils.GenerateRandomLoginToken()
@@ -39,9 +39,9 @@ func TestLoginTokenRepository_GetActiveLoginToken_Success(t *testing.T) {
 }
 
 func TestLoginTokenRepository_GetActiveLoginToken_Failure_NotFound(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	tokenValue := "non_existent_token"
@@ -60,9 +60,9 @@ func TestLoginTokenRepository_GetActiveLoginToken_Failure_NotFound(t *testing.T)
 }
 
 func TestLoginTokenRepository_GetActiveLoginToken_Failure_ExpiredToken(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	tokenValue := "expired_token"
@@ -81,9 +81,9 @@ func TestLoginTokenRepository_GetActiveLoginToken_Failure_ExpiredToken(t *testin
 }
 
 func TestLoginTokenRepository_CreateLoginToken_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	loginToken := utils.GenerateRandomLoginToken()
@@ -108,9 +108,9 @@ func TestLoginTokenRepository_CreateLoginToken_Success(t *testing.T) {
 }
 
 func TestLoginTokenRepository_CreateLoginToken_Failure(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	loginToken := utils.GenerateRandomLoginToken()
@@ -136,9 +136,9 @@ func TestLoginTokenRepository_CreateLoginToken_Failure(t *testing.T) {
 }
 
 func TestLoginTokenRepository_RevokeLoginToken_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	loginToken := utils.GenerateRandomLoginToken()
@@ -163,9 +163,9 @@ func TestLoginTokenRepository_RevokeLoginToken_Success(t *testing.T) {
 }
 
 func TestLoginTokenRepository_RevokeLoginToken_Failure(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	loginToken := utils.GenerateRandomLoginToken()
@@ -190,9 +190,9 @@ func TestLoginTokenRepository_RevokeLoginToken_Failure(t *testing.T) {
 }
 
 func TestLoginTokenRepository_RevokeUserLoginTokens_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()
@@ -242,9 +242,9 @@ func TestLoginTokenRepository_RevokeUserLoginTokens_Success(t *testing.T) {
 }
 
 func TestLoginTokenRepository_RevokeUserLoginTokens_Failure_QueryError(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()
@@ -269,9 +269,9 @@ func TestLoginTokenRepository_RevokeUserLoginTokens_Failure_QueryError(t *testin
 }
 
 func TestLoginTokenRepository_RevokeUserLoginTokens_Failure_UpdateError(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()

@@ -7,15 +7,15 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	mocks "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/db"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"gorm.io/gorm"
 )
 
 func TestUserProfileRepository_GetProfileByUserID_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	expectedProfile := utils.GenerateRandomUserProfile()
@@ -42,9 +42,9 @@ func TestUserProfileRepository_GetProfileByUserID_Success(t *testing.T) {
 }
 
 func TestUserProfileRepository_GetProfileByUserID_NotFound(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()
@@ -63,9 +63,9 @@ func TestUserProfileRepository_GetProfileByUserID_NotFound(t *testing.T) {
 }
 
 func TestUserProfileRepository_CreateUserProfile_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	profile := utils.GenerateRandomUserProfile()
@@ -90,9 +90,9 @@ func TestUserProfileRepository_CreateUserProfile_Success(t *testing.T) {
 }
 
 func TestUserProfileRepository_CreateUserProfile_Failure(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	profile := utils.GenerateRandomUserProfile()
@@ -118,9 +118,9 @@ func TestUserProfileRepository_CreateUserProfile_Failure(t *testing.T) {
 }
 
 func TestUserProfileRepository_UpdateUserProfile_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	profile := utils.GenerateRandomUserProfile()
@@ -145,9 +145,9 @@ func TestUserProfileRepository_UpdateUserProfile_Success(t *testing.T) {
 }
 
 func TestUserProfileRepository_UpdateUserProfile_Failure(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	profile := utils.GenerateRandomUserProfile()
@@ -173,9 +173,9 @@ func TestUserProfileRepository_UpdateUserProfile_Failure(t *testing.T) {
 }
 
 func TestUserProfileRepository_UpdateProfilePicture_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	id := uuid.New()
@@ -208,9 +208,9 @@ func TestUserProfileRepository_UpdateProfilePicture_Success(t *testing.T) {
 }
 
 func TestUserProfileRepository_UpdateProfilePicture_Failure_GetProfile(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()
@@ -237,9 +237,9 @@ func TestUserProfileRepository_UpdateProfilePicture_Failure_GetProfile(t *testin
 }
 
 func TestUserProfileRepository_UpdateProfilePicture_Failure_Update(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	id := uuid.New()
@@ -273,9 +273,9 @@ func TestUserProfileRepository_UpdateProfilePicture_Failure_Update(t *testing.T)
 }
 
 func TestUserProfileRepository_DeleteProfilePicture_Success(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	id := uuid.New()
@@ -308,9 +308,9 @@ func TestUserProfileRepository_DeleteProfilePicture_Success(t *testing.T) {
 }
 
 func TestUserProfileRepository_DeleteProfilePicture_Failure_GetProfile(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()
@@ -336,9 +336,9 @@ func TestUserProfileRepository_DeleteProfilePicture_Failure_GetProfile(t *testin
 }
 
 func TestUserProfileRepository_DeleteProfilePicture_NoProfilePicture(t *testing.T) {
-	db, mock := mocks.SetupTestDB(t)
+	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mocks.TearDownTestDB(db, mock)
+		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	userID := uuid.New()

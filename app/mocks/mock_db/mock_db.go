@@ -1,4 +1,4 @@
-package mocks
+package mock_db
 
 import (
 	"testing"
