@@ -63,11 +63,12 @@ func RegisterRoutes() *gin.Engine {
 }
 
 type Repositories struct {
-	UserRepository        repositories.UserRepository
-	LoginTokenRepository  repositories.LoginTokenRepository
-	UserSessionRepository repositories.UserSessionRepository
-	UserProfileRepository repositories.UserProfileRepository
-	MovieRepository       repositories.MovieRepository
+	UserRepository           repositories.UserRepository
+	LoginTokenRepository     repositories.LoginTokenRepository
+	UserSessionRepository    repositories.UserSessionRepository
+	UserProfileRepository    repositories.UserProfileRepository
+	ProfilePictureRepository repositories.ProfilePictureRepository
+	MovieRepository          repositories.MovieRepository
 }
 
 type Services struct {
@@ -89,11 +90,12 @@ type Middlewares struct {
 
 func setupRepositories() *Repositories {
 	return &Repositories{
-		UserRepository:        repositories.NewUserRepository(config.DB),
-		LoginTokenRepository:  repositories.NewLoginTokenRepository(config.DB),
-		UserSessionRepository: repositories.NewUserSessionRepository(config.RedisClient),
-		UserProfileRepository: repositories.NewUserProfileRepository(config.DB),
-		MovieRepository:       repositories.NewMovieRepository(config.DB),
+		UserRepository:           repositories.NewUserRepository(config.DB),
+		LoginTokenRepository:     repositories.NewLoginTokenRepository(config.DB),
+		UserSessionRepository:    repositories.NewUserSessionRepository(config.RedisClient),
+		UserProfileRepository:    repositories.NewUserProfileRepository(config.DB),
+		ProfilePictureRepository: repositories.NewProfilePictureRepository(config.MinioClient),
+		MovieRepository:          repositories.NewMovieRepository(config.DB),
 	}
 }
 
@@ -111,9 +113,9 @@ func setupServices(repositories *Repositories) *Services {
 		),
 		UserProfileService: services.NewUserProfileService(
 			config.DB,
-			config.MinioClient,
 			transaction.NewTransactionManager(),
 			repositories.UserProfileRepository,
+			repositories.ProfilePictureRepository,
 		),
 		MovieService: services.NewMovieService(
 			config.DB,

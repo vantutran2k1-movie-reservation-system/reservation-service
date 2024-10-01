@@ -1,14 +1,12 @@
 package services
 
 import (
-	"context"
 	"fmt"
 	"mime/multipart"
 	"os"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/minio/minio-go/v7"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
@@ -26,22 +24,22 @@ type UserProfileService interface {
 
 type userProfileService struct {
 	db                 *gorm.DB
-	minioClient        *minio.Client
 	transactionManager transaction.TransactionManager
 	userProfileRepo    repositories.UserProfileRepository
+	profilePictureRepo repositories.ProfilePictureRepository
 }
 
 func NewUserProfileService(
 	db *gorm.DB,
-	minioClient *minio.Client,
 	transactionManager transaction.TransactionManager,
 	userProfileRepo repositories.UserProfileRepository,
+	profilePictureRepo repositories.ProfilePictureRepository,
 ) UserProfileService {
 	return &userProfileService{
 		db:                 db,
-		minioClient:        minioClient,
 		transactionManager: transactionManager,
 		userProfileRepo:    userProfileRepo,
+		profilePictureRepo: profilePictureRepo,
 	}
 }
 
@@ -111,26 +109,17 @@ func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, last
 }
 
 func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) *errors.ApiError {
-	srcFile, err := file.Open()
-	if err != nil {
-		return errors.InternalServerError(err.Error())
-	}
-	defer srcFile.Close()
-
-	ctx := context.Background()
 	bucketName := os.Getenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
-	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
-	contentType := file.Header.Get("Content-Type")
 
-	err = s.createMinioBucketIfNotExists(ctx, bucketName)
-	if err != nil {
-		return errors.InternalServerError(err.Error())
+	bucketExists := s.profilePictureRepo.BucketExists(bucketName)
+	if !bucketExists {
+		if err := s.profilePictureRepo.CreateBucket(bucketName); err != nil {
+			return errors.InternalServerError(err.Error())
+		}
 	}
 
-	_, err = s.minioClient.PutObject(ctx, bucketName, objectName, srcFile, file.Size, minio.PutObjectOptions{
-		ContentType: contentType,
-	})
-	if err != nil {
+	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
+	if err := s.profilePictureRepo.CreateProfilePicture(file, bucketName, objectName); err != nil {
 		return errors.InternalServerError(err.Error())
 	}
 
@@ -151,17 +140,4 @@ func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiE
 	}
 
 	return nil
-}
-
-func (s *userProfileService) createMinioBucketIfNotExists(ctx context.Context, bucketName string) error {
-	exists, err := s.minioClient.BucketExists(ctx, bucketName)
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		return nil
-	}
-
-	return s.minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
 }

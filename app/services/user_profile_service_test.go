@@ -18,7 +18,7 @@ func TestUserProfileService_GetProfileByUserID(t *testing.T) {
 
 	mockUserProfileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
 
-	userProfileService := NewUserProfileService(nil, nil, nil, mockUserProfileRepo)
+	userProfileService := NewUserProfileService(nil, nil, mockUserProfileRepo, nil)
 
 	userProfile := utils.GenerateRandomUserProfile()
 
@@ -61,7 +61,7 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 
 	userProfileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
 
-	userProfileService := NewUserProfileService(nil, nil, transactionMock, userProfileRepo)
+	userProfileService := NewUserProfileService(nil, transactionMock, userProfileRepo, nil)
 
 	profile := utils.GenerateRandomUserProfile()
 
@@ -129,7 +129,7 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 
 	userProfileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
 
-	userProfileService := NewUserProfileService(nil, nil, transactionMock, userProfileRepo)
+	userProfileService := NewUserProfileService(nil, transactionMock, userProfileRepo, nil)
 
 	firstName := "First"
 	lastName := "Last"
