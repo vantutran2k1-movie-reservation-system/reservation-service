@@ -2,8 +2,12 @@ package services
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
@@ -193,49 +197,132 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 	})
 }
 
-// func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	bucketName := "test-bucket"
-// 	os.Setenv("MINIO_PROFILE_PICTURE_BUCKET_NAME", bucketName)
-// 	defer os.Unsetenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
+	bucketName := "test-bucket"
+	os.Setenv("MINIO_PROFILE_PICTURE_BUCKET_NAME", bucketName)
+	defer os.Unsetenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
 
-// 	minioMock := mocks.NewMockMinioClient(ctrl)
-// 	transactionMock := mock_transaction.NewMockTransactionManager(ctrl)
-// 	userProfileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
+	transactionMock := mock_transaction.NewMockTransactionManager(ctrl)
+	userProfileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
+	profilePictureRepo := mock_repositories.NewMockProfilePictureRepository(ctrl)
 
-// 	userProfileService := NewUserProfileService(nil, nil, transactionMock, userProfileRepo)
+	userProfileService := NewUserProfileService(nil, transactionMock, userProfileRepo, profilePictureRepo)
 
-// 	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
-// 	file := utils.GenerateRandomFileHeader()
+	userID := uuid.New()
+	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
+	file := utils.GenerateRandomFileHeader()
 
-// 	srcFileContent := "fake image content"
-// 	srcFile := ioutil.NopCloser(strings.NewReader(srcFileContent))
+	t.Run("bucket does not exist and create succeeds", func(t *testing.T) {
+		os.Setenv("MINIO_PROFILE_PICTURE_BUCKET_NAME", bucketName)
+		defer os.Unsetenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
 
-// 	t.Run("success", func(t *testing.T) {
-// 		minioMock.EXPECT().PutObject(gomock.Any(), bucketName, objectName, gomock.Any(), file.Size, gomock.Any()).
-// 			Return(minio.UploadInfo{}, nil).Times(1)
+		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
 
-// 		// 2. ExecuteInTransaction should be called and succeed.
-// 		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
-// 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
-// 				// Simulate the transaction function being called.
-// 				return fn(nil)
-// 			}).Times(1)
+		profilePictureRepo.EXPECT().BucketExists(bucketName).Return(false).Times(1)
+		profilePictureRepo.EXPECT().CreateBucket(bucketName).Return(nil).Times(1)
+		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, objectName).Return(nil).Times(1)
+		userProfileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), userID, objectName).Return(nil).Times(1)
 
-// 		// 3. UpdateProfilePicture should be called within the transaction.
-// 		userProfileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), userID, objectName).Return(nil).Times(1)
+		err := userProfileService.UpdateProfilePicture(userID, file)
+		assert.Nil(t, err)
+	})
 
-// 		// Mock the file.Open call to return our fake srcFile.
-// 		mockFile := mocks.NewMockFile(ctrl)
-// 		mockFile.EXPECT().Open().Return(srcFile, nil).Times(1)
-// 		defer srcFile.Close() // Close the file after the test.
+	t.Run("bucket exists", func(t *testing.T) {
+		os.Setenv("MINIO_PROFILE_PICTURE_BUCKET_NAME", bucketName)
+		defer os.Unsetenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
 
-// 		// Call the service method.
-// 		err := userProfileService.UpdateProfilePicture(userID, file)
+		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
 
-// 		// Assertions.
-// 		assert.Nil(t, err)
-// 	})
-// }
+		profilePictureRepo.EXPECT().BucketExists(bucketName).Return(true).Times(1)
+		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, objectName).Return(nil).Times(1)
+		userProfileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), userID, objectName).Return(nil).Times(1)
+
+		err := userProfileService.UpdateProfilePicture(userID, file)
+		assert.Nil(t, err)
+	})
+
+	t.Run("error creating bucket", func(t *testing.T) {
+		os.Setenv("MINIO_PROFILE_PICTURE_BUCKET_NAME", bucketName)
+		defer os.Unsetenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
+
+		profilePictureRepo.EXPECT().BucketExists(bucketName).Return(false).Times(1)
+		profilePictureRepo.EXPECT().CreateBucket(bucketName).Return(errors.New("create bucket error")).Times(1)
+
+		err := userProfileService.UpdateProfilePicture(userID, file)
+		assert.Error(t, err)
+		assert.Equal(t, "create bucket error", err.Error())
+	})
+
+	t.Run("error uploading profile picture", func(t *testing.T) {
+		os.Setenv("MINIO_PROFILE_PICTURE_BUCKET_NAME", bucketName)
+		defer os.Unsetenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
+
+		profilePictureRepo.EXPECT().BucketExists(bucketName).Return(false).Times(1)
+		profilePictureRepo.EXPECT().CreateBucket(bucketName).Return(nil).Times(1)
+		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, objectName).Return(errors.New("upload error")).Times(1)
+
+		err := userProfileService.UpdateProfilePicture(userID, file)
+		assert.Error(t, err)
+		assert.Equal(t, "upload error", err.Error())
+	})
+}
+
+func TestUserProfileService_DeleteProfilePicture(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	transactionMock := mock_transaction.NewMockTransactionManager(ctrl)
+	userProfileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
+	profilePictureRepo := mock_repositories.NewMockProfilePictureRepository(ctrl)
+
+	userID := uuid.New()
+	service := NewUserProfileService(nil, transactionMock, userProfileRepo, profilePictureRepo)
+
+	t.Run("successful deletion", func(t *testing.T) {
+		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+
+		userProfileRepo.EXPECT().DeleteProfilePicture(gomock.Any(), userID).Return(nil).Times(1)
+
+		err := service.DeleteProfilePicture(userID)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error during transaction", func(t *testing.T) {
+		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).Return(errors.New("transaction error")).Times(1)
+
+		err := service.DeleteProfilePicture(userID)
+
+		assert.Error(t, err)
+		assert.Equal(t, "transaction error", err.Error())
+	})
+
+	t.Run("error deleting profile picture", func(t *testing.T) {
+		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(tx *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(tx)
+			},
+		).Times(1)
+
+		userProfileRepo.EXPECT().DeleteProfilePicture(gomock.Any(), userID).Return(errors.New("delete error")).Times(1)
+
+		err := service.DeleteProfilePicture(userID)
+		assert.Error(t, err)
+		assert.Equal(t, "delete error", err.Error())
+	})
+}
