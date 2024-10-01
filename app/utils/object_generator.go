@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"mime/multipart"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,6 +32,8 @@ func GenerateRandomUserProfile() *models.UserProfile {
 		DateOfBirth:       &dateOfBirth,
 		ProfilePictureUrl: &profilePictureUrl,
 		Bio:               &bio,
+		CreatedAt:         time.Now().UTC(),
+		UpdatedAt:         time.Now().UTC(),
 	}
 }
 
@@ -56,5 +59,13 @@ func GenerateRandomAuthToken() *auth.AuthToken {
 		TokenValue:    "sample_token_value",
 		CreatedAt:     time.Now(),
 		ValidDuration: time.Duration(60 * time.Minute),
+	}
+}
+
+func GenerateRandomFileHeader() *multipart.FileHeader {
+	return &multipart.FileHeader{
+		Filename: "test-image.png",
+		Size:     12345,
+		Header:   map[string][]string{"Content-Type": {"image/png"}},
 	}
 }
