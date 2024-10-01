@@ -39,8 +39,8 @@ func GenerateRandomLoginToken() *models.LoginToken {
 		ID:         uuid.New(),
 		UserID:     uuid.New(),
 		TokenValue: "sample_token_value",
-		CreatedAt:  time.Now().Add(-1 * time.Hour),
-		ExpiresAt:  time.Now().Add(24 * time.Hour),
+		CreatedAt:  time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(60 * time.Minute),
 	}
 }
 
@@ -54,7 +54,7 @@ func GenerateRandomUserSession() *models.UserSession {
 func GenerateRandomAuthToken() *auth.AuthToken {
 	return &auth.AuthToken{
 		TokenValue:    "sample_token_value",
-		CreatedAt:     time.Now().Add(-1 * time.Hour),
-		ValidDuration: time.Duration(24 * time.Hour),
+		CreatedAt:     time.Now(),
+		ValidDuration: time.Duration(60 * time.Minute),
 	}
 }

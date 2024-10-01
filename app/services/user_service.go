@@ -113,7 +113,7 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 		return nil, errors.BadRequestError("Invalid password")
 	}
 
-	token, err := auth.NewTokenGenerator().GenerateToken()
+	token, err := s.tokenGenerator.GenerateToken()
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
