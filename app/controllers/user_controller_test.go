@@ -241,7 +241,6 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, "/users/password", bytes.NewBufferString(reqBody))
 		req.Header.Set("Content-Type", "application/json")
-
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)

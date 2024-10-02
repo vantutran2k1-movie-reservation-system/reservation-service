@@ -83,3 +83,27 @@ func GenerateSampleUpdatePasswordRequest() *payloads.UpdatePasswordRequest {
 		Password: "new password",
 	}
 }
+
+func GenerateSampleCreateUserProfileRequest() *payloads.CreateUserProfileRequest {
+	phoneNumber := "1234567890"
+	dateOfBirth := "1990-01-01"
+
+	return &payloads.CreateUserProfileRequest{
+		FirstName:   "John",
+		LastName:    "Doe",
+		PhoneNumber: &phoneNumber,
+		DateOfBirth: &dateOfBirth,
+	}
+}
+
+func GenerateSampleUpdateUserProfileRequest() *payloads.UpdateUserProfileRequest {
+	phoneNumber := "1357924680"
+	dateOfBirth := "2000-01-01"
+
+	return &payloads.UpdateUserProfileRequest{
+		FirstName:   "First",
+		LastName:    "Last",
+		PhoneNumber: &phoneNumber,
+		DateOfBirth: &dateOfBirth,
+	}
+}
