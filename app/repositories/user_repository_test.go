@@ -18,7 +18,7 @@ func TestUserRepository_GetUser_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	expectedUser := utils.GenerateRandomUser()
+	expectedUser := utils.GenerateSampleUser()
 
 	rows := sqlmock.NewRows([]string{"id", "email"}).
 		AddRow(expectedUser.ID, expectedUser.Email)
@@ -85,7 +85,7 @@ func TestUserRepository_FindUserByEmail_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	expectedUser := utils.GenerateRandomUser()
+	expectedUser := utils.GenerateSampleUser()
 
 	rows := sqlmock.NewRows([]string{"id", "email"}).
 		AddRow(expectedUser.ID, expectedUser.Email)
@@ -152,7 +152,7 @@ func TestUserRepository_CreateUser_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateSampleUser()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`INSERT INTO "users"`).
@@ -178,7 +178,7 @@ func TestUserRepository_CreateUser_Failure(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateSampleUser()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`INSERT INTO "users"`).
@@ -205,7 +205,7 @@ func TestUserRepository_UpdateUser_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateSampleUser()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`UPDATE "users" SET "email"=\$1,"password_hash"=\$2,"created_at"=\$3,"updated_at"=\$4 WHERE "id" = \$5`).
@@ -231,7 +231,7 @@ func TestUserRepository_UpdateUser_Failure(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateSampleUser()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`UPDATE "users" SET "email"=\$1,"password_hash"=\$2,"created_at"=\$3,"updated_at"=\$4 WHERE "id" = \$5`).

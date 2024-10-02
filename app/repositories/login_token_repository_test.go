@@ -20,7 +20,7 @@ func TestLoginTokenRepository_GetActiveLoginToken_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	expectedToken := utils.GenerateRandomLoginToken()
+	expectedToken := utils.GenerateSampleLoginToken()
 
 	mock.ExpectQuery(`SELECT \* FROM "login_tokens" WHERE token_value = \$1 AND expires_at > \$2 ORDER BY "login_tokens"."id" LIMIT \$3`).
 		WithArgs(expectedToken.TokenValue, sqlmock.AnyArg(), 1).
@@ -86,7 +86,7 @@ func TestLoginTokenRepository_CreateLoginToken_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	loginToken := utils.GenerateRandomLoginToken()
+	loginToken := utils.GenerateSampleLoginToken()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`INSERT INTO "login_tokens"`).
@@ -113,7 +113,7 @@ func TestLoginTokenRepository_CreateLoginToken_Failure(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	loginToken := utils.GenerateRandomLoginToken()
+	loginToken := utils.GenerateSampleLoginToken()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`INSERT INTO "login_tokens"`).
@@ -141,7 +141,7 @@ func TestLoginTokenRepository_RevokeLoginToken_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	loginToken := utils.GenerateRandomLoginToken()
+	loginToken := utils.GenerateSampleLoginToken()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`UPDATE "login_tokens" SET "user_id"=\$1,"token_value"=\$2,"created_at"=\$3,"expires_at"=\$4 WHERE "id" = \$5`).
@@ -168,7 +168,7 @@ func TestLoginTokenRepository_RevokeLoginToken_Failure(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	loginToken := utils.GenerateRandomLoginToken()
+	loginToken := utils.GenerateSampleLoginToken()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`UPDATE "login_tokens" SET "user_id"=\$1,"token_value"=\$2,"created_at"=\$3,"expires_at"=\$4 WHERE "id" = \$5`).

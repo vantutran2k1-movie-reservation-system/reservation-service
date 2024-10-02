@@ -7,18 +7,19 @@ import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 )
 
-func GenerateRandomUser() *models.User {
+func GenerateSampleUser() *models.User {
 	return &models.User{
 		ID:           uuid.New(),
-		Email:        "john.doe@example.com",
+		Email:        "email@example.com",
 		PasswordHash: "Hashed password",
 	}
 }
 
-func GenerateRandomUserProfile() *models.UserProfile {
-	phoneNumber := "123-456-7890"
+func GenerateSampleUserProfile() *models.UserProfile {
+	phoneNumber := "1234567890"
 	dateOfBirth := "1990-01-01"
 	profilePictureUrl := "http://example.com/profile.jpg"
 	bio := "This is a sample bio."
@@ -37,7 +38,7 @@ func GenerateRandomUserProfile() *models.UserProfile {
 	}
 }
 
-func GenerateRandomLoginToken() *models.LoginToken {
+func GenerateSampleLoginToken() *models.LoginToken {
 	return &models.LoginToken{
 		ID:         uuid.New(),
 		UserID:     uuid.New(),
@@ -47,14 +48,14 @@ func GenerateRandomLoginToken() *models.LoginToken {
 	}
 }
 
-func GenerateRandomUserSession() *models.UserSession {
+func GenerateSampleUserSession() *models.UserSession {
 	return &models.UserSession{
 		UserID: uuid.New(),
-		Email:  "john.doe@example.com",
+		Email:  "email@example.com",
 	}
 }
 
-func GenerateRandomAuthToken() *auth.AuthToken {
+func GenerateSampleAuthToken() *auth.AuthToken {
 	return &auth.AuthToken{
 		TokenValue:    "sample_token_value",
 		CreatedAt:     time.Now(),
@@ -62,10 +63,23 @@ func GenerateRandomAuthToken() *auth.AuthToken {
 	}
 }
 
-func GenerateRandomFileHeader() *multipart.FileHeader {
+func GenerateSampleFileHeader() *multipart.FileHeader {
 	return &multipart.FileHeader{
 		Filename: "test-image.png",
 		Size:     12345,
 		Header:   map[string][]string{"Content-Type": {"image/png"}},
+	}
+}
+
+func GenerateSampleCreateUserRequest() *payloads.CreateUserRequest {
+	return &payloads.CreateUserRequest{
+		Email:    "email@example.com",
+		Password: "password",
+	}
+}
+
+func GenerateSampleUpdatePasswordRequest() *payloads.UpdatePasswordRequest {
+	return &payloads.UpdatePasswordRequest{
+		Password: "new password",
 	}
 }

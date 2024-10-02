@@ -103,14 +103,14 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 	u, err := s.userRepo.FindUserByEmail(email)
 	if err != nil {
 		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.BadRequestError("Invalid email %s", email)
+			return nil, errors.UnauthorizedError("Invalid email %s", email)
 		}
 
 		return nil, errors.InternalServerError(err.Error())
 	}
 
 	if !s.authenticator.IsPasswordsMatch(u.PasswordHash, password) {
-		return nil, errors.BadRequestError("Invalid password")
+		return nil, errors.UnauthorizedError("Invalid password")
 	}
 
 	token, err := s.tokenGenerator.GenerateToken()

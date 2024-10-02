@@ -24,7 +24,7 @@ func TestUserService_GetUser(t *testing.T) {
 	userRepo := mock_repositories.NewMockUserRepository(ctrl)
 	userService := NewUserService(nil, nil, nil, nil, nil, userRepo, nil, nil)
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateSampleUser()
 
 	t.Run("success", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(user.ID).Return(user, nil).Times(1)
@@ -68,7 +68,7 @@ func TestUserService_CreateUser(t *testing.T) {
 
 	userService := NewUserService(nil, nil, authMock, nil, transactionMock, userRepo, nil, nil)
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateSampleUser()
 	password := "password"
 
 	t.Run("success", func(t *testing.T) {
@@ -154,8 +154,8 @@ func TestUserService_LoginUser(t *testing.T) {
 
 	userService := NewUserService(nil, nil, authMock, tokenGeneratorMock, transactionMock, userRepo, loginTokenRepo, userSessionRepo)
 
-	user := utils.GenerateRandomUser()
-	token := utils.GenerateRandomAuthToken()
+	user := utils.GenerateSampleUser()
+	token := utils.GenerateSampleAuthToken()
 
 	password := "password"
 
@@ -294,7 +294,7 @@ func TestUserService_LogoutUser(t *testing.T) {
 
 	userService := NewUserService(nil, nil, nil, nil, transactionManager, nil, loginTokenRepo, userSessionRepo)
 
-	token := utils.GenerateRandomLoginToken()
+	token := utils.GenerateSampleLoginToken()
 
 	t.Run("success", func(t *testing.T) {
 		transactionManager.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -379,7 +379,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 
 	userService := NewUserService(nil, nil, authMock, nil, transactionManager, userRepo, loginTokenRepo, userSessionRepo)
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateSampleUser()
 	password := "password"
 
 	t.Run("success", func(t *testing.T) {

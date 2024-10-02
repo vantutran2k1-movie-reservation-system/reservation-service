@@ -18,6 +18,10 @@ func BadRequestError(format string, args ...any) *ApiError {
 	return newError(http.StatusBadRequest, fmt.Sprintf(format, args...))
 }
 
+func UnauthorizedError(format string, args ...any) *ApiError {
+	return newError(http.StatusUnauthorized, fmt.Sprintf(format, args...))
+}
+
 func InternalServerError(format string, args ...any) *ApiError {
 	return newError(http.StatusInternalServerError, fmt.Sprintf(format, args...))
 }
