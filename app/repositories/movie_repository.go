@@ -18,5 +18,5 @@ func NewMovieRepository(db *gorm.DB) MovieRepository {
 }
 
 func (r *movieRepository) CreateMovie(tx *gorm.DB, movie *models.Movie) error {
-	return tx.Save(movie).Error
+	return tx.Create(movie).Error
 }

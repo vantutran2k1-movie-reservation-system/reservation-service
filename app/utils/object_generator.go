@@ -107,3 +107,21 @@ func GenerateSampleUpdateUserProfileRequest() *payloads.UpdateUserProfileRequest
 		DateOfBirth: &dateOfBirth,
 	}
 }
+
+func GenerateSampleMovie() *models.Movie {
+	description := "Movie description"
+	language := "English"
+	rating := 4.5
+
+	return &models.Movie{
+		ID:              uuid.New(),
+		Title:           "Movie title",
+		Description:     &description,
+		ReleaseDate:     "2024-01-01",
+		DurationMinutes: 120,
+		Language:        &language,
+		Rating:          &rating,
+		CreatedAt:       time.Now().UTC(),
+		UpdatedAt:       time.Now().UTC(),
+	}
+}
