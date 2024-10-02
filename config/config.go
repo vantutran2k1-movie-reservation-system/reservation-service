@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	configcat "github.com/configcat/go-sdk/v9"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/redis/go-redis/v9"
@@ -16,6 +17,7 @@ import (
 var DB *gorm.DB
 var RedisClient *redis.Client
 var MinioClient *minio.Client
+var ConfigcatClient *configcat.Client
 
 func InitDB() {
 	dbHost := os.Getenv("DB_HOST")
@@ -67,4 +69,11 @@ func InitMinio() {
 	}
 
 	MinioClient = minioClient
+}
+
+func InitConfigcat() {
+	sdkKey := os.Getenv("CONFIGCAT_SDK_KEY")
+	client := configcat.NewClient(sdkKey)
+
+	ConfigcatClient = client
 }

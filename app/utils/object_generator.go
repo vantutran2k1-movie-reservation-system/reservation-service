@@ -125,3 +125,18 @@ func GenerateSampleMovie() *models.Movie {
 		UpdatedAt:       time.Now().UTC(),
 	}
 }
+
+func GenerateSampleCreateMovieRequest() *payloads.CreateMovieRequest {
+	description := "A thrilling story of a group of explorers embarking on a dangerous mission to uncover a lost city in the Amazon rainforest."
+	language := "English"
+	rating := 3.0
+
+	return &payloads.CreateMovieRequest{
+		Title:           "The Last Adventure",
+		Description:     &description,
+		ReleaseDate:     "2024-01-01",
+		DurationMinutes: 120,
+		Language:        &language,
+		Rating:          &rating,
+	}
+}

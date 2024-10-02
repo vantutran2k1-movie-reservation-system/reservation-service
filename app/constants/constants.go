@@ -7,4 +7,6 @@ const (
 
 	IMAGE_JPEG = "image/jpeg"
 	IMAGE_PNG  = "image/png"
+
+	CAN_CREATE_MOVIE = "canCreateMovie"
 )

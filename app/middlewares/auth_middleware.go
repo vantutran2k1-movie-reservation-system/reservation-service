@@ -13,10 +13,11 @@ import (
 
 type AuthMiddleware struct {
 	userSessionRepo repositories.UserSessionRepository
+	featureFlagRepo repositories.FeatureFlagRepository
 }
 
-func NewAuthMiddleware(userSessionRepo repositories.UserSessionRepository) *AuthMiddleware {
-	return &AuthMiddleware{userSessionRepo: userSessionRepo}
+func NewAuthMiddleware(userSessionRepo repositories.UserSessionRepository, featureFlagRepo repositories.FeatureFlagRepository) *AuthMiddleware {
+	return &AuthMiddleware{userSessionRepo: userSessionRepo, featureFlagRepo: featureFlagRepo}
 }
 
 func (m *AuthMiddleware) RequireAuthMiddleware() gin.HandlerFunc {
@@ -34,6 +35,24 @@ func (m *AuthMiddleware) RequireAuthMiddleware() gin.HandlerFunc {
 		}
 
 		ctx.Set(constants.USER_SESSION, s)
+		ctx.Next()
+	}
+}
+
+func (m *AuthMiddleware) RequireFeatureFlagMiddleware(flagName string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		session, err := GetUserSession(ctx)
+		if err != nil {
+			ctx.AbortWithStatusJSON(err.StatusCode, gin.H{"error": "Can not get feature flags of user"})
+			return
+		}
+
+		hasFlagEnabled := m.featureFlagRepo.HasFlagEnabled(session.Email, flagName)
+		if !hasFlagEnabled {
+			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Permission error"})
+			return
+		}
+
 		ctx.Next()
 	}
 }

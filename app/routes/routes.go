@@ -20,24 +20,21 @@ func RegisterRoutes() *gin.Engine {
 
 	router := gin.Default()
 
-	authMiddleware := m.AuthMiddleware.RequireAuthMiddleware()
-	filesUploadMiddleware := m.FilesUploadMiddleware
-
 	apiV1 := router.Group("/api/v1")
 	{
 		users := apiV1.Group("/users")
 		{
-			users.GET("/", authMiddleware, c.UserController.GetUser)
+			users.GET("/", m.AuthMiddleware.RequireAuthMiddleware(), c.UserController.GetUser)
 			users.POST("/", c.UserController.CreateUser)
 
 			users.POST("/login", c.UserController.LoginUser)
-			users.POST("/logout", authMiddleware, c.UserController.LogoutUser)
+			users.POST("/logout", m.AuthMiddleware.RequireAuthMiddleware(), c.UserController.LogoutUser)
 
-			users.PUT("/password", authMiddleware, c.UserController.UpdateUserPassword)
+			users.PUT("/password", m.AuthMiddleware.RequireAuthMiddleware(), c.UserController.UpdateUserPassword)
 		}
 
 		profiles := apiV1.Group("/profiles")
-		profiles.Use(authMiddleware)
+		profiles.Use(m.AuthMiddleware.RequireAuthMiddleware())
 		{
 			profiles.GET("/", c.UserProfileController.GetProfileByUserID)
 			profiles.POST("/", c.UserProfileController.CreateUserProfile)
@@ -45,9 +42,9 @@ func RegisterRoutes() *gin.Engine {
 
 			profiles.PUT(
 				"/profile-picture",
-				filesUploadMiddleware.RequireNumberOfUploadedFilesMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, 1),
-				filesUploadMiddleware.IsAllowedFileTypeMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, middlewares.DEFAULT_IMAGE_FILE_TYPES),
-				filesUploadMiddleware.NotExceedMaxSizeLimitMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, middlewares.GetMaxProfilePictureFileSize()),
+				m.FilesUploadMiddleware.RequireNumberOfUploadedFilesMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, 1),
+				m.FilesUploadMiddleware.IsAllowedFileTypeMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, middlewares.DEFAULT_IMAGE_FILE_TYPES),
+				m.FilesUploadMiddleware.NotExceedMaxSizeLimitMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, middlewares.GetMaxProfilePictureFileSize()),
 				c.UserProfileController.UpdateProfilePicture,
 			)
 			profiles.DELETE("/profile-picture", c.UserProfileController.DeleteProfilePicture)
@@ -55,7 +52,12 @@ func RegisterRoutes() *gin.Engine {
 
 		movies := apiV1.Group("/movies")
 		{
-			movies.POST("/", authMiddleware, c.MovieController.CreateMovie)
+			movies.POST(
+				"/",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_CREATE_MOVIE),
+				c.MovieController.CreateMovie,
+			)
 		}
 	}
 
@@ -69,6 +71,7 @@ type Repositories struct {
 	UserProfileRepository    repositories.UserProfileRepository
 	ProfilePictureRepository repositories.ProfilePictureRepository
 	MovieRepository          repositories.MovieRepository
+	FeatureFlagRepository    repositories.FeatureFlagRepository
 }
 
 type Services struct {
@@ -96,6 +99,7 @@ func setupRepositories() *Repositories {
 		UserProfileRepository:    repositories.NewUserProfileRepository(config.DB),
 		ProfilePictureRepository: repositories.NewProfilePictureRepository(config.MinioClient),
 		MovieRepository:          repositories.NewMovieRepository(config.DB),
+		FeatureFlagRepository:    repositories.NewFeatureFlagRepository(config.ConfigcatClient),
 	}
 }
 
@@ -135,7 +139,7 @@ func setupControllers(services *Services) *Controllers {
 
 func setupMiddlewares(repositories *Repositories) *Middlewares {
 	return &Middlewares{
-		AuthMiddleware:        *middlewares.NewAuthMiddleware(repositories.UserSessionRepository),
+		AuthMiddleware:        *middlewares.NewAuthMiddleware(repositories.UserSessionRepository, repositories.FeatureFlagRepository),
 		FilesUploadMiddleware: *middlewares.NewFilesUploadMiddleware(),
 	}
 }
