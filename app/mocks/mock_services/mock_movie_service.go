@@ -12,6 +12,7 @@ package mock_services
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
@@ -41,16 +42,16 @@ func (m *MockMovieService) EXPECT() *MockMovieServiceMockRecorder {
 }
 
 // CreateMovie mocks base method.
-func (m *MockMovieService) CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
+func (m *MockMovieService) CreateMovie(userID uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateMovie", title, description, releaseDate, duration, language, rating)
+	ret := m.ctrl.Call(m, "CreateMovie", userID, title, description, releaseDate, duration, language, rating)
 	ret0, _ := ret[0].(*models.Movie)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateMovie indicates an expected call of CreateMovie.
-func (mr *MockMovieServiceMockRecorder) CreateMovie(title, description, releaseDate, duration, language, rating any) *gomock.Call {
+func (mr *MockMovieServiceMockRecorder) CreateMovie(userID, title, description, releaseDate, duration, language, rating any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMovie", reflect.TypeOf((*MockMovieService)(nil).CreateMovie), title, description, releaseDate, duration, language, rating)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMovie", reflect.TypeOf((*MockMovieService)(nil).CreateMovie), userID, title, description, releaseDate, duration, language, rating)
 }

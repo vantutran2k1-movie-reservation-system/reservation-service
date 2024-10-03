@@ -12,7 +12,7 @@ import (
 )
 
 type MovieService interface {
-	CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError)
+	CreateMovie(userID uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError)
 }
 
 type movieService struct {
@@ -33,7 +33,7 @@ func NewMovieService(
 	}
 }
 
-func (s *movieService) CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
+func (s *movieService) CreateMovie(userID uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
 	m := models.Movie{
 		ID:              uuid.New(),
 		Title:           title,
@@ -44,6 +44,8 @@ func (s *movieService) CreateMovie(title string, description *string, releaseDat
 		Rating:          rating,
 		CreatedAt:       time.Now().UTC(),
 		UpdatedAt:       time.Now().UTC(),
+		CreatedBy:       userID,
+		LastUpdatedBy:   userID,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.movieRepo.CreateMovie(tx, &m)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
@@ -26,6 +27,7 @@ func TestMovieController_GetUser(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
+	session := utils.GenerateSampleUserSession()
 	movie := utils.GenerateSampleMovie()
 	payload := utils.GenerateSampleCreateMovieRequest()
 
@@ -33,9 +35,13 @@ func TestMovieController_GetUser(t *testing.T) {
 
 	t.Run("successful movie creation", func(t *testing.T) {
 		router := gin.Default()
+		router.Use(func(c *gin.Context) {
+			c.Set(constants.USER_SESSION, session)
+			c.Next()
+		})
 		router.POST("/movies", controller.CreateMovie)
 
-		service.EXPECT().CreateMovie(payload.Title, payload.Description, payload.ReleaseDate, payload.DurationMinutes, payload.Language, payload.Rating).
+		service.EXPECT().CreateMovie(session.UserID, payload.Title, payload.Description, payload.ReleaseDate, payload.DurationMinutes, payload.Language, payload.Rating).
 			Return(movie, nil)
 
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
@@ -69,9 +75,13 @@ func TestMovieController_GetUser(t *testing.T) {
 
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
+		router.Use(func(c *gin.Context) {
+			c.Set(constants.USER_SESSION, session)
+			c.Next()
+		})
 		router.POST("/movies", controller.CreateMovie)
 
-		service.EXPECT().CreateMovie(payload.Title, payload.Description, payload.ReleaseDate, payload.DurationMinutes, payload.Language, payload.Rating).
+		service.EXPECT().CreateMovie(session.UserID, payload.Title, payload.Description, payload.ReleaseDate, payload.DurationMinutes, payload.Language, payload.Rating).
 			Return(nil, errors.InternalServerError("Service error"))
 
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,

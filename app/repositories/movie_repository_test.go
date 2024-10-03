@@ -21,7 +21,7 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`INSERT INTO "movies"`).
-			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt).
+			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -40,7 +40,7 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`INSERT INTO "movies"`).
-			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt).
+			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy).
 			WillReturnError(errors.New("insert error"))
 		mock.ExpectRollback()
 

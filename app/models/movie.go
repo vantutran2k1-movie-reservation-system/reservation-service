@@ -16,4 +16,6 @@ type Movie struct {
 	Rating          *float64  `json:"rating,omitempty" gorm:"column:rating"`
 	CreatedAt       time.Time `json:"-" gorm:"column:created_at"`
 	UpdatedAt       time.Time `json:"-" gorm:"column:updated_at"`
+	CreatedBy       uuid.UUID `json:"created_by" gorm:"column:created_by"`
+	LastUpdatedBy   uuid.UUID `json:"last_updated_by" gorm:"column:last_updated_by"`
 }

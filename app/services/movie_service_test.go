@@ -32,7 +32,7 @@ func TestMovieService_CreateMovie(t *testing.T) {
 		).Times(1)
 		movieRepo.EXPECT().CreateMovie(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.CreateMovie(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating)
+		result, err := service.CreateMovie(movie.CreatedBy, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating)
 
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
@@ -47,7 +47,7 @@ func TestMovieService_CreateMovie(t *testing.T) {
 		).Times(1)
 		movieRepo.EXPECT().CreateMovie(gomock.Any(), gomock.Any()).Return(errors.New("create error")).Times(1)
 
-		result, err := service.CreateMovie(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating)
+		result, err := service.CreateMovie(movie.CreatedBy, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

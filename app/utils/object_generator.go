@@ -123,6 +123,8 @@ func GenerateSampleMovie() *models.Movie {
 		Rating:          &rating,
 		CreatedAt:       time.Now().UTC(),
 		UpdatedAt:       time.Now().UTC(),
+		CreatedBy:       uuid.New(),
+		LastUpdatedBy:   uuid.New(),
 	}
 }
 
