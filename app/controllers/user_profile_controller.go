@@ -93,12 +93,13 @@ func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.UserProfileService.UpdateProfilePicture(s.UserID, files[0]); err != nil {
+	p, err := c.UserProfileService.UpdateProfilePicture(s.UserID, files[0])
+	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": "Profile picture is updated successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(p)})
 }
 
 func (c *UserProfileController) DeleteProfilePicture(ctx *gin.Context) {

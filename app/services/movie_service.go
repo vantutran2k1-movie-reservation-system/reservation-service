@@ -12,7 +12,8 @@ import (
 )
 
 type MovieService interface {
-	CreateMovie(createdBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError)
+	GetMovie(id uuid.UUID) (*models.Movie, *errors.ApiError)
+	CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
 	UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError)
 }
 
@@ -34,7 +35,20 @@ func NewMovieService(
 	}
 }
 
-func (s *movieService) CreateMovie(createdBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
+func (s *movieService) GetMovie(id uuid.UUID) (*models.Movie, *errors.ApiError) {
+	m, err := s.movieRepo.GetMovie(id)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, errors.NotFoundError("Movie not found")
+		}
+
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return m, nil
+}
+
+func (s *movieService) CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError) {
 	m := models.Movie{
 		ID:              uuid.New(),
 		Title:           title,
@@ -58,13 +72,9 @@ func (s *movieService) CreateMovie(createdBy uuid.UUID, title string, descriptio
 }
 
 func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
-	m, err := s.movieRepo.GetMovie(id)
+	m, err := s.GetMovie(id)
 	if err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.NotFoundError("Movie not found")
-		}
-
-		return nil, errors.InternalServerError(err.Error())
+		return nil, err
 	}
 
 	m.Title = title

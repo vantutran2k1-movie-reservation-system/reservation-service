@@ -18,7 +18,7 @@ type UserProfileService interface {
 	GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError)
 	CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
 	UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
-	UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) *errors.ApiError
+	UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) (*models.UserProfile, *errors.ApiError)
 	DeleteProfilePicture(userID uuid.UUID) *errors.ApiError
 }
 
@@ -47,7 +47,7 @@ func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserP
 	p, err := s.userProfileRepo.GetProfileByUserID(userID)
 	if err != nil {
 		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.BadRequestError("User profile does not exist")
+			return nil, errors.NotFoundError("User profile does not exist")
 		}
 
 		return nil, errors.InternalServerError(err.Error())
@@ -85,13 +85,9 @@ func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, last
 }
 
 func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.userProfileRepo.GetProfileByUserID(userID)
+	p, err := s.GetProfileByUserID(userID)
 	if err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.BadRequestError("User profile does not exist")
-		}
-
-		return nil, errors.InternalServerError(err.Error())
+		return nil, err
 	}
 
 	p.FirstName = firstName
@@ -108,33 +104,40 @@ func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, last
 	return p, nil
 }
 
-func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) *errors.ApiError {
-	bucketName := os.Getenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
-
-	bucketExists := s.profilePictureRepo.BucketExists(bucketName)
-	if !bucketExists {
-		if err := s.profilePictureRepo.CreateBucket(bucketName); err != nil {
-			return errors.InternalServerError(err.Error())
-		}
+func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) (*models.UserProfile, *errors.ApiError) {
+	p, err := s.GetProfileByUserID(userID)
+	if err != nil {
+		return nil, err
 	}
 
 	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
+
+	bucketName := os.Getenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
 	if err := s.profilePictureRepo.CreateProfilePicture(file, bucketName, objectName); err != nil {
-		return errors.InternalServerError(err.Error())
+		return nil, errors.InternalServerError(err.Error())
 	}
 
+	p.ProfilePictureUrl = &objectName
+	p.UpdatedAt = time.Now().UTC()
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.userProfileRepo.UpdateProfilePicture(tx, userID, objectName)
+		return s.userProfileRepo.UpdateUserProfile(tx, p)
 	}); err != nil {
-		return errors.InternalServerError(err.Error())
+		return nil, errors.InternalServerError(err.Error())
 	}
 
-	return nil
+	return p, nil
 }
 
 func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiError {
+	p, err := s.GetProfileByUserID(userID)
+	if err != nil {
+		return err
+	}
+
+	p.ProfilePictureUrl = nil
+	p.UpdatedAt = time.Now().UTC()
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.userProfileRepo.DeleteProfilePicture(tx, userID)
+		return s.userProfileRepo.UpdateUserProfile(tx, p)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
 	}

@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
@@ -12,8 +10,6 @@ type UserProfileRepository interface {
 	GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error)
 	CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
 	UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
-	UpdateProfilePicture(tx *gorm.DB, userID uuid.UUID, profilePictureUrl string) error
-	DeleteProfilePicture(tx *gorm.DB, userID uuid.UUID) error
 }
 
 type userProfileRepository struct {
@@ -39,32 +35,4 @@ func (r *userProfileRepository) CreateUserProfile(tx *gorm.DB, profile *models.U
 
 func (r *userProfileRepository) UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
 	return tx.Save(profile).Error
-}
-
-func (r *userProfileRepository) UpdateProfilePicture(tx *gorm.DB, userID uuid.UUID, profilePictureUrl string) error {
-	p, err := r.GetProfileByUserID(userID)
-	if err != nil {
-		return err
-	}
-
-	p.ProfilePictureUrl = &profilePictureUrl
-	p.UpdatedAt = time.Now().UTC()
-
-	return tx.Save(p).Error
-}
-
-func (r *userProfileRepository) DeleteProfilePicture(tx *gorm.DB, userID uuid.UUID) error {
-	p, err := r.GetProfileByUserID(userID)
-	if err != nil {
-		return err
-	}
-
-	if p.ProfilePictureUrl != nil {
-		p.ProfilePictureUrl = nil
-		p.UpdatedAt = time.Now().UTC()
-
-		return tx.Save(p).Error
-	}
-
-	return nil
 }

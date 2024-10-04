@@ -87,11 +87,12 @@ func (mr *MockUserProfileServiceMockRecorder) GetProfileByUserID(userID any) *go
 }
 
 // UpdateProfilePicture mocks base method.
-func (m *MockUserProfileService) UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) *errors.ApiError {
+func (m *MockUserProfileService) UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) (*models.UserProfile, *errors.ApiError) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateProfilePicture", userID, file)
-	ret0, _ := ret[0].(*errors.ApiError)
-	return ret0
+	ret0, _ := ret[0].(*models.UserProfile)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
 }
 
 // UpdateProfilePicture indicates an expected call of UpdateProfilePicture.

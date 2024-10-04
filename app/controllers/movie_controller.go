@@ -32,7 +32,7 @@ func (c *MovieController) CreateMovie(ctx *gin.Context) {
 		return
 	}
 
-	m, err := c.MovieService.CreateMovie(s.UserID, req.Title, req.Description, req.ReleaseDate, req.DurationMinutes, req.Language, req.Rating)
+	m, err := c.MovieService.CreateMovie(req.Title, req.Description, req.ReleaseDate, req.DurationMinutes, req.Language, req.Rating, s.UserID)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -40,5 +40,3 @@ func (c *MovieController) CreateMovie(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(m)})
 }
-
-// func (c *MovieController)

@@ -55,20 +55,6 @@ func (mr *MockUserProfileRepositoryMockRecorder) CreateUserProfile(tx, profile a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserProfile", reflect.TypeOf((*MockUserProfileRepository)(nil).CreateUserProfile), tx, profile)
 }
 
-// DeleteProfilePicture mocks base method.
-func (m *MockUserProfileRepository) DeleteProfilePicture(tx *gorm.DB, userID uuid.UUID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteProfilePicture", tx, userID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteProfilePicture indicates an expected call of DeleteProfilePicture.
-func (mr *MockUserProfileRepositoryMockRecorder) DeleteProfilePicture(tx, userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteProfilePicture", reflect.TypeOf((*MockUserProfileRepository)(nil).DeleteProfilePicture), tx, userID)
-}
-
 // GetProfileByUserID mocks base method.
 func (m *MockUserProfileRepository) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error) {
 	m.ctrl.T.Helper()
@@ -82,20 +68,6 @@ func (m *MockUserProfileRepository) GetProfileByUserID(userID uuid.UUID) (*model
 func (mr *MockUserProfileRepositoryMockRecorder) GetProfileByUserID(userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfileByUserID", reflect.TypeOf((*MockUserProfileRepository)(nil).GetProfileByUserID), userID)
-}
-
-// UpdateProfilePicture mocks base method.
-func (m *MockUserProfileRepository) UpdateProfilePicture(tx *gorm.DB, userID uuid.UUID, profilePictureUrl string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateProfilePicture", tx, userID, profilePictureUrl)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateProfilePicture indicates an expected call of UpdateProfilePicture.
-func (mr *MockUserProfileRepositoryMockRecorder) UpdateProfilePicture(tx, userID, profilePictureUrl any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProfilePicture", reflect.TypeOf((*MockUserProfileRepository)(nil).UpdateProfilePicture), tx, userID, profilePictureUrl)
 }
 
 // UpdateUserProfile mocks base method.

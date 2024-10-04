@@ -21,39 +21,39 @@ func TestUserService_GetUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	userRepo := mock_repositories.NewMockUserRepository(ctrl)
-	userService := NewUserService(nil, nil, nil, nil, nil, userRepo, nil, nil)
+	repo := mock_repositories.NewMockUserRepository(ctrl)
+	service := NewUserService(nil, nil, nil, nil, nil, repo, nil, nil)
 
 	user := utils.GenerateRandomUser()
 
 	t.Run("success", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(user.ID).Return(user, nil).Times(1)
+		repo.EXPECT().GetUser(user.ID).Return(user, nil).Times(1)
 
-		result, err := userService.GetUser(user.ID)
+		result, err := service.GetUser(user.ID)
 
-		assert.Nil(t, err)
 		assert.NotNil(t, user)
+		assert.Nil(t, err)
 		assert.Equal(t, user, result)
 	})
 
-	t.Run("not found", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(user.ID).Return(nil, gorm.ErrRecordNotFound).Times(1)
+	t.Run("user not found", func(t *testing.T) {
+		repo.EXPECT().GetUser(user.ID).Return(nil, gorm.ErrRecordNotFound).Times(1)
 
-		result, err := userService.GetUser(user.ID)
+		result, err := service.GetUser(user.ID)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "User does not exist", err.Message)
 	})
 
-	t.Run("internal error", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(user.ID).Return(nil, errors.New("some error")).Times(1)
+	t.Run("db error", func(t *testing.T) {
+		repo.EXPECT().GetUser(user.ID).Return(nil, errors.New("db error")).Times(1)
 
-		result, err := userService.GetUser(user.ID)
+		result, err := service.GetUser(user.ID)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "some error", err.Message)
+		assert.Equal(t, "db error", err.Message)
 	})
 }
 
@@ -61,79 +61,78 @@ func TestUserService_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	authMock := mock_auth.NewMockAuthenticator(ctrl)
-	transactionMock := mock_transaction.NewMockTransactionManager(ctrl)
-
-	userRepo := mock_repositories.NewMockUserRepository(ctrl)
-
-	userService := NewUserService(nil, nil, authMock, nil, transactionMock, userRepo, nil, nil)
+	auth := mock_auth.NewMockAuthenticator(ctrl)
+	transaction := mock_transaction.NewMockTransactionManager(ctrl)
+	repo := mock_repositories.NewMockUserRepository(ctrl)
+	service := NewUserService(nil, nil, auth, nil, transaction, repo, nil, nil)
 
 	user := utils.GenerateRandomUser()
 	password := "password"
 
 	t.Run("success", func(t *testing.T) {
-		userRepo.EXPECT().FindUserByEmail(user.Email).Return(nil, gorm.ErrRecordNotFound).Times(1)
-		authMock.EXPECT().GenerateHashedPassword(password).Return(user.PasswordHash, nil)
-		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := userService.CreateUser(user.Email, password)
+		repo.EXPECT().FindUserByEmail(user.Email).Return(nil, gorm.ErrRecordNotFound).Times(1)
+		auth.EXPECT().GenerateHashedPassword(password).Return(user.PasswordHash, nil).Times(1)
+		repo.EXPECT().CreateUser(gomock.Any(), user).Return(nil).Times(1)
 
-		assert.Nil(t, err)
+		result, err := service.CreateUser(user.Email, password)
+
 		assert.NotNil(t, result)
+		assert.Nil(t, err)
 		assert.Equal(t, user.Email, result.Email)
 	})
 
-	t.Run("email already exists", func(t *testing.T) {
-		userRepo.EXPECT().FindUserByEmail(user.Email).Return(user, nil).Times(1)
+	t.Run("duplicate email error", func(t *testing.T) {
+		repo.EXPECT().FindUserByEmail(user.Email).Return(user, nil).Times(1)
 
-		result, err := userService.CreateUser(user.Email, password)
+		result, err := service.CreateUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, fmt.Sprintf("Email %s already exists", user.Email), err.Message)
+		assert.Equal(t, fmt.Sprintf("Email %s already exists", user.Email), err.Error())
 	})
 
-	t.Run("internal error finding user", func(t *testing.T) {
-		userRepo.EXPECT().FindUserByEmail(user.Email).Return(nil, errors.New("database error")).Times(1)
+	t.Run("error getting user", func(t *testing.T) {
+		repo.EXPECT().FindUserByEmail(user.Email).Return(nil, errors.New("db error")).Times(1)
 
-		result, err := userService.CreateUser(user.Email, password)
+		result, err := service.CreateUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "database error", err.Message)
+		assert.Equal(t, "db error", err.Message)
 	})
 
 	t.Run("error generating password hash", func(t *testing.T) {
-		userRepo.EXPECT().FindUserByEmail(user.Email).Return(nil, gorm.ErrRecordNotFound).Times(1)
-		authMock.EXPECT().GenerateHashedPassword(password).Return("", errors.New("hash error"))
+		repo.EXPECT().FindUserByEmail(user.Email).Return(nil, gorm.ErrRecordNotFound).Times(1)
+		auth.EXPECT().GenerateHashedPassword(password).Return("", errors.New("hash error"))
 
-		result, err := userService.CreateUser(user.Email, password)
+		result, err := service.CreateUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "hash error", err.Message)
 	})
 
-	t.Run("error creating user in transaction", func(t *testing.T) {
-		userRepo.EXPECT().FindUserByEmail(user.Email).Return(nil, gorm.ErrRecordNotFound).Times(1)
-		authMock.EXPECT().GenerateHashedPassword(password).Return(user.PasswordHash, nil)
-		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+	t.Run("error creating user", func(t *testing.T) {
+		repo.EXPECT().FindUserByEmail(user.Email).Return(nil, gorm.ErrRecordNotFound).Times(1)
+		auth.EXPECT().GenerateHashedPassword(password).Return(user.PasswordHash, nil)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(errors.New("create error")).Times(1)
+		repo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(errors.New("db error")).Times(1)
 
-		result, err := userService.CreateUser(user.Email, password)
+		result, err := service.CreateUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "create error", err.Message)
+		assert.Equal(t, "db error", err.Message)
 	})
 }
 
@@ -144,45 +143,44 @@ func TestUserService_LoginUser(t *testing.T) {
 	os.Setenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES", "60")
 	defer os.Unsetenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES")
 
-	authMock := mock_auth.NewMockAuthenticator(ctrl)
-	tokenGeneratorMock := mock_auth.NewMockTokenGenerator(ctrl)
-	transactionMock := mock_transaction.NewMockTransactionManager(ctrl)
+	auth := mock_auth.NewMockAuthenticator(ctrl)
+	tokenGenerator := mock_auth.NewMockTokenGenerator(ctrl)
+	transaction := mock_transaction.NewMockTransactionManager(ctrl)
 
 	userRepo := mock_repositories.NewMockUserRepository(ctrl)
 	loginTokenRepo := mock_repositories.NewMockLoginTokenRepository(ctrl)
 	userSessionRepo := mock_repositories.NewMockUserSessionRepository(ctrl)
 
-	userService := NewUserService(nil, nil, authMock, tokenGeneratorMock, transactionMock, userRepo, loginTokenRepo, userSessionRepo)
+	service := NewUserService(nil, nil, auth, tokenGenerator, transaction, userRepo, loginTokenRepo, userSessionRepo)
 
 	user := utils.GenerateRandomUser()
 	token := utils.GenerateRandomAuthToken()
-
 	password := "password"
 
 	t.Run("successful login", func(t *testing.T) {
-		authMock.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
-		tokenGeneratorMock.EXPECT().GenerateToken().Return(token, nil).Times(1)
-		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		transactionMock.EXPECT().ExecuteInRedisTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+		transaction.EXPECT().ExecuteInRedisTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(rdb *redis.Client, fn func(tx *redis.Tx) error) error {
 				return fn(nil)
 			},
 		).Times(1)
 
+		tokenGenerator.EXPECT().GenerateToken().Return(token, nil).Times(1)
+		auth.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
 		userRepo.EXPECT().FindUserByEmail(user.Email).Return(user, nil).Times(1)
 		userSessionRepo.EXPECT().GetUserSessionID(gomock.Any()).Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetActiveLoginToken(gomock.Any()).Return(nil, gorm.ErrRecordNotFound).Times(1)
 		loginTokenRepo.EXPECT().CreateLoginToken(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		userSessionRepo.EXPECT().CreateUserSession(gomock.Any(), token.ValidDuration, gomock.Any()).Return(nil).Times(1)
 
-		result, err := userService.LoginUser(user.Email, password)
+		result, err := service.LoginUser(user.Email, password)
 
-		assert.Nil(t, err)
 		assert.NotNil(t, result)
+		assert.Nil(t, err)
 		assert.Equal(t, user.ID, result.UserID)
 		assert.Equal(t, token.TokenValue, result.TokenValue)
 	})
@@ -190,7 +188,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	t.Run("invalid email", func(t *testing.T) {
 		userRepo.EXPECT().FindUserByEmail(user.Email).Return(nil, gorm.ErrRecordNotFound).Times(1)
 
-		result, err := userService.LoginUser(user.Email, password)
+		result, err := service.LoginUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -198,11 +196,11 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("invalid password", func(t *testing.T) {
-		authMock.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(false).Times(1)
+		auth.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(false).Times(1)
 
 		userRepo.EXPECT().FindUserByEmail(user.Email).Return(user, nil).Times(1)
 
-		result, err := userService.LoginUser(user.Email, password)
+		result, err := service.LoginUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -210,12 +208,12 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("token generation failure", func(t *testing.T) {
-		authMock.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
-		tokenGeneratorMock.EXPECT().GenerateToken().Return(nil, errors.New("token generation error")).Times(1)
+		auth.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
+		tokenGenerator.EXPECT().GenerateToken().Return(nil, errors.New("token generation error")).Times(1)
 
 		userRepo.EXPECT().FindUserByEmail(user.Email).Return(user, nil).Times(1)
 
-		result, err := userService.LoginUser(user.Email, password)
+		result, err := service.LoginUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -223,13 +221,13 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("token already exists", func(t *testing.T) {
-		authMock.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
-		tokenGeneratorMock.EXPECT().GenerateToken().Return(token, nil).Times(1)
+		auth.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
+		tokenGenerator.EXPECT().GenerateToken().Return(token, nil).Times(1)
 
 		userRepo.EXPECT().FindUserByEmail(user.Email).Return(user, nil).Times(1)
 		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(&models.LoginToken{}, nil).Times(1)
 
-		result, err := userService.LoginUser(user.Email, password)
+		result, err := service.LoginUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -237,9 +235,9 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("error creating login token", func(t *testing.T) {
-		authMock.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
-		tokenGeneratorMock.EXPECT().GenerateToken().Return(token, nil).Times(1)
-		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+		auth.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
+		tokenGenerator.EXPECT().GenerateToken().Return(token, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
@@ -249,7 +247,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, gorm.ErrRecordNotFound).Times(1)
 		loginTokenRepo.EXPECT().CreateLoginToken(gomock.Any(), gomock.Any()).Return(errors.New("create token error")).Times(1)
 
-		result, err := userService.LoginUser(user.Email, password)
+		result, err := service.LoginUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -258,14 +256,14 @@ func TestUserService_LoginUser(t *testing.T) {
 
 	t.Run("error creating user session", func(t *testing.T) {
 		userRepo.EXPECT().FindUserByEmail(user.Email).Return(user, nil).Times(1)
-		authMock.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
-		tokenGeneratorMock.EXPECT().GenerateToken().Return(token, nil).Times(1)
-		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+		auth.EXPECT().IsPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
+		tokenGenerator.EXPECT().GenerateToken().Return(token, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		transactionMock.EXPECT().ExecuteInRedisTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+		transaction.EXPECT().ExecuteInRedisTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(rdb *redis.Client, fn func(tx *redis.Tx) error) error {
 				return fn(nil)
 			},
@@ -276,7 +274,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		userSessionRepo.EXPECT().GetUserSessionID(gomock.Any()).Return(token.TokenValue).Times(1)
 		userSessionRepo.EXPECT().CreateUserSession(gomock.Any(), token.ValidDuration, gomock.Any()).Return(errors.New("session creation error")).Times(1)
 
-		result, err := userService.LoginUser(user.Email, password)
+		result, err := service.LoginUser(user.Email, password)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
