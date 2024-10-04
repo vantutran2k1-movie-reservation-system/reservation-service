@@ -24,7 +24,7 @@ func TestUserProfileService_GetProfileByUserID(t *testing.T) {
 
 	userProfileService := NewUserProfileService(nil, nil, mockUserProfileRepo, nil)
 
-	userProfile := utils.GenerateSampleUserProfile()
+	userProfile := utils.GenerateRandomUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		mockUserProfileRepo.EXPECT().GetProfileByUserID(userProfile.UserID).Return(userProfile, nil).Times(1)
@@ -67,7 +67,7 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 
 	userProfileService := NewUserProfileService(nil, transactionMock, userProfileRepo, nil)
 
-	profile := utils.GenerateSampleUserProfile()
+	profile := utils.GenerateRandomUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -140,7 +140,7 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 	phoneNumber := "1234567890"
 	dateOfBirth := "1990-01-01"
 
-	profile := utils.GenerateSampleUserProfile()
+	profile := utils.GenerateRandomUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		transactionMock.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -213,7 +213,7 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 
 	userID := uuid.New()
 	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
-	file := utils.GenerateSampleFileHeader()
+	file := utils.GenerateRandomFileHeader()
 
 	t.Run("bucket does not exist and create succeeds", func(t *testing.T) {
 		os.Setenv("MINIO_PROFILE_PICTURE_BUCKET_NAME", bucketName)

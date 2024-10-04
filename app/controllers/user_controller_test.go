@@ -28,8 +28,8 @@ func TestUserController_GetUser(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	session := utils.GenerateSampleUserSession()
-	user := utils.GenerateSampleUser()
+	session := utils.GenerateRandomUserSession()
+	user := utils.GenerateRandomUser()
 
 	t.Run("successful user retrieval", func(t *testing.T) {
 		router := gin.Default()
@@ -94,7 +94,7 @@ func TestUserController_CreateUser(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	payload := utils.GenerateSampleCreateUserRequest()
+	payload := utils.GenerateRandomCreateUserRequest()
 
 	t.Run("successful user creation", func(t *testing.T) {
 		router := gin.Default()
@@ -158,8 +158,8 @@ func TestUserController_LoginUser(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	token := utils.GenerateSampleLoginToken()
-	payload := utils.GenerateSampleCreateUserRequest()
+	token := utils.GenerateRandomLoginToken()
+	payload := utils.GenerateRandomCreateUserRequest()
 
 	t.Run("successful login", func(t *testing.T) {
 		router := gin.Default()
@@ -223,8 +223,8 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	session := utils.GenerateSampleUserSession()
-	payload := utils.GenerateSampleUpdatePasswordRequest()
+	session := utils.GenerateRandomUserSession()
+	payload := utils.GenerateRandomUpdatePasswordRequest()
 
 	t.Run("successful password update", func(t *testing.T) {
 		router := gin.Default()

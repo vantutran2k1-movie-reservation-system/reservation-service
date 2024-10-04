@@ -21,7 +21,7 @@ func TestUserSessionRepository_GetUserSession_Success(t *testing.T) {
 	}()
 
 	sessionID := "test-session-id"
-	session := utils.GenerateSampleUserSession()
+	session := utils.GenerateRandomUserSession()
 
 	sessionJSON, err := json.Marshal(session)
 	require.NoError(t, err)
@@ -75,7 +75,7 @@ func TestUserSessionRepository_CreateUserSession_Success(t *testing.T) {
 
 	sessionID := "test-session-id"
 	expiration := 24 * time.Hour
-	session := utils.GenerateSampleUserSession()
+	session := utils.GenerateRandomUserSession()
 
 	sessionJSON, err := json.Marshal(session)
 	require.NoError(t, err)
@@ -95,7 +95,7 @@ func TestUserSessionRepository_CreateUserSession_MarshalError(t *testing.T) {
 
 	sessionID := "test-session-id"
 	expiration := 24 * time.Hour
-	session := utils.GenerateSampleUserSession()
+	session := utils.GenerateRandomUserSession()
 
 	session.Email = string([]byte{255})
 
@@ -112,7 +112,7 @@ func TestUserSessionRepository_CreateUserSession_SetError(t *testing.T) {
 
 	sessionID := "test-session-id"
 	expiration := 24 * time.Hour
-	session := utils.GenerateSampleUserSession()
+	session := utils.GenerateRandomUserSession()
 
 	sessionJSON, err := json.Marshal(session)
 	require.NoError(t, err)
@@ -161,7 +161,7 @@ func TestUserSessionRepository_DeleteUserSessions_Success(t *testing.T) {
 	}()
 
 	sessionKey := "session-key"
-	session := utils.GenerateSampleUserSession()
+	session := utils.GenerateRandomUserSession()
 	sessionData, _ := json.Marshal(session)
 
 	mock.ExpectScan(0, "*", 100).SetVal([]string{sessionKey}, 0)
@@ -212,7 +212,7 @@ func TestUserSessionRepository_DeleteUserSessions_ErrorDeletingKey(t *testing.T)
 	}()
 
 	sessionKey := "session-key"
-	session := utils.GenerateSampleUserSession()
+	session := utils.GenerateRandomUserSession()
 	sessionData, _ := json.Marshal(session)
 
 	mock.ExpectScan(0, "*", 100).SetVal([]string{sessionKey}, 0)

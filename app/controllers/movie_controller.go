@@ -40,3 +40,5 @@ func (c *MovieController) CreateMovie(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(m)})
 }
+
+// func (c *MovieController)

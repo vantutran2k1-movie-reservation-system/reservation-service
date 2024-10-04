@@ -1,34 +1,64 @@
 package utils
 
 import (
+	"fmt"
 	"mime/multipart"
 	"time"
 
+	"math/rand"
+
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func GenerateSampleUser() *models.User {
+func GenerateRandomUser() *models.User {
 	return &models.User{
 		ID:           uuid.New(),
-		Email:        "email@example.com",
-		PasswordHash: "Hashed password",
+		Email:        generateRandomEmail(),
+		PasswordHash: generateRandomHashedPassword(),
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 }
 
-func GenerateSampleUserProfile() *models.UserProfile {
-	phoneNumber := "1234567890"
-	dateOfBirth := "1990-01-01"
-	profilePictureUrl := "http://example.com/profile.jpg"
-	bio := "This is a sample bio."
+func GenerateRandomUserWithID(id uuid.UUID) *models.User {
+	return &models.User{
+		ID:           id,
+		Email:        generateRandomEmail(),
+		PasswordHash: generateRandomHashedPassword(),
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
+	}
+}
+
+func GenerateRandomCreateUserRequest() *payloads.CreateUserRequest {
+	return &payloads.CreateUserRequest{
+		Email:    generateRandomEmail(),
+		Password: generateRandomPassword(),
+	}
+}
+
+func GenerateRandomUpdatePasswordRequest() *payloads.UpdatePasswordRequest {
+	return &payloads.UpdatePasswordRequest{
+		Password: generateRandomPassword(),
+	}
+}
+
+func GenerateRandomUserProfile() *models.UserProfile {
+	phoneNumber := generateRandomPhoneNumber()
+	dateOfBirth := generateRandomDate()
+	profilePictureUrl := generateRandomURL()
+	bio := generateRandomString(allChars, 50)
 
 	return &models.UserProfile{
 		ID:                uuid.New(),
 		UserID:            uuid.New(),
-		FirstName:         "John",
-		LastName:          "Doe",
+		FirstName:         generateRandomName(),
+		LastName:          generateRandomName(),
 		PhoneNumber:       &phoneNumber,
 		DateOfBirth:       &dateOfBirth,
 		ProfilePictureUrl: &profilePictureUrl,
@@ -38,87 +68,94 @@ func GenerateSampleUserProfile() *models.UserProfile {
 	}
 }
 
-func GenerateSampleLoginToken() *models.LoginToken {
-	return &models.LoginToken{
-		ID:         uuid.New(),
-		UserID:     uuid.New(),
-		TokenValue: "sample_token_value",
-		CreatedAt:  time.Now().UTC(),
-		ExpiresAt:  time.Now().UTC().Add(60 * time.Minute),
+func GenerateRandomUserProfileWithIDAndUserID(id uuid.UUID, userID uuid.UUID) *models.UserProfile {
+	phoneNumber := generateRandomPhoneNumber()
+	dateOfBirth := generateRandomDate()
+	profilePictureUrl := generateRandomURL()
+	bio := generateRandomString(allChars, 50)
+
+	return &models.UserProfile{
+		ID:                id,
+		UserID:            userID,
+		FirstName:         generateRandomName(),
+		LastName:          generateRandomName(),
+		PhoneNumber:       &phoneNumber,
+		DateOfBirth:       &dateOfBirth,
+		ProfilePictureUrl: &profilePictureUrl,
+		Bio:               &bio,
+		CreatedAt:         time.Now().UTC(),
+		UpdatedAt:         time.Now().UTC(),
 	}
 }
 
-func GenerateSampleUserSession() *models.UserSession {
-	return &models.UserSession{
-		UserID: uuid.New(),
-		Email:  "email@example.com",
+func GenerateRandomCreateUserProfileRequest() *payloads.CreateUserProfileRequest {
+	phoneNumber := generateRandomPhoneNumber()
+	dateOfBirth := generateRandomDate()
+
+	return &payloads.CreateUserProfileRequest{
+		FirstName:   generateRandomName(),
+		LastName:    generateRandomName(),
+		PhoneNumber: &phoneNumber,
+		DateOfBirth: &dateOfBirth,
 	}
 }
 
-func GenerateSampleAuthToken() *auth.AuthToken {
+func GenerateRandomUpdateUserProfileRequest() *payloads.UpdateUserProfileRequest {
+	phoneNumber := generateRandomPhoneNumber()
+	dateOfBirth := generateRandomDate()
+
+	return &payloads.UpdateUserProfileRequest{
+		FirstName:   generateRandomName(),
+		LastName:    generateRandomName(),
+		PhoneNumber: &phoneNumber,
+		DateOfBirth: &dateOfBirth,
+	}
+}
+
+func GenerateRandomAuthToken() *auth.AuthToken {
 	return &auth.AuthToken{
-		TokenValue:    "sample_token_value",
+		TokenValue:    uuid.NewString(),
 		CreatedAt:     time.Now(),
 		ValidDuration: time.Duration(60 * time.Minute),
 	}
 }
 
-func GenerateSampleFileHeader() *multipart.FileHeader {
+func GenerateRandomLoginToken() *models.LoginToken {
+	return &models.LoginToken{
+		ID:         uuid.New(),
+		UserID:     uuid.New(),
+		TokenValue: uuid.NewString(),
+		CreatedAt:  time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(60 * time.Minute),
+	}
+}
+
+func GenerateRandomUserSession() *models.UserSession {
+	return &models.UserSession{
+		UserID: uuid.New(),
+		Email:  generateRandomEmail(),
+	}
+}
+
+func GenerateRandomFileHeader() *multipart.FileHeader {
 	return &multipart.FileHeader{
-		Filename: "test-image.png",
-		Size:     12345,
-		Header:   map[string][]string{"Content-Type": {"image/png"}},
+		Filename: generateRandomName(),
+		Size:     100,
+		Header:   map[string][]string{constants.CONTENT_TYPE: {constants.IMAGE_PNG}},
 	}
 }
 
-func GenerateSampleCreateUserRequest() *payloads.CreateUserRequest {
-	return &payloads.CreateUserRequest{
-		Email:    "email@example.com",
-		Password: "password",
-	}
-}
-
-func GenerateSampleUpdatePasswordRequest() *payloads.UpdatePasswordRequest {
-	return &payloads.UpdatePasswordRequest{
-		Password: "new password",
-	}
-}
-
-func GenerateSampleCreateUserProfileRequest() *payloads.CreateUserProfileRequest {
-	phoneNumber := "1234567890"
-	dateOfBirth := "1990-01-01"
-
-	return &payloads.CreateUserProfileRequest{
-		FirstName:   "John",
-		LastName:    "Doe",
-		PhoneNumber: &phoneNumber,
-		DateOfBirth: &dateOfBirth,
-	}
-}
-
-func GenerateSampleUpdateUserProfileRequest() *payloads.UpdateUserProfileRequest {
-	phoneNumber := "1357924680"
-	dateOfBirth := "2000-01-01"
-
-	return &payloads.UpdateUserProfileRequest{
-		FirstName:   "First",
-		LastName:    "Last",
-		PhoneNumber: &phoneNumber,
-		DateOfBirth: &dateOfBirth,
-	}
-}
-
-func GenerateSampleMovie() *models.Movie {
-	description := "Movie description"
-	language := "English"
-	rating := 4.5
+func GenerateRandomMovie() *models.Movie {
+	description := generateRandomString(allChars, 100)
+	language := generateRandomString(lowercaseChars, 10)
+	rating := generateRandomFloat(0, 5)
 
 	return &models.Movie{
 		ID:              uuid.New(),
-		Title:           "Movie title",
+		Title:           generateRandomString(allChars, 10),
 		Description:     &description,
-		ReleaseDate:     "2024-01-01",
-		DurationMinutes: 120,
+		ReleaseDate:     generateRandomDate(),
+		DurationMinutes: generateRandomInt(100, 200),
 		Language:        &language,
 		Rating:          &rating,
 		CreatedAt:       time.Now().UTC(),
@@ -128,17 +165,88 @@ func GenerateSampleMovie() *models.Movie {
 	}
 }
 
-func GenerateSampleCreateMovieRequest() *payloads.CreateMovieRequest {
-	description := "A thrilling story of a group of explorers embarking on a dangerous mission to uncover a lost city in the Amazon rainforest."
-	language := "English"
-	rating := 3.0
+func GenerateRandomCreateMovieRequest() *payloads.CreateMovieRequest {
+	description := generateRandomString(allChars, 100)
+	language := generateRandomString(lowercaseChars, 10)
+	rating := generateRandomFloat(0, 5)
 
 	return &payloads.CreateMovieRequest{
-		Title:           "The Last Adventure",
+		Title:           generateRandomString(allChars, 10),
 		Description:     &description,
-		ReleaseDate:     "2024-01-01",
-		DurationMinutes: 120,
+		ReleaseDate:     generateRandomDate(),
+		DurationMinutes: generateRandomInt(100, 200),
 		Language:        &language,
 		Rating:          &rating,
 	}
+}
+
+const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
+const numberChars = "0123456789"
+const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+"
+
+var urlProtocols = []string{"http", "https"}
+var urlDomains = []string{"example.com", "testsite.com", "mywebsite.org", "randomsite.net"}
+var emailDomains = []string{"gmail.com", "yahoo.com", "outlook.com", "example.com"}
+
+func generateRandomString(chars string, length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
+}
+
+func generateRandomName() string {
+	return generateRandomString(lowercaseChars, 5)
+}
+
+func generateRandomEmail() string {
+	nameLength := rand.Intn(6) + 5
+	domain := emailDomains[rand.Intn(len(emailDomains))]
+
+	return fmt.Sprintf("%s@%s", generateRandomString(lowercaseChars, nameLength), domain)
+}
+
+func generateRandomPassword() string {
+	return generateRandomString(allChars, 12)
+}
+
+func generateRandomHashedPassword() string {
+	password := generateRandomPassword()
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	return string(hashedPassword)
+}
+
+func generateRandomPhoneNumber() string {
+	return generateRandomString(numberChars, 10)
+}
+
+func generateRandomDate() string {
+	start := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	end := time.Now().UTC()
+
+	randomDays := rand.Int63n(int64(end.Sub(start).Hours() / 24))
+
+	randomDate := start.AddDate(0, 0, int(randomDays)-1)
+
+	return randomDate.Format("2006-01-02")
+}
+
+func generateRandomURL() string {
+	protocol := urlProtocols[rand.Intn(len(urlProtocols))]
+	subdomain := generateRandomString(lowercaseChars, rand.Intn(5)+3)
+	domain := urlDomains[rand.Intn(len(urlDomains))]
+	path := generateRandomString(lowercaseChars+"/", rand.Intn(10)+5)
+	queryParams := generateRandomString(lowercaseChars, rand.Intn(3)+3) + "=value"
+
+	return fmt.Sprintf("%s://%s.%s/%s?%s", protocol, subdomain, domain, path, queryParams)
+}
+
+func generateRandomFloat(min, max float64) float64 {
+	return min + rand.Float64()*(max-min)
+}
+
+func generateRandomInt(min, max int) int {
+	return rand.Intn(max-min+1) + min
 }

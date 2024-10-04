@@ -55,3 +55,18 @@ func (mr *MockMovieServiceMockRecorder) CreateMovie(userID, title, description, 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMovie", reflect.TypeOf((*MockMovieService)(nil).CreateMovie), userID, title, description, releaseDate, duration, language, rating)
 }
+
+// UpdateMovie mocks base method.
+func (m *MockMovieService) UpdateMovie(id, userID uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMovie", id, userID, title, description, releaseDate, duration, language, rating)
+	ret0, _ := ret[0].(*models.Movie)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// UpdateMovie indicates an expected call of UpdateMovie.
+func (mr *MockMovieServiceMockRecorder) UpdateMovie(id, userID, title, description, releaseDate, duration, language, rating any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMovie", reflect.TypeOf((*MockMovieService)(nil).UpdateMovie), id, userID, title, description, releaseDate, duration, language, rating)
+}

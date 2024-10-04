@@ -18,7 +18,7 @@ func TestUserProfileRepository_GetProfileByUserID_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	expectedProfile := utils.GenerateSampleUserProfile()
+	expectedProfile := utils.GenerateRandomUserProfile()
 
 	mock.ExpectQuery(`SELECT \* FROM "user_profiles" WHERE "user_profiles"."user_id" = \$1 ORDER BY "user_profiles"."id" LIMIT \$2`).
 		WithArgs(expectedProfile.UserID, 1).
@@ -68,7 +68,7 @@ func TestUserProfileRepository_CreateUserProfile_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	profile := utils.GenerateSampleUserProfile()
+	profile := utils.GenerateRandomUserProfile()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`INSERT INTO "user_profiles"`).
@@ -95,7 +95,7 @@ func TestUserProfileRepository_CreateUserProfile_Failure(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	profile := utils.GenerateSampleUserProfile()
+	profile := utils.GenerateRandomUserProfile()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`INSERT INTO "user_profiles"`).
@@ -123,7 +123,7 @@ func TestUserProfileRepository_UpdateUserProfile_Success(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	profile := utils.GenerateSampleUserProfile()
+	profile := utils.GenerateRandomUserProfile()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`UPDATE "user_profiles" SET "user_id"=\$1,"first_name"=\$2,"last_name"=\$3,"phone_number"=\$4,"date_of_birth"=\$5,"profile_picture_url"=\$6,"bio"=\$7,"created_at"=\$8,"updated_at"=\$9 WHERE "id" = \$10`).
@@ -150,7 +150,7 @@ func TestUserProfileRepository_UpdateUserProfile_Failure(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	profile := utils.GenerateSampleUserProfile()
+	profile := utils.GenerateRandomUserProfile()
 
 	mock.ExpectBegin()
 	mock.ExpectExec(`UPDATE "user_profiles" SET "user_id"=\$1,"first_name"=\$2,"last_name"=\$3,"phone_number"=\$4,"date_of_birth"=\$5,"profile_picture_url"=\$6,"bio"=\$7,"created_at"=\$8,"updated_at"=\$9 WHERE "id" = \$10`).

@@ -12,6 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -52,4 +53,33 @@ func (m *MockMovieRepository) CreateMovie(tx *gorm.DB, movie *models.Movie) erro
 func (mr *MockMovieRepositoryMockRecorder) CreateMovie(tx, movie any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMovie", reflect.TypeOf((*MockMovieRepository)(nil).CreateMovie), tx, movie)
+}
+
+// GetMovie mocks base method.
+func (m *MockMovieRepository) GetMovie(id uuid.UUID) (*models.Movie, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMovie", id)
+	ret0, _ := ret[0].(*models.Movie)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMovie indicates an expected call of GetMovie.
+func (mr *MockMovieRepositoryMockRecorder) GetMovie(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetMovie), id)
+}
+
+// UpdateMovie mocks base method.
+func (m *MockMovieRepository) UpdateMovie(tx *gorm.DB, movie *models.Movie) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMovie", tx, movie)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMovie indicates an expected call of UpdateMovie.
+func (mr *MockMovieRepositoryMockRecorder) UpdateMovie(tx, movie any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMovie", reflect.TypeOf((*MockMovieRepository)(nil).UpdateMovie), tx, movie)
 }

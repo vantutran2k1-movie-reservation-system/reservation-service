@@ -27,9 +27,9 @@ func TestMovieController_GetUser(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	session := utils.GenerateSampleUserSession()
-	movie := utils.GenerateSampleMovie()
-	payload := utils.GenerateSampleCreateMovieRequest()
+	session := utils.GenerateRandomUserSession()
+	movie := utils.GenerateRandomMovie()
+	payload := utils.GenerateRandomCreateMovieRequest()
 
 	errors.RegisterCustomValidators()
 
