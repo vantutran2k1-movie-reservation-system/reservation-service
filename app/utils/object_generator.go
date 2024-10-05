@@ -146,13 +146,13 @@ func GenerateRandomFileHeader() *multipart.FileHeader {
 }
 
 func GenerateRandomMovie() *models.Movie {
-	description := generateRandomString(allChars, 100)
-	language := generateRandomString(lowercaseChars, 10)
+	description := generateRandomString(letterChars, 100)
+	language := generateRandomString(letterChars, 10)
 	rating := generateRandomFloat(0, 5)
 
 	return &models.Movie{
 		ID:              uuid.New(),
-		Title:           generateRandomString(allChars, 10),
+		Title:           generateRandomString(letterChars, 10),
 		Description:     &description,
 		ReleaseDate:     generateRandomDate(),
 		DurationMinutes: generateRandomInt(100, 200),
@@ -182,6 +182,7 @@ func GenerateRandomCreateMovieRequest() *payloads.CreateMovieRequest {
 
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
 const numberChars = "0123456789"
+const letterChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+"
 
 var urlProtocols = []string{"http", "https"}

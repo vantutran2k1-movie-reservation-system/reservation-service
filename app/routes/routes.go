@@ -24,7 +24,7 @@ func RegisterRoutes() *gin.Engine {
 	{
 		users := apiV1.Group("/users")
 		{
-			users.GET("/", m.AuthMiddleware.RequireAuthMiddleware(), c.UserController.GetUser)
+			users.GET("/me", m.AuthMiddleware.RequireAuthMiddleware(), c.UserController.GetUser)
 			users.POST("/", c.UserController.CreateUser)
 
 			users.POST("/login", c.UserController.LoginUser)
@@ -36,7 +36,7 @@ func RegisterRoutes() *gin.Engine {
 		profiles := apiV1.Group("/profiles")
 		profiles.Use(m.AuthMiddleware.RequireAuthMiddleware())
 		{
-			profiles.GET("/", c.UserProfileController.GetProfileByUserID)
+			profiles.GET("/me", c.UserProfileController.GetProfileByUserID)
 			profiles.POST("/", c.UserProfileController.CreateUserProfile)
 			profiles.PUT("/", c.UserProfileController.UpdateUserProfile)
 
@@ -57,6 +57,12 @@ func RegisterRoutes() *gin.Engine {
 				m.AuthMiddleware.RequireAuthMiddleware(),
 				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_CREATE_MOVIE),
 				c.MovieController.CreateMovie,
+			)
+			movies.PUT(
+				"/:id",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_UPDATE_MOVIE),
+				c.MovieController.UpdateMovie,
 			)
 		}
 	}
