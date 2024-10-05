@@ -16,6 +16,55 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func TestMovieController_GetMovie(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockMovieService(ctrl)
+	controller := MovieController{
+		MovieService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	movie := utils.GenerateRandomMovie()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/movies/:id", controller.GetMovie)
+
+		service.EXPECT().GetMovie(movie.ID).Return(movie, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s", movie.ID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), movie.Title)
+		assert.Contains(t, w.Body.String(), *movie.Description)
+		assert.Contains(t, w.Body.String(), movie.ReleaseDate)
+		assert.Contains(t, w.Body.String(), fmt.Sprint(movie.DurationMinutes))
+		assert.Contains(t, w.Body.String(), *movie.Language)
+		assert.Contains(t, w.Body.String(), fmt.Sprint(*movie.Rating))
+		assert.Contains(t, w.Body.String(), movie.CreatedBy.String())
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/movies/:id", controller.GetMovie)
+
+		service.EXPECT().GetMovie(movie.ID).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s", movie.ID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "error")
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
+
 func TestMovieController_CreateMovie(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -77,6 +126,23 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assert.Contains(t, w.Body.String(), "errors")
 		assert.Contains(t, w.Body.String(), "Should be less than or equal to 5")
+	})
+
+	t.Run("session error", func(t *testing.T) {
+		router := gin.Default()
+		router.POST("/movies", controller.CreateMovie)
+
+		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
+			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *movie.Rating)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "error")
+		assert.Contains(t, w.Body.String(), "Can not get user id from request")
 	})
 
 	t.Run("service error", func(t *testing.T) {

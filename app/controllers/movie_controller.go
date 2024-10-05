@@ -20,6 +20,22 @@ func NewMovieController(movieService *services.MovieService) *MovieController {
 	return &MovieController{MovieService: *movieService}
 }
 
+func (c *MovieController) GetMovie(ctx *gin.Context) {
+	id, e := uuid.Parse(ctx.Param("id"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid movie id"})
+		return
+	}
+
+	m, err := c.MovieService.GetMovie(id)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(m)})
+}
+
 func (c *MovieController) CreateMovie(ctx *gin.Context) {
 	var req payloads.CreateMovieRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
