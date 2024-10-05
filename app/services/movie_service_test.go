@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -48,6 +49,71 @@ func TestMovieService_GetMovie(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
+		assert.Equal(t, "db error", err.Error())
+	})
+}
+
+func TestMovieService_GetMovies(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock_repositories.NewMockMovieRepository(ctrl)
+	service := NewMovieService(nil, nil, repo)
+
+	movies := make([]*models.Movie, 20)
+	for i := 0; i < len(movies); i++ {
+		movies[i] = utils.GenerateRandomMovie()
+	}
+
+	limit := 10
+	offset := 0
+
+	t.Run("success", func(t *testing.T) {
+		repo.EXPECT().GetMovies(limit, offset).Return(movies, nil).Times(1)
+		repo.EXPECT().GetNumbersOfMovie().Return(len(movies), nil).Times(1)
+
+		result, meta, err := service.GetMovies(limit, offset)
+
+		assert.NotNil(t, result)
+		assert.NotNil(t, meta)
+		assert.Nil(t, err)
+
+		for i, m := range result {
+			assert.Equal(t, movies[i], m)
+		}
+
+		nextUrl := "/movies?limit=10&offset=10"
+		expectedMeta := models.ResponseMeta{
+			Limit:   limit,
+			Offset:  offset,
+			Total:   len(movies),
+			NextUrl: &nextUrl,
+		}
+		assert.Equal(t, &expectedMeta, meta)
+	})
+
+	t.Run("error getting movies", func(t *testing.T) {
+		repo.EXPECT().GetMovies(limit, offset).Return(nil, errors.New("db error")).Times(1)
+
+		result, meta, err := service.GetMovies(limit, offset)
+
+		assert.Nil(t, result)
+		assert.Nil(t, meta)
+		assert.NotNil(t, err)
+
+		assert.Equal(t, "db error", err.Error())
+	})
+
+	t.Run("error counting movies", func(t *testing.T) {
+		repo.EXPECT().GetMovies(limit, offset).Return(movies, nil).Times(1)
+		repo.EXPECT().GetNumbersOfMovie().Return(0, errors.New("db error")).Times(1)
+
+		result, meta, err := service.GetMovies(limit, offset)
+
+		assert.Nil(t, result)
+		assert.Nil(t, meta)
+		assert.NotNil(t, err)
+
 		assert.Equal(t, "db error", err.Error())
 	})
 }

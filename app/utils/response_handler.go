@@ -36,6 +36,20 @@ func StructToMap(input any) map[string]any {
 	return output
 }
 
+func SliceToMaps(slice any) []map[string]any {
+	output := []map[string]any{}
+	val := reflect.ValueOf(slice)
+
+	if val.Kind() == reflect.Slice {
+		for i := 0; i < val.Len(); i++ {
+			structMap := StructToMap(val.Index(i).Interface())
+			output = append(output, structMap)
+		}
+	}
+
+	return output
+}
+
 func parseJSONTag(tag string) string {
 	if tag == "" {
 		return ""

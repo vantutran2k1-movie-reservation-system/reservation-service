@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +14,7 @@ import (
 
 type MovieService interface {
 	GetMovie(id uuid.UUID) (*models.Movie, *errors.ApiError)
+	GetMovies(limit, offset int) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
 	CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
 	UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError)
 }
@@ -46,6 +48,43 @@ func (s *movieService) GetMovie(id uuid.UUID) (*models.Movie, *errors.ApiError) 
 	}
 
 	return m, nil
+}
+
+func (s *movieService) GetMovies(limit, offset int) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError) {
+	movies, err := s.movieRepo.GetMovies(limit, offset)
+	if err != nil {
+		return nil, nil, errors.InternalServerError(err.Error())
+	}
+
+	count, err := s.movieRepo.GetNumbersOfMovie()
+	if err != nil {
+		return nil, nil, errors.InternalServerError(err.Error())
+	}
+
+	var prevUrl, nextUrl *string
+
+	if offset > 0 {
+		prevOffset := offset - limit
+		if prevOffset < 0 {
+			prevOffset = 0
+		}
+		prevUrl = buildPaginationURL(limit, prevOffset)
+	}
+
+	if offset+limit < count {
+		nextUrlOffset := offset + limit
+		nextUrl = buildPaginationURL(limit, nextUrlOffset)
+	}
+
+	meta := &models.ResponseMeta{
+		Limit:   limit,
+		Offset:  offset,
+		Total:   count,
+		NextUrl: nextUrl,
+		PrevUrl: prevUrl,
+	}
+
+	return movies, meta, nil
 }
 
 func (s *movieService) CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError) {
@@ -92,4 +131,9 @@ func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, title string, descri
 	}
 
 	return m, nil
+}
+
+func buildPaginationURL(limit, offset int) *string {
+	url := fmt.Sprintf("/movies?limit=%d&offset=%d", limit, offset)
+	return &url
 }

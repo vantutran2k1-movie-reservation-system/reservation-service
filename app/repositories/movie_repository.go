@@ -8,6 +8,8 @@ import (
 
 type MovieRepository interface {
 	GetMovie(id uuid.UUID) (*models.Movie, error)
+	GetMovies(limit, offset int) ([]*models.Movie, error)
+	GetNumbersOfMovie() (int, error)
 	CreateMovie(tx *gorm.DB, movie *models.Movie) error
 	UpdateMovie(tx *gorm.DB, movie *models.Movie) error
 }
@@ -27,6 +29,24 @@ func (r *movieRepository) GetMovie(id uuid.UUID) (*models.Movie, error) {
 	}
 
 	return &m, nil
+}
+
+func (r *movieRepository) GetMovies(limit, offset int) ([]*models.Movie, error) {
+	var movies []*models.Movie
+	if err := r.db.Limit(limit).Offset(offset).Find(&movies).Error; err != nil {
+		return nil, err
+	}
+
+	return movies, nil
+}
+
+func (r *movieRepository) GetNumbersOfMovie() (int, error) {
+	var count int64
+	if err := r.db.Model(&models.Movie{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
 }
 
 func (r *movieRepository) CreateMovie(tx *gorm.DB, movie *models.Movie) error {

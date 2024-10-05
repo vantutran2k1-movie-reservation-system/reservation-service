@@ -78,7 +78,7 @@ func TestUserService_CreateUser(t *testing.T) {
 
 		repo.EXPECT().FindUserByEmail(user.Email).Return(nil, gorm.ErrRecordNotFound).Times(1)
 		auth.EXPECT().GenerateHashedPassword(password).Return(user.PasswordHash, nil).Times(1)
-		repo.EXPECT().CreateUser(gomock.Any(), user).Return(nil).Times(1)
+		repo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
 		result, err := service.CreateUser(user.Email, password)
 

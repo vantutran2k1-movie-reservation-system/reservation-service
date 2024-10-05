@@ -165,6 +165,19 @@ func GenerateRandomMovie() *models.Movie {
 	}
 }
 
+func GenerateRandomResponseMeta() *models.ResponseMeta {
+	prevUrl := generateRandomURL()
+	nextUrl := generateRandomURL()
+
+	return &models.ResponseMeta{
+		Limit:   generateRandomInt(1, 10),
+		Offset:  generateRandomInt(0, 5),
+		Total:   generateRandomInt(20, 30),
+		NextUrl: &nextUrl,
+		PrevUrl: &prevUrl,
+	}
+}
+
 func GenerateRandomCreateMovieRequest() *payloads.CreateMovieRequest {
 	description := generateRandomString(allChars, 100)
 	language := generateRandomString(lowercaseChars, 10)

@@ -7,6 +7,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"gorm.io/gorm"
 )
@@ -31,8 +32,9 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 
 		movie, err := repo.GetMovie(expectedMovie.ID)
 
-		assert.NoError(t, err)
 		assert.NotNil(t, movie)
+		assert.Nil(t, err)
+
 		assert.Equal(t, expectedMovie.ID, movie.ID)
 		assert.Equal(t, expectedMovie.Title, movie.Title)
 
@@ -46,8 +48,9 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 
 		movie, err := repo.GetMovie(expectedMovie.ID)
 
-		assert.Error(t, err)
 		assert.Nil(t, movie)
+		assert.NotNil(t, err)
+
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
 
 		assert.NoError(t, mock.ExpectationsWereMet())
@@ -60,9 +63,101 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 
 		movie, err := repo.GetMovie(expectedMovie.ID)
 
-		assert.Error(t, err)
 		assert.Nil(t, movie)
+		assert.Error(t, err)
+
 		assert.Equal(t, "query error", err.Error())
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
+func TestMovieRepository_GetMovies(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		mock_db.TearDownTestDB(db, mock)
+	}()
+
+	repo := NewMovieRepository(db)
+
+	movies := make([]*models.Movie, 3)
+	for i := 0; i < len(movies); i++ {
+		movies[i] = utils.GenerateRandomMovie()
+	}
+
+	t.Run("success", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"}).
+			AddRow(movies[0].ID, movies[0].Title, movies[0].Description, movies[0].ReleaseDate, movies[0].DurationMinutes, movies[0].Language, movies[0].Rating, movies[0].CreatedAt, movies[0].UpdatedAt, movies[0].CreatedBy, movies[0].LastUpdatedBy).
+			AddRow(movies[1].ID, movies[1].Title, movies[1].Description, movies[1].ReleaseDate, movies[1].DurationMinutes, movies[1].Language, movies[1].Rating, movies[1].CreatedAt, movies[1].UpdatedAt, movies[1].CreatedBy, movies[1].LastUpdatedBy)
+
+		mock.ExpectQuery(`SELECT \* FROM "movies" LIMIT \$1 OFFSET \$2`).
+			WithArgs(2, 2).
+			WillReturnRows(rows)
+
+		result, err := repo.GetMovies(2, 2)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+
+		assert.Equal(t, movies[0], result[0])
+		assert.Equal(t, movies[1], result[1])
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectQuery(`SELECT \* FROM "movies" LIMIT \$1 OFFSET \$2`).
+			WithArgs(2, 2).
+			WillReturnError(errors.New("db error"))
+
+		result, err := repo.GetMovies(2, 2)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+
+		assert.Equal(t, "db error", err.Error())
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
+func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		mock_db.TearDownTestDB(db, mock)
+	}()
+
+	repo := NewMovieRepository(db)
+
+	movies := make([]*models.Movie, 3)
+	for i := 0; i < len(movies); i++ {
+		movies[i] = utils.GenerateRandomMovie()
+	}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(`SELECT count\(\*\) FROM "movies"`).
+			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
+
+		result, err := repo.GetNumbersOfMovie()
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+
+		assert.Equal(t, 2, result)
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectQuery(`SELECT count\(\*\) FROM "movies"`).
+			WillReturnError(errors.New("db error"))
+
+		result, err := repo.GetNumbersOfMovie()
+
+		assert.Equal(t, result, 0)
+		assert.NotNil(t, err)
+
+		assert.Equal(t, "db error", err.Error())
 
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
@@ -85,11 +180,7 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 
 		tx := db.Begin()
 		err := NewMovieRepository(db).CreateMovie(tx, movie)
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
+		tx.Commit()
 
 		assert.NoError(t, err)
 		assert.NoError(t, mock.ExpectationsWereMet())
@@ -104,11 +195,7 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 
 		tx := db.Begin()
 		err := NewMovieRepository(db).CreateMovie(tx, movie)
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
+		tx.Rollback()
 
 		assert.Error(t, err)
 		assert.NoError(t, mock.ExpectationsWereMet())

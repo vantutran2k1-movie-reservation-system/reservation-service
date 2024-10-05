@@ -70,6 +70,36 @@ func (mr *MockMovieRepositoryMockRecorder) GetMovie(id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetMovie), id)
 }
 
+// GetMovies mocks base method.
+func (m *MockMovieRepository) GetMovies(limit, offset int) ([]*models.Movie, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMovies", limit, offset)
+	ret0, _ := ret[0].([]*models.Movie)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMovies indicates an expected call of GetMovies.
+func (mr *MockMovieRepositoryMockRecorder) GetMovies(limit, offset any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovies", reflect.TypeOf((*MockMovieRepository)(nil).GetMovies), limit, offset)
+}
+
+// GetNumbersOfMovie mocks base method.
+func (m *MockMovieRepository) GetNumbersOfMovie() (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNumbersOfMovie")
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNumbersOfMovie indicates an expected call of GetNumbersOfMovie.
+func (mr *MockMovieRepositoryMockRecorder) GetNumbersOfMovie() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumbersOfMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetNumbersOfMovie))
+}
+
 // UpdateMovie mocks base method.
 func (m *MockMovieRepository) UpdateMovie(tx *gorm.DB, movie *models.Movie) error {
 	m.ctrl.T.Helper()

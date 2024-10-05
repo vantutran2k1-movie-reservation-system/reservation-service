@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -34,6 +35,28 @@ func (c *MovieController) GetMovie(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(m)})
+}
+
+func (c *MovieController) GetMovies(ctx *gin.Context) {
+	limitParam := ctx.DefaultQuery("limit", "10")
+	limit, e := strconv.Atoi(limitParam)
+	if e != nil || limit <= 0 {
+		limit = 10
+	}
+
+	offsetParam := ctx.DefaultQuery("offset", "0")
+	offset, e := strconv.Atoi(offsetParam)
+	if e != nil || offset < 0 {
+		offset = 0
+	}
+
+	movies, meta, err := c.MovieService.GetMovies(limit, offset)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.SliceToMaps(movies), "meta": utils.StructToMap(meta)})
 }
 
 func (c *MovieController) CreateMovie(ctx *gin.Context) {
@@ -83,5 +106,5 @@ func (c *MovieController) UpdateMovie(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(m)})
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(m)})
 }
