@@ -216,13 +216,12 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 
 		profileRepo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)
 		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, gomock.Any()).Return(nil).Times(1)
-		profileRepo.EXPECT().UpdateUserProfile(gomock.Any(), profile).Return(nil).Times(1)
+		profileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), profile, gomock.Any()).Return(profile, nil).Times(1)
 
 		result, err := service.UpdateProfilePicture(profile.UserID, file)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Contains(t, *result.ProfilePictureUrl, profile.UserID.String())
 	})
 
 	t.Run("db error updating profile", func(t *testing.T) {
@@ -234,7 +233,7 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 
 		profileRepo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)
 		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, gomock.Any()).Return(nil).Times(1)
-		profileRepo.EXPECT().UpdateUserProfile(gomock.Any(), profile).Return(errors.New("db error")).Times(1)
+		profileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), profile, gomock.Any()).Return(nil, errors.New("db error")).Times(1)
 
 		result, err := service.UpdateProfilePicture(profile.UserID, file)
 
@@ -274,12 +273,11 @@ func TestUserProfileService_DeleteProfilePicture(t *testing.T) {
 		).Times(1)
 
 		profileRepo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)
-		profileRepo.EXPECT().UpdateUserProfile(gomock.Any(), profile).Return(nil).Times(1)
+		profileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), profile, gomock.Any()).Return(profile, nil).Times(1)
 
 		err := service.DeleteProfilePicture(profile.UserID)
 
 		assert.Nil(t, err)
-		assert.Nil(t, profile.ProfilePictureUrl)
 	})
 
 	t.Run("error deleting profile picture", func(t *testing.T) {
@@ -290,7 +288,7 @@ func TestUserProfileService_DeleteProfilePicture(t *testing.T) {
 		).Times(1)
 
 		profileRepo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)
-		profileRepo.EXPECT().UpdateUserProfile(gomock.Any(), profile).Return(errors.New("db error")).Times(1)
+		profileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), profile, gomock.Any()).Return(nil, errors.New("db error")).Times(1)
 
 		err := service.DeleteProfilePicture(profile.UserID)
 

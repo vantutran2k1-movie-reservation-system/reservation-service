@@ -70,6 +70,21 @@ func (mr *MockUserProfileRepositoryMockRecorder) GetProfileByUserID(userID any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfileByUserID", reflect.TypeOf((*MockUserProfileRepository)(nil).GetProfileByUserID), userID)
 }
 
+// UpdateProfilePicture mocks base method.
+func (m *MockUserProfileRepository) UpdateProfilePicture(tx *gorm.DB, profile *models.UserProfile, url *string) (*models.UserProfile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateProfilePicture", tx, profile, url)
+	ret0, _ := ret[0].(*models.UserProfile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateProfilePicture indicates an expected call of UpdateProfilePicture.
+func (mr *MockUserProfileRepositoryMockRecorder) UpdateProfilePicture(tx, profile, url any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProfilePicture", reflect.TypeOf((*MockUserProfileRepository)(nil).UpdateProfilePicture), tx, profile, url)
+}
+
 // UpdateUserProfile mocks base method.
 func (m *MockUserProfileRepository) UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
 	m.ctrl.T.Helper()

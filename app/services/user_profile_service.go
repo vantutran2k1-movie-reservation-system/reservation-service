@@ -117,10 +117,10 @@ func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multip
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	p.ProfilePictureUrl = &objectName
-	p.UpdatedAt = time.Now().UTC()
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.userProfileRepo.UpdateUserProfile(tx, p)
+		profile, err := s.userProfileRepo.UpdateProfilePicture(tx, p, &objectName)
+		p = profile
+		return err
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -134,10 +134,9 @@ func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiE
 		return err
 	}
 
-	p.ProfilePictureUrl = nil
-	p.UpdatedAt = time.Now().UTC()
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.userProfileRepo.UpdateUserProfile(tx, p)
+		_, err := s.userProfileRepo.UpdateProfilePicture(tx, p, nil)
+		return err
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
 	}
