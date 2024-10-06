@@ -1,6 +1,8 @@
 package services
 
 import (
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,7 +27,6 @@ type userService struct {
 	db                 *gorm.DB
 	rdb                *redis.Client
 	authenticator      auth.Authenticator
-	tokenGenerator     auth.TokenGenerator
 	transactionManager transaction.TransactionManager
 	userRepo           repositories.UserRepository
 	loginTokenRepo     repositories.LoginTokenRepository
@@ -36,7 +37,6 @@ func NewUserService(
 	db *gorm.DB,
 	rdb *redis.Client,
 	authenticator auth.Authenticator,
-	tokenGenerator auth.TokenGenerator,
 	transactionManager transaction.TransactionManager,
 	userRepo repositories.UserRepository,
 	loginTokenRepo repositories.LoginTokenRepository,
@@ -46,7 +46,6 @@ func NewUserService(
 		db:                 db,
 		rdb:                rdb,
 		authenticator:      authenticator,
-		tokenGenerator:     tokenGenerator,
 		transactionManager: transactionManager,
 		userRepo:           userRepo,
 		loginTokenRepo:     loginTokenRepo,
@@ -109,16 +108,12 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	if !s.authenticator.IsPasswordsMatch(u.PasswordHash, password) {
+	if !s.authenticator.DoPasswordsMatch(u.PasswordHash, password) {
 		return nil, errors.UnauthorizedError("Invalid password")
 	}
 
-	token, err := s.tokenGenerator.GenerateToken()
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-
-	_, err = s.loginTokenRepo.GetActiveLoginToken(token.TokenValue)
+	token := s.authenticator.GenerateToken()
+	_, err = s.loginTokenRepo.GetActiveLoginToken(token)
 	if err == nil {
 		return nil, errors.InternalServerError("Token value already exists")
 	}
@@ -126,12 +121,19 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 		return nil, errors.InternalServerError(err.Error())
 	}
 
+	now := time.Now().UTC()
+	tokenExpiresAfter, err := strconv.Atoi(os.Getenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES"))
+	if err != nil {
+		return nil, errors.InternalServerError("invalid token expiry minutes: %v", err)
+	}
+	validDuration := time.Duration(tokenExpiresAfter) * time.Minute
+
 	t := models.LoginToken{
 		ID:         uuid.New(),
 		UserID:     u.ID,
-		TokenValue: token.TokenValue,
-		CreatedAt:  token.CreatedAt,
-		ExpiresAt:  token.CreatedAt.Add(token.ValidDuration),
+		TokenValue: token,
+		CreatedAt:  now,
+		ExpiresAt:  now.Add(validDuration),
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.loginTokenRepo.CreateLoginToken(tx, &t)
@@ -141,8 +143,8 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 
 	if err := s.transactionManager.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
 		return s.userSessionRepo.CreateUserSession(
-			s.userSessionRepo.GetUserSessionID(token.TokenValue),
-			token.ValidDuration,
+			s.userSessionRepo.GetUserSessionID(token),
+			validDuration,
 			&models.UserSession{UserID: u.ID, Email: u.Email},
 		)
 	}); err != nil {
@@ -187,7 +189,7 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 		return errors.InternalServerError(err.Error())
 	}
 
-	if s.authenticator.IsPasswordsMatch(u.PasswordHash, password) {
+	if s.authenticator.DoPasswordsMatch(u.PasswordHash, password) {
 		return errors.BadRequestError("New password can not be the same as current value")
 	}
 

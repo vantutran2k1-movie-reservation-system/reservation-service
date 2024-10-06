@@ -117,7 +117,6 @@ func setupServices(repositories *Repositories) *Services {
 			config.DB,
 			config.RedisClient,
 			auth.NewAuthenticator(),
-			auth.NewTokenGenerator(),
 			transaction.NewTransactionManager(),
 			repositories.UserRepository,
 			repositories.LoginTokenRepository,

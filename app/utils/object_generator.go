@@ -8,7 +8,6 @@ import (
 	"math/rand"
 
 	"github.com/google/uuid"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
@@ -109,14 +108,6 @@ func GenerateRandomUpdateUserProfileRequest() *payloads.UpdateUserProfileRequest
 		LastName:    generateRandomName(),
 		PhoneNumber: &phoneNumber,
 		DateOfBirth: &dateOfBirth,
-	}
-}
-
-func GenerateRandomAuthToken() *auth.AuthToken {
-	return &auth.AuthToken{
-		TokenValue:    uuid.NewString(),
-		CreatedAt:     time.Now(),
-		ValidDuration: time.Duration(60 * time.Minute),
 	}
 }
 

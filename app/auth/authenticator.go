@@ -1,19 +1,23 @@
 package auth
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+)
 
 type Authenticator interface {
 	GenerateHashedPassword(rawPassword string) (string, error)
-	IsPasswordsMatch(hashedPassword, rawPassword string) bool
+	DoPasswordsMatch(hashedPassword, rawPassword string) bool
+	GenerateToken() string
 }
 
 func NewAuthenticator() Authenticator {
-	return &bcryptAuthenticator{}
+	return &authenticator{}
 }
 
-type bcryptAuthenticator struct{}
+type authenticator struct{}
 
-func (a *bcryptAuthenticator) GenerateHashedPassword(rawPassword string) (string, error) {
+func (a *authenticator) GenerateHashedPassword(rawPassword string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
@@ -22,10 +26,14 @@ func (a *bcryptAuthenticator) GenerateHashedPassword(rawPassword string) (string
 	return string(hashedPassword), nil
 }
 
-func (a *bcryptAuthenticator) IsPasswordsMatch(hashedPassword, rawPassword string) bool {
+func (a *authenticator) DoPasswordsMatch(hashedPassword, rawPassword string) bool {
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(rawPassword)); err != nil {
 		return false
 	}
 
 	return true
+}
+
+func (g *authenticator) GenerateToken() string {
+	return uuid.NewString()
 }
