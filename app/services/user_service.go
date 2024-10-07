@@ -198,13 +198,13 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 		return errors.InternalServerError(err.Error())
 	}
 
-	u.PasswordHash = p
-	u.UpdatedAt = time.Now().UTC()
-
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		if err := s.userRepo.UpdateUser(tx, u); err != nil {
+		user, err := s.userRepo.UpdatePassword(tx, u, p)
+		if err != nil {
 			return err
 		}
+
+		u = user
 
 		if err := s.loginTokenRepo.RevokeUserLoginTokens(tx, u.ID); err != nil {
 			return err

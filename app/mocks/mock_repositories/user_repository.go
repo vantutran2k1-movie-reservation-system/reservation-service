@@ -85,16 +85,17 @@ func (mr *MockUserRepositoryMockRecorder) GetUser(userID any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserRepository)(nil).GetUser), userID)
 }
 
-// UpdateUser mocks base method.
-func (m *MockUserRepository) UpdateUser(tx *gorm.DB, user *models.User) error {
+// UpdatePassword mocks base method.
+func (m *MockUserRepository) UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", tx, user)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "UpdatePassword", tx, user, password)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockUserRepositoryMockRecorder) UpdateUser(tx, user any) *gomock.Call {
+// UpdatePassword indicates an expected call of UpdatePassword.
+func (mr *MockUserRepositoryMockRecorder) UpdatePassword(tx, user, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserRepository)(nil).UpdateUser), tx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserRepository)(nil).UpdatePassword), tx, user, password)
 }

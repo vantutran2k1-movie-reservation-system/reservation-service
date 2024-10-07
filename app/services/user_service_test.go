@@ -382,7 +382,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 			},
 		).Times(1)
 
-		userRepo.EXPECT().UpdateUser(gomock.Any(), user).Return(nil).Times(1)
+		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, user.PasswordHash).Return(user, nil).Times(1)
 		loginTokenRepo.EXPECT().RevokeUserLoginTokens(gomock.Any(), user.ID).Return(nil).Times(1)
 
 		userSessionRepo.EXPECT().DeleteUserSessions(user.ID).Return(nil).Times(1)
