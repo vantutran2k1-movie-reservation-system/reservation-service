@@ -18,7 +18,7 @@ func GenerateRandomUser() *models.User {
 	return &models.User{
 		ID:           uuid.New(),
 		Email:        generateRandomEmail(),
-		PasswordHash: generateRandomHashedPassword(),
+		PasswordHash: GenerateRandomHashedPassword(),
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
@@ -28,7 +28,7 @@ func GenerateRandomUserWithID(id uuid.UUID) *models.User {
 	return &models.User{
 		ID:           id,
 		Email:        generateRandomEmail(),
-		PasswordHash: generateRandomHashedPassword(),
+		PasswordHash: GenerateRandomHashedPassword(),
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
@@ -184,6 +184,13 @@ func GenerateRandomCreateMovieRequest() *payloads.CreateMovieRequest {
 	}
 }
 
+func GenerateRandomHashedPassword() string {
+	password := generateRandomPassword()
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	return string(hashedPassword)
+}
+
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
 const numberChars = "0123456789"
 const letterChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -214,13 +221,6 @@ func generateRandomEmail() string {
 
 func generateRandomPassword() string {
 	return generateRandomString(allChars, 12)
-}
-
-func generateRandomHashedPassword() string {
-	password := generateRandomPassword()
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
-	return string(hashedPassword)
 }
 
 func generateRandomPhoneNumber() string {
