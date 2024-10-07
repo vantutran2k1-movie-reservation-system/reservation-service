@@ -67,6 +67,11 @@ func RegisterRoutes() *gin.Engine {
 				c.MovieController.UpdateMovie,
 			)
 		}
+
+		genres := apiV1.Group("/genres")
+		{
+			genres.POST("/", c.GenreController.CreateGenre)
+		}
 	}
 
 	return router
@@ -80,18 +85,21 @@ type Repositories struct {
 	ProfilePictureRepository repositories.ProfilePictureRepository
 	MovieRepository          repositories.MovieRepository
 	FeatureFlagRepository    repositories.FeatureFlagRepository
+	GenreRepository          repositories.GenreRepository
 }
 
 type Services struct {
 	UserService        services.UserService
 	UserProfileService services.UserProfileService
 	MovieService       services.MovieService
+	GenreService       services.GenreService
 }
 
 type Controllers struct {
 	UserController        controllers.UserController
 	UserProfileController controllers.UserProfileController
 	MovieController       controllers.MovieController
+	GenreController       controllers.GenreController
 }
 
 type Middlewares struct {
@@ -108,6 +116,7 @@ func setupRepositories() *Repositories {
 		ProfilePictureRepository: repositories.NewProfilePictureRepository(config.MinioClient),
 		MovieRepository:          repositories.NewMovieRepository(config.DB),
 		FeatureFlagRepository:    repositories.NewFeatureFlagRepository(config.ConfigcatClient),
+		GenreRepository:          repositories.NewGenreRepository(config.DB),
 	}
 }
 
@@ -133,6 +142,11 @@ func setupServices(repositories *Repositories) *Services {
 			transaction.NewTransactionManager(),
 			repositories.MovieRepository,
 		),
+		GenreService: services.NewGenreService(
+			config.DB,
+			transaction.NewTransactionManager(),
+			repositories.GenreRepository,
+		),
 	}
 }
 
@@ -141,6 +155,7 @@ func setupControllers(services *Services) *Controllers {
 		UserController:        *controllers.NewUserController(&services.UserService),
 		UserProfileController: *controllers.NewUserProfileController(&services.UserProfileService),
 		MovieController:       *controllers.NewMovieController(&services.MovieService),
+		GenreController:       *controllers.NewGenreController(&services.GenreService),
 	}
 }
 

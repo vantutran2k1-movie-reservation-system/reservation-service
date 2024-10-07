@@ -184,6 +184,19 @@ func GenerateRandomCreateMovieRequest() *payloads.CreateMovieRequest {
 	}
 }
 
+func GenerateRandomGenre() *models.Genre {
+	return &models.Genre{
+		ID:   uuid.New(),
+		Name: generateRandomString(lowercaseChars, 10),
+	}
+}
+
+func GenerateRandomCreateGenreRequest() *payloads.CreateGenreRequest {
+	return &payloads.CreateGenreRequest{
+		Name: generateRandomString(letterChars, 10),
+	}
+}
+
 func GenerateRandomHashedPassword() string {
 	password := generateRandomPassword()
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
