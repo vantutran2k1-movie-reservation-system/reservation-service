@@ -1,67 +1,16 @@
 package repositories
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
-	"gorm.io/gorm"
 )
 
-func TestUserProfileRepository_GetProfileByUserID_Success(t *testing.T) {
-	db, mock := mock_db.SetupTestDB(t)
-	defer func() {
-		mock_db.TearDownTestDB(db, mock)
-	}()
-
-	expectedProfile := utils.GenerateRandomUserProfile()
-
-	mock.ExpectQuery(`SELECT \* FROM "user_profiles" WHERE "user_profiles"."user_id" = \$1 ORDER BY "user_profiles"."id" LIMIT \$2`).
-		WithArgs(expectedProfile.UserID, 1).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "user_id", "first_name", "last_name", "phone_number", "date_of_birth", "profile_picture_url", "bio", "created_at", "updated_at"}).
-			AddRow(expectedProfile.ID, expectedProfile.UserID, expectedProfile.FirstName, expectedProfile.LastName, expectedProfile.PhoneNumber, expectedProfile.DateOfBirth, expectedProfile.ProfilePictureUrl, expectedProfile.Bio, expectedProfile.CreatedAt, expectedProfile.UpdatedAt))
-
-	profile, err := NewUserProfileRepository(db).GetProfileByUserID(expectedProfile.UserID)
-
-	assert.NoError(t, err)
-	assert.NotNil(t, profile)
-	assert.Equal(t, expectedProfile.ID, profile.ID)
-	assert.Equal(t, expectedProfile.UserID, profile.UserID)
-	assert.Equal(t, expectedProfile.FirstName, profile.FirstName)
-	assert.Equal(t, expectedProfile.LastName, profile.LastName)
-	assert.Equal(t, expectedProfile.PhoneNumber, profile.PhoneNumber)
-	assert.Equal(t, expectedProfile.DateOfBirth, profile.DateOfBirth)
-	assert.Equal(t, expectedProfile.ProfilePictureUrl, profile.ProfilePictureUrl)
-	assert.Equal(t, expectedProfile.Bio, profile.Bio)
-
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestUserProfileRepository_GetProfileByUserID_NotFound(t *testing.T) {
-	db, mock := mock_db.SetupTestDB(t)
-	defer func() {
-		mock_db.TearDownTestDB(db, mock)
-	}()
-
-	userID := uuid.New()
-
-	mock.ExpectQuery(`SELECT \* FROM "user_profiles" WHERE "user_profiles"."user_id" = \$1 ORDER BY "user_profiles"."id" LIMIT \$2`).
-		WithArgs(userID, 1).
-		WillReturnError(gorm.ErrRecordNotFound)
-
-	profile, err := NewUserProfileRepository(db).GetProfileByUserID(userID)
-
-	assert.Nil(t, profile)
-	assert.Error(t, err)
-	assert.Equal(t, gorm.ErrRecordNotFound, err)
-
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestUserProfileRepository_CreateUserProfile_Success(t *testing.T) {
+func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		mock_db.TearDownTestDB(db, mock)
@@ -69,26 +18,44 @@ func TestUserProfileRepository_CreateUserProfile_Success(t *testing.T) {
 
 	profile := utils.GenerateRandomUserProfile()
 
-	mock.ExpectBegin()
-	mock.ExpectExec(`INSERT INTO "user_profiles"`).
-		WithArgs(profile.ID, profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, sqlmock.AnyArg(), sqlmock.AnyArg()).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(`SELECT \* FROM "user_profiles" WHERE "user_profiles"."user_id" = \$1 ORDER BY "user_profiles"."id" LIMIT \$2`).
+			WithArgs(profile.UserID, 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "user_id", "first_name", "last_name", "phone_number", "date_of_birth", "profile_picture_url", "bio", "created_at", "updated_at"}).
+				AddRow(profile.ID, profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, profile.CreatedAt, profile.UpdatedAt))
 
-	tx := db.Begin()
-	err := NewUserProfileRepository(db).CreateUserProfile(tx, profile)
-	if err == nil {
-		tx.Commit()
-	} else {
-		tx.Rollback()
-	}
+		result, err := NewUserProfileRepository(db).GetProfileByUserID(profile.UserID)
 
-	assert.NoError(t, err)
+		assert.NotNil(t, profile)
+		assert.Nil(t, err)
+		assert.Equal(t, profile.ID, result.ID)
+		assert.Equal(t, profile.UserID, result.UserID)
+		assert.Equal(t, profile.FirstName, result.FirstName)
+		assert.Equal(t, profile.LastName, result.LastName)
+		assert.Equal(t, profile.PhoneNumber, result.PhoneNumber)
+		assert.Equal(t, profile.DateOfBirth, result.DateOfBirth)
+		assert.Equal(t, profile.ProfilePictureUrl, result.ProfilePictureUrl)
+		assert.Equal(t, profile.Bio, result.Bio)
 
-	assert.NoError(t, mock.ExpectationsWereMet())
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectQuery(`SELECT \* FROM "user_profiles" WHERE "user_profiles"."user_id" = \$1 ORDER BY "user_profiles"."id" LIMIT \$2`).
+			WithArgs(profile.UserID, 1).
+			WillReturnError(errors.New("db error"))
+
+		profile, err := NewUserProfileRepository(db).GetProfileByUserID(profile.UserID)
+
+		assert.Nil(t, profile)
+		assert.NotNil(t, err)
+		assert.Equal(t, "db error", err.Error())
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
 }
 
-func TestUserProfileRepository_CreateUserProfile_Failure(t *testing.T) {
+func TestUserProfileRepository_CreateUserProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		mock_db.TearDownTestDB(db, mock)
@@ -96,27 +63,41 @@ func TestUserProfileRepository_CreateUserProfile_Failure(t *testing.T) {
 
 	profile := utils.GenerateRandomUserProfile()
 
-	mock.ExpectBegin()
-	mock.ExpectExec(`INSERT INTO "user_profiles"`).
-		WithArgs(profile.ID, profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, sqlmock.AnyArg(), sqlmock.AnyArg()).
-		WillReturnError(gorm.ErrInvalidData)
-	mock.ExpectRollback()
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`INSERT INTO "user_profiles"`).
+			WithArgs(profile.ID, profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, sqlmock.AnyArg(), sqlmock.AnyArg()).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
 
-	tx := db.Begin()
-	err := NewUserProfileRepository(db).CreateUserProfile(tx, profile)
-	if err == nil {
+		tx := db.Begin()
+		err := NewUserProfileRepository(db).CreateUserProfile(tx, profile)
 		tx.Commit()
-	} else {
+
+		assert.NoError(t, err)
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`INSERT INTO "user_profiles"`).
+			WithArgs(profile.ID, profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, sqlmock.AnyArg(), sqlmock.AnyArg()).
+			WillReturnError(errors.New("db error"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := NewUserProfileRepository(db).CreateUserProfile(tx, profile)
 		tx.Rollback()
-	}
 
-	assert.Error(t, err)
-	assert.Equal(t, gorm.ErrInvalidData, err)
+		assert.NotNil(t, err)
+		assert.Equal(t, "db error", err.Error())
 
-	assert.NoError(t, mock.ExpectationsWereMet())
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
 }
 
-func TestUserProfileRepository_UpdateUserProfile_Success(t *testing.T) {
+func TestUserProfileRepository_UpdateUserProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		mock_db.TearDownTestDB(db, mock)
@@ -124,49 +105,82 @@ func TestUserProfileRepository_UpdateUserProfile_Success(t *testing.T) {
 
 	profile := utils.GenerateRandomUserProfile()
 
-	mock.ExpectBegin()
-	mock.ExpectExec(`UPDATE "user_profiles" SET "user_id"=\$1,"first_name"=\$2,"last_name"=\$3,"phone_number"=\$4,"date_of_birth"=\$5,"profile_picture_url"=\$6,"bio"=\$7,"created_at"=\$8,"updated_at"=\$9 WHERE "id" = \$10`).
-		WithArgs(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, sqlmock.AnyArg(), sqlmock.AnyArg(), profile.ID).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "user_profiles" SET "user_id"=\$1,"first_name"=\$2,"last_name"=\$3,"phone_number"=\$4,"date_of_birth"=\$5,"profile_picture_url"=\$6,"bio"=\$7,"created_at"=\$8,"updated_at"=\$9 WHERE "id" = \$10`).
+			WithArgs(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, sqlmock.AnyArg(), sqlmock.AnyArg(), profile.ID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
 
-	tx := db.Begin()
-	err := NewUserProfileRepository(db).UpdateUserProfile(tx, profile)
-	if err == nil {
+		tx := db.Begin()
+		err := NewUserProfileRepository(db).UpdateUserProfile(tx, profile)
 		tx.Commit()
-	} else {
+
+		assert.NoError(t, err)
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "user_profiles" SET "user_id"=\$1,"first_name"=\$2,"last_name"=\$3,"phone_number"=\$4,"date_of_birth"=\$5,"profile_picture_url"=\$6,"bio"=\$7,"created_at"=\$8,"updated_at"=\$9 WHERE "id" = \$10`).
+			WithArgs(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, sqlmock.AnyArg(), sqlmock.AnyArg(), profile.ID).
+			WillReturnError(errors.New("db error"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := NewUserProfileRepository(db).UpdateUserProfile(tx, profile)
 		tx.Rollback()
-	}
 
-	assert.NoError(t, err)
+		assert.NotNil(t, err)
+		assert.Equal(t, "db error", err.Error())
 
-	assert.NoError(t, mock.ExpectationsWereMet())
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
 }
 
-func TestUserProfileRepository_UpdateUserProfile_Failure(t *testing.T) {
+func TestUserRepository_UpdateProfilePicture(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
 	profile := utils.GenerateRandomUserProfile()
+	url := utils.GenerateRandomURL()
 
-	mock.ExpectBegin()
-	mock.ExpectExec(`UPDATE "user_profiles" SET "user_id"=\$1,"first_name"=\$2,"last_name"=\$3,"phone_number"=\$4,"date_of_birth"=\$5,"profile_picture_url"=\$6,"bio"=\$7,"created_at"=\$8,"updated_at"=\$9 WHERE "id" = \$10`).
-		WithArgs(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, sqlmock.AnyArg(), sqlmock.AnyArg(), profile.ID).
-		WillReturnError(gorm.ErrRecordNotFound)
-	mock.ExpectRollback()
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "user_profiles" SET "profile_picture_url"=\$1,"updated_at"=\$2 WHERE "id" = \$3`).
+			WithArgs(url, sqlmock.AnyArg(), profile.ID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
 
-	tx := db.Begin()
-	err := NewUserProfileRepository(db).UpdateUserProfile(tx, profile)
-	if err == nil {
+		tx := db.Begin()
+		result, err := NewUserProfileRepository(db).UpdateProfilePicture(tx, profile, &url)
 		tx.Commit()
-	} else {
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, url, *result.ProfilePictureUrl)
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "user_profiles" SET "profile_picture_url"=\$1,"updated_at"=\$2 WHERE "id" = \$3`).
+			WithArgs(url, sqlmock.AnyArg(), profile.ID).
+			WillReturnError(errors.New("db error"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		result, err := NewUserProfileRepository(db).UpdateProfilePicture(tx, profile, &url)
 		tx.Rollback()
-	}
 
-	assert.Error(t, err)
-	assert.Equal(t, gorm.ErrRecordNotFound, err)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "db error", err.Error())
 
-	assert.NoError(t, mock.ExpectationsWereMet())
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
 }

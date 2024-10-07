@@ -50,7 +50,7 @@ func GenerateRandomUpdatePasswordRequest() *payloads.UpdatePasswordRequest {
 func GenerateRandomUserProfile() *models.UserProfile {
 	phoneNumber := generateRandomPhoneNumber()
 	dateOfBirth := generateRandomDate()
-	profilePictureUrl := generateRandomURL()
+	profilePictureUrl := GenerateRandomURL()
 	bio := generateRandomString(allChars, 50)
 
 	return &models.UserProfile{
@@ -70,7 +70,7 @@ func GenerateRandomUserProfile() *models.UserProfile {
 func GenerateRandomUserProfileWithIDAndUserID(id uuid.UUID, userID uuid.UUID) *models.UserProfile {
 	phoneNumber := generateRandomPhoneNumber()
 	dateOfBirth := generateRandomDate()
-	profilePictureUrl := generateRandomURL()
+	profilePictureUrl := GenerateRandomURL()
 	bio := generateRandomString(allChars, 50)
 
 	return &models.UserProfile{
@@ -157,8 +157,8 @@ func GenerateRandomMovie() *models.Movie {
 }
 
 func GenerateRandomResponseMeta() *models.ResponseMeta {
-	prevUrl := generateRandomURL()
-	nextUrl := generateRandomURL()
+	prevUrl := GenerateRandomURL()
+	nextUrl := GenerateRandomURL()
 
 	return &models.ResponseMeta{
 		Limit:   generateRandomInt(1, 10),
@@ -189,6 +189,16 @@ func GenerateRandomHashedPassword() string {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	return string(hashedPassword)
+}
+
+func GenerateRandomURL() string {
+	protocol := urlProtocols[rand.Intn(len(urlProtocols))]
+	subdomain := generateRandomString(lowercaseChars, rand.Intn(5)+3)
+	domain := urlDomains[rand.Intn(len(urlDomains))]
+	path := generateRandomString(lowercaseChars+"/", rand.Intn(10)+5)
+	queryParams := generateRandomString(lowercaseChars, rand.Intn(3)+3) + "=value"
+
+	return fmt.Sprintf("%s://%s.%s/%s?%s", protocol, subdomain, domain, path, queryParams)
 }
 
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
@@ -236,16 +246,6 @@ func generateRandomDate() string {
 	randomDate := start.AddDate(0, 0, int(randomDays)-1)
 
 	return randomDate.Format("2006-01-02")
-}
-
-func generateRandomURL() string {
-	protocol := urlProtocols[rand.Intn(len(urlProtocols))]
-	subdomain := generateRandomString(lowercaseChars, rand.Intn(5)+3)
-	domain := urlDomains[rand.Intn(len(urlDomains))]
-	path := generateRandomString(lowercaseChars+"/", rand.Intn(10)+5)
-	queryParams := generateRandomString(lowercaseChars, rand.Intn(3)+3) + "=value"
-
-	return fmt.Sprintf("%s://%s.%s/%s?%s", protocol, subdomain, domain, path, queryParams)
 }
 
 func generateRandomFloat(min, max float64) float64 {
