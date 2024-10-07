@@ -13,4 +13,5 @@ const (
 
 	// Configcat feature flags
 	CAN_MODIFY_MOVIES = "canModifyMovies"
+	CAN_MODIFY_GENRES = "canModifyGenres"
 )

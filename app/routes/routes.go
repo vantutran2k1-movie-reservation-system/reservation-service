@@ -70,7 +70,12 @@ func RegisterRoutes() *gin.Engine {
 
 		genres := apiV1.Group("/genres")
 		{
-			genres.POST("/", c.GenreController.CreateGenre)
+			genres.POST(
+				"/",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_GENRES),
+				c.GenreController.CreateGenre,
+			)
 		}
 	}
 
