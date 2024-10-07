@@ -12,6 +12,5 @@ const (
 	APPLICATION_JSON = "application/json"
 
 	// Configcat feature flags
-	CAN_CREATE_MOVIE = "canCreateMovie"
-	CAN_UPDATE_MOVIE = "canUpdateMovie"
+	CAN_MODIFY_MOVIES = "canModifyMovies"
 )

@@ -57,13 +57,13 @@ func RegisterRoutes() *gin.Engine {
 			movies.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),
-				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_CREATE_MOVIE),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_MOVIES),
 				c.MovieController.CreateMovie,
 			)
 			movies.PUT(
 				"/:id",
 				m.AuthMiddleware.RequireAuthMiddleware(),
-				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_UPDATE_MOVIE),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_MOVIES),
 				c.MovieController.UpdateMovie,
 			)
 		}
