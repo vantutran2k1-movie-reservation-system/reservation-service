@@ -12,6 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -52,6 +53,21 @@ func (m *MockGenreRepository) CreateGenre(tx *gorm.DB, genre *models.Genre) erro
 func (mr *MockGenreRepositoryMockRecorder) CreateGenre(tx, genre any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGenre", reflect.TypeOf((*MockGenreRepository)(nil).CreateGenre), tx, genre)
+}
+
+// GetGenre mocks base method.
+func (m *MockGenreRepository) GetGenre(id uuid.UUID) (*models.Genre, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGenre", id)
+	ret0, _ := ret[0].(*models.Genre)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGenre indicates an expected call of GetGenre.
+func (mr *MockGenreRepositoryMockRecorder) GetGenre(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenre", reflect.TypeOf((*MockGenreRepository)(nil).GetGenre), id)
 }
 
 // GetGenreByName mocks base method.

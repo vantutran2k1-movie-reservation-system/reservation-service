@@ -16,6 +16,78 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func TestGenreController_GetGenre(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockGenreService(ctrl)
+	controller := GenreController{
+		GenreService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	genre := utils.GenerateRandomGenre()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/genres/:id", controller.GetGenre)
+
+		service.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", genre.ID), nil)
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), genre.Name)
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/genres/:id", controller.GetGenre)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", "test id"), nil)
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "invalid genre id")
+	})
+
+	t.Run("genre not found", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/genres/:id", controller.GetGenre)
+
+		service.EXPECT().GetGenre(gomock.Any()).Return(nil, errors.NotFoundError("not found")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", genre.ID), nil)
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "not found")
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/genres/:id", controller.GetGenre)
+
+		service.EXPECT().GetGenre(genre.ID).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", genre.ID), nil)
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
+
 func TestGenreController_CreateGenre(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

@@ -10,6 +10,7 @@ import (
 )
 
 type GenreService interface {
+	GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError)
 	CreateGenre(name string) (*models.Genre, *errors.ApiError)
 }
 
@@ -21,6 +22,19 @@ type genreService struct {
 	db                 *gorm.DB
 	transactionManager transaction.TransactionManager
 	genreRepo          repositories.GenreRepository
+}
+
+func (s *genreService) GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError) {
+	g, err := s.genreRepo.GetGenre(id)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, errors.NotFoundError("genre not found")
+		}
+
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return g, nil
 }
 
 func (s *genreService) CreateGenre(name string) (*models.Genre, *errors.ApiError) {

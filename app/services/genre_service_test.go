@@ -12,6 +12,46 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestGenreService_GetGenre(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock_repositories.NewMockGenreRepository(ctrl)
+	service := NewGenreService(nil, nil, repo)
+
+	genre := utils.GenerateRandomGenre()
+
+	t.Run("success", func(t *testing.T) {
+		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
+
+		result, err := service.GetGenre(genre.ID)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, genre.Name, result.Name)
+	})
+
+	t.Run("genre not found", func(t *testing.T) {
+		repo.EXPECT().GetGenre(genre.ID).Return(nil, gorm.ErrRecordNotFound).Times(1)
+
+		result, err := service.GetGenre(genre.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "genre not found", err.Error())
+	})
+
+	t.Run("repository returns error", func(t *testing.T) {
+		repo.EXPECT().GetGenre(genre.ID).Return(nil, errors.New("error")).Times(1)
+
+		result, err := service.GetGenre(genre.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error", err.Error())
+	})
+}
+
 func TestGenreService_CreateGenre(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

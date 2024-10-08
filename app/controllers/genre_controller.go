@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/google/uuid"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +17,22 @@ type GenreController struct {
 
 func NewGenreController(genreService *services.GenreService) *GenreController {
 	return &GenreController{GenreService: *genreService}
+}
+
+func (c *GenreController) GetGenre(ctx *gin.Context) {
+	id, e := uuid.Parse(ctx.Param("id"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid genre id"})
+		return
+	}
+
+	g, err := c.GenreService.GetGenre(id)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(g)})
 }
 
 func (c *GenreController) CreateGenre(ctx *gin.Context) {
