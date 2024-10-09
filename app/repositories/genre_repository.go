@@ -9,6 +9,7 @@ import (
 type GenreRepository interface {
 	GetGenre(id uuid.UUID) (*models.Genre, error)
 	GetGenreByName(name string) (*models.Genre, error)
+	GetGenres() ([]*models.Genre, error)
 	CreateGenre(tx *gorm.DB, genre *models.Genre) error
 }
 
@@ -36,6 +37,15 @@ func (r *genreRepository) GetGenreByName(name string) (*models.Genre, error) {
 	}
 
 	return &g, nil
+}
+
+func (r *genreRepository) GetGenres() ([]*models.Genre, error) {
+	var genres []*models.Genre
+	if err := r.db.Find(&genres).Error; err != nil {
+		return nil, err
+	}
+
+	return genres, nil
 }
 
 func (r *genreRepository) CreateGenre(tx *gorm.DB, genre *models.Genre) error {

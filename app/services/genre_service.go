@@ -11,6 +11,7 @@ import (
 
 type GenreService interface {
 	GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError)
+	GetGenres() ([]*models.Genre, *errors.ApiError)
 	CreateGenre(name string) (*models.Genre, *errors.ApiError)
 }
 
@@ -35,6 +36,15 @@ func (s *genreService) GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError) 
 	}
 
 	return g, nil
+}
+
+func (s *genreService) GetGenres() ([]*models.Genre, *errors.ApiError) {
+	genres, err := s.genreRepo.GetGenres()
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return genres, nil
 }
 
 func (s *genreService) CreateGenre(name string) (*models.Genre, *errors.ApiError) {

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,6 +46,39 @@ func TestGenreService_GetGenre(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(nil, errors.New("error")).Times(1)
 
 		result, err := service.GetGenre(genre.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error", err.Error())
+	})
+}
+
+func TestGenreService_GetGenres(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock_repositories.NewMockGenreRepository(ctrl)
+	service := NewGenreService(nil, nil, repo)
+
+	t.Run("success", func(t *testing.T) {
+		genres := make([]*models.Genre, 3)
+		for i := 0; i < len(genres); i++ {
+			genres[i] = utils.GenerateRandomGenre()
+		}
+
+		repo.EXPECT().GetGenres().Return(genres, nil).Times(1)
+
+		result, err := service.GetGenres()
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, genres, result)
+	})
+
+	t.Run("repo error", func(t *testing.T) {
+		repo.EXPECT().GetGenres().Return(nil, errors.New("error")).Times(1)
+
+		result, err := service.GetGenres()
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

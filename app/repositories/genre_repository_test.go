@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -43,6 +45,51 @@ func TestGenreRepository_GetGenre(t *testing.T) {
 			WillReturnError(errors.New("db error"))
 
 		result, err := repo.GetGenre(genre.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "db error", err.Error())
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
+func TestGenreRepository_GetGenres(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		mock_db.TearDownTestDB(db, mock)
+	}()
+
+	repo := NewGenreRepository(db)
+
+	t.Run("success", func(t *testing.T) {
+		genres := make([]*models.Genre, 3)
+		for i := 0; i < len(genres); i++ {
+			genres[i] = utils.GenerateRandomGenre()
+		}
+
+		rows := sqlmock.NewRows([]string{"id", "name"})
+		for _, genre := range genres {
+			rows.AddRow(genre.ID, genre.Name)
+		}
+
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres"`)).
+			WillReturnRows(rows)
+
+		result, err := repo.GetGenres()
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, genres, result)
+
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectQuery(`SELECT \* FROM "genres"`).
+			WillReturnError(errors.New("db error"))
+
+		result, err := repo.GetGenres()
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

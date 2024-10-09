@@ -35,6 +35,16 @@ func (c *GenreController) GetGenre(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(g)})
 }
 
+func (c *GenreController) GetGenres(ctx *gin.Context) {
+	genres, err := c.GenreService.GetGenres()
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SliceToMaps(genres))
+}
+
 func (c *GenreController) CreateGenre(ctx *gin.Context) {
 	var req payloads.CreateGenreRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {

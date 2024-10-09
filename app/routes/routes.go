@@ -66,6 +66,7 @@ func RegisterRoutes() *gin.Engine {
 		genres := apiV1.Group("/genres")
 		{
 			genres.GET("/:id", c.GenreController.GetGenre)
+			genres.GET("/", c.GenreController.GetGenres)
 			genres.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),

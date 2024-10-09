@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -81,6 +82,53 @@ func TestGenreController_GetGenre(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", genre.ID), nil)
 		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
+
+func TestGenreController_GetGenres(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockGenreService(ctrl)
+	controller := GenreController{
+		GenreService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/genres", controller.GetGenres)
+
+		genres := make([]*models.Genre, 3)
+		for i := 0; i < len(genres); i++ {
+			genres[i] = utils.GenerateRandomGenre()
+		}
+
+		service.EXPECT().GetGenres().Return(genres, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/genres", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		for _, genre := range genres {
+			assert.Contains(t, w.Body.String(), genre.Name)
+		}
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/genres", controller.GetGenres)
+
+		service.EXPECT().GetGenres().Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/genres", nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
