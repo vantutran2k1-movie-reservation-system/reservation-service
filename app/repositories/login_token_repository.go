@@ -43,14 +43,5 @@ func (r *loginTokenRepository) RevokeLoginToken(tx *gorm.DB, loginToken *models.
 }
 
 func (r *loginTokenRepository) RevokeUserLoginTokens(tx *gorm.DB, userID uuid.UUID) error {
-	var tokens []*models.LoginToken
-	if err := r.db.Where("user_id = ? AND expires_at > ?", userID, time.Now().UTC()).Find(&tokens).Error; err != nil {
-		return err
-	}
-
-	for _, t := range tokens {
-		t.ExpiresAt = time.Now().UTC()
-	}
-
-	return tx.Save(&tokens).Error
+	return tx.Model(&models.LoginToken{}).Where("user_id = ? AND expires_at > ?", userID, time.Now().UTC()).Updates(map[string]interface{}{"expires_at": time.Now().UTC()}).Error
 }

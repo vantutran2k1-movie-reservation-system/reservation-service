@@ -22,6 +22,7 @@ type UserService interface {
 	LogoutUser(tokenValue string) *errors.ApiError
 	UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError
 	CreatePasswordResetToken(email string) (*models.PasswordResetToken, *errors.ApiError)
+	ResetUserPassword(resetToken string, password string) *errors.ApiError
 }
 
 type userService struct {
@@ -61,7 +62,7 @@ func (s *userService) GetUser(userID uuid.UUID) (*models.User, *errors.ApiError)
 	u, err := s.userRepo.GetUser(userID)
 	if err != nil {
 		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.BadRequestError("User does not exist")
+			return nil, errors.NotFoundError("User does not exist")
 		}
 
 		return nil, errors.InternalServerError(err.Error())
@@ -184,43 +185,28 @@ func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
 }
 
 func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError {
-	u, err := s.userRepo.GetUser(userID)
+	u, err := s.GetUser(userID)
 	if err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return errors.BadRequestError("User does not exist")
-		}
-
-		return errors.InternalServerError(err.Error())
+		return err
 	}
 
 	if s.authenticator.DoPasswordsMatch(u.PasswordHash, password) {
-		return errors.BadRequestError("New password can not be the same as current value")
+		return errors.BadRequestError("new password can not be the same as current value")
 	}
 
-	p, err := s.authenticator.GenerateHashedPassword(password)
+	p, err := s.generateHashedPassword(password)
 	if err != nil {
-		return errors.InternalServerError(err.Error())
+		return err
 	}
 
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		user, err := s.userRepo.UpdatePassword(tx, u, p)
-		if err != nil {
-			return err
-		}
-
-		u = user
-
-		if err := s.loginTokenRepo.RevokeUserLoginTokens(tx, u.ID); err != nil {
-			return err
-		}
-
-		return nil
+		return s.updateUserPassword(tx, u, p)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
 	}
 
 	if err := s.transactionManager.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
-		return s.userSessionRepo.DeleteUserSessions(userID)
+		return s.deleteUserSessions(userID)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
 	}
@@ -268,4 +254,126 @@ func (s *userService) CreatePasswordResetToken(email string) (*models.PasswordRe
 	}
 
 	return &t, nil
+}
+
+func (s *userService) ResetUserPassword(resetToken string, password string) *errors.ApiError {
+	t, err := s.getActivePasswordResetToken(resetToken)
+	if err != nil {
+		return err
+	}
+
+	u, err := s.getUser(t.UserID)
+	if err != nil {
+		return err
+	}
+
+	p, err := s.generateHashedPassword(password)
+	if err != nil {
+		return err
+	}
+
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		if err := s.updateUserPassword(tx, u, p); err != nil {
+			return err
+		}
+
+		if err := s.passwordResetTokenRepo.UseToken(tx, t); err != nil {
+			return err
+		}
+
+		if err := s.passwordResetTokenRepo.UseToken(tx, t); err != nil {
+			return err
+		}
+
+		tokens, err := s.getRemainingUserActivePasswordResetTokens(t.UserID, t.TokenValue)
+		if err != nil {
+			return err
+		}
+
+		if err := s.passwordResetTokenRepo.RevokeTokens(tx, tokens); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	if err := s.transactionManager.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
+		return s.deleteUserSessions(t.UserID)
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
+}
+
+func (s *userService) usePasswordResetToken() {
+
+}
+
+func (s *userService) getUser(userID uuid.UUID) (*models.User, *errors.ApiError) {
+	u, err := s.userRepo.GetUser(userID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return u, nil
+}
+
+func (s *userService) getActivePasswordResetToken(resetToken string) (*models.PasswordResetToken, *errors.ApiError) {
+	t, err := s.passwordResetTokenRepo.GetActivePasswordResetToken(resetToken)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, errors.BadRequestError("invalid or expired token")
+		}
+
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return t, nil
+}
+
+func (s *userService) generateHashedPassword(password string) (string, *errors.ApiError) {
+	p, e := s.authenticator.GenerateHashedPassword(password)
+	if e != nil {
+		return "", errors.InternalServerError(e.Error())
+	}
+
+	return p, nil
+}
+
+func (s *userService) getRemainingUserActivePasswordResetTokens(userID uuid.UUID, tokenValue string) ([]*models.PasswordResetToken, error) {
+	allTokens, err := s.passwordResetTokenRepo.GetUserActivePasswordResetTokens(userID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	var tokens []*models.PasswordResetToken
+	for _, token := range allTokens {
+		if token.TokenValue != tokenValue {
+			tokens = append(tokens, token)
+		}
+	}
+
+	return tokens, nil
+}
+
+func (s *userService) deleteUserSessions(userID uuid.UUID) error {
+	return s.userSessionRepo.DeleteUserSessions(userID)
+}
+
+func (s *userService) updateUserPassword(tx *gorm.DB, u *models.User, p string) error {
+	user, err := s.userRepo.UpdatePassword(tx, u, p)
+	if err != nil {
+		return err
+	}
+
+	u = user
+
+	if err := s.loginTokenRepo.RevokeUserLoginTokens(tx, u.ID); err != nil {
+		return err
+	}
+
+	return nil
 }

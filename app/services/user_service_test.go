@@ -419,7 +419,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 		err := userService.UpdateUserPassword(user.ID, password)
 
 		assert.NotNil(t, err)
-		assert.Equal(t, "New password can not be the same as current value", err.Message)
+		assert.Equal(t, "new password can not be the same as current value", err.Message)
 	})
 
 	t.Run("error generating hashed password", func(t *testing.T) {

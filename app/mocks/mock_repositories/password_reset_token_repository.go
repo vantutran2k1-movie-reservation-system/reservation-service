@@ -12,6 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -67,4 +68,47 @@ func (m *MockPasswordResetTokenRepository) GetActivePasswordResetToken(tokenValu
 func (mr *MockPasswordResetTokenRepositoryMockRecorder) GetActivePasswordResetToken(tokenValue any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActivePasswordResetToken", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).GetActivePasswordResetToken), tokenValue)
+}
+
+// GetUserActivePasswordResetTokens mocks base method.
+func (m *MockPasswordResetTokenRepository) GetUserActivePasswordResetTokens(userID uuid.UUID) ([]*models.PasswordResetToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserActivePasswordResetTokens", userID)
+	ret0, _ := ret[0].([]*models.PasswordResetToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserActivePasswordResetTokens indicates an expected call of GetUserActivePasswordResetTokens.
+func (mr *MockPasswordResetTokenRepositoryMockRecorder) GetUserActivePasswordResetTokens(userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserActivePasswordResetTokens", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).GetUserActivePasswordResetTokens), userID)
+}
+
+// RevokeTokens mocks base method.
+func (m *MockPasswordResetTokenRepository) RevokeTokens(tx *gorm.DB, tokens []*models.PasswordResetToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeTokens", tx, tokens)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeTokens indicates an expected call of RevokeTokens.
+func (mr *MockPasswordResetTokenRepositoryMockRecorder) RevokeTokens(tx, tokens any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeTokens", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).RevokeTokens), tx, tokens)
+}
+
+// UseToken mocks base method.
+func (m *MockPasswordResetTokenRepository) UseToken(tx *gorm.DB, token *models.PasswordResetToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UseToken", tx, token)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UseToken indicates an expected call of UseToken.
+func (mr *MockPasswordResetTokenRepositoryMockRecorder) UseToken(tx, token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseToken", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).UseToken), tx, token)
 }

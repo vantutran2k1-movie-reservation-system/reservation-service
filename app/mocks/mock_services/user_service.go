@@ -115,6 +115,20 @@ func (mr *MockUserServiceMockRecorder) LogoutUser(tokenValue any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogoutUser", reflect.TypeOf((*MockUserService)(nil).LogoutUser), tokenValue)
 }
 
+// ResetUserPassword mocks base method.
+func (m *MockUserService) ResetUserPassword(resetToken, password string) *errors.ApiError {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetUserPassword", resetToken, password)
+	ret0, _ := ret[0].(*errors.ApiError)
+	return ret0
+}
+
+// ResetUserPassword indicates an expected call of ResetUserPassword.
+func (mr *MockUserServiceMockRecorder) ResetUserPassword(resetToken, password any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUserPassword", reflect.TypeOf((*MockUserService)(nil).ResetUserPassword), resetToken, password)
+}
+
 // UpdateUserPassword mocks base method.
 func (m *MockUserService) UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError {
 	m.ctrl.T.Helper()
