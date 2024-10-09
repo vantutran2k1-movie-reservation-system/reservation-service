@@ -197,6 +197,23 @@ func GenerateRandomCreateGenreRequest() *payloads.CreateGenreRequest {
 	}
 }
 
+func GenerateRandomPasswordResetToken() *models.PasswordResetToken {
+	return &models.PasswordResetToken{
+		ID:         uuid.New(),
+		UserID:     uuid.New(),
+		TokenValue: uuid.NewString(),
+		IsUsed:     generateRandomBool(),
+		CreatedAt:  time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(60 * time.Minute),
+	}
+}
+
+func GenerateRandomCreatePasswordResetTokenRequest() *payloads.CreatePasswordResetTokenRequest {
+	return &payloads.CreatePasswordResetTokenRequest{
+		Email: generateRandomEmail(),
+	}
+}
+
 func GenerateRandomHashedPassword() string {
 	password := generateRandomPassword()
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -229,6 +246,10 @@ func generateRandomString(chars string, length int) string {
 		b[i] = chars[rand.Intn(len(chars))]
 	}
 	return string(b)
+}
+
+func generateRandomBool() bool {
+	return rand.Intn(2) == 1
 }
 
 func generateRandomName() string {

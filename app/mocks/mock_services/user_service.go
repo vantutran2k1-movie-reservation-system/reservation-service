@@ -41,6 +41,21 @@ func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 	return m.recorder
 }
 
+// CreatePasswordResetToken mocks base method.
+func (m *MockUserService) CreatePasswordResetToken(email string) (*models.PasswordResetToken, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePasswordResetToken", email)
+	ret0, _ := ret[0].(*models.PasswordResetToken)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// CreatePasswordResetToken indicates an expected call of CreatePasswordResetToken.
+func (mr *MockUserServiceMockRecorder) CreatePasswordResetToken(email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePasswordResetToken", reflect.TypeOf((*MockUserService)(nil).CreatePasswordResetToken), email)
+}
+
 // CreateUser mocks base method.
 func (m *MockUserService) CreateUser(email, password string) (*models.User, *errors.ApiError) {
 	m.ctrl.T.Helper()

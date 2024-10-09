@@ -21,16 +21,18 @@ type UserService interface {
 	LoginUser(email string, password string) (*models.LoginToken, *errors.ApiError)
 	LogoutUser(tokenValue string) *errors.ApiError
 	UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError
+	CreatePasswordResetToken(email string) (*models.PasswordResetToken, *errors.ApiError)
 }
 
 type userService struct {
-	db                 *gorm.DB
-	rdb                *redis.Client
-	authenticator      auth.Authenticator
-	transactionManager transaction.TransactionManager
-	userRepo           repositories.UserRepository
-	loginTokenRepo     repositories.LoginTokenRepository
-	userSessionRepo    repositories.UserSessionRepository
+	db                     *gorm.DB
+	rdb                    *redis.Client
+	authenticator          auth.Authenticator
+	transactionManager     transaction.TransactionManager
+	userRepo               repositories.UserRepository
+	loginTokenRepo         repositories.LoginTokenRepository
+	userSessionRepo        repositories.UserSessionRepository
+	passwordResetTokenRepo repositories.PasswordResetTokenRepository
 }
 
 func NewUserService(
@@ -41,15 +43,17 @@ func NewUserService(
 	userRepo repositories.UserRepository,
 	loginTokenRepo repositories.LoginTokenRepository,
 	userSessionRepo repositories.UserSessionRepository,
+	passwordResetTokenRepo repositories.PasswordResetTokenRepository,
 ) UserService {
 	return &userService{
-		db:                 db,
-		rdb:                rdb,
-		authenticator:      authenticator,
-		transactionManager: transactionManager,
-		userRepo:           userRepo,
-		loginTokenRepo:     loginTokenRepo,
-		userSessionRepo:    userSessionRepo,
+		db:                     db,
+		rdb:                    rdb,
+		authenticator:          authenticator,
+		transactionManager:     transactionManager,
+		userRepo:               userRepo,
+		loginTokenRepo:         loginTokenRepo,
+		userSessionRepo:        userSessionRepo,
+		passwordResetTokenRepo: passwordResetTokenRepo,
 	}
 }
 
@@ -112,7 +116,7 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 		return nil, errors.UnauthorizedError("Invalid password")
 	}
 
-	token := s.authenticator.GenerateToken()
+	token := s.authenticator.GenerateLoginToken()
 	_, err = s.loginTokenRepo.GetActiveLoginToken(token)
 	if err == nil {
 		return nil, errors.InternalServerError("Token value already exists")
@@ -222,4 +226,46 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 	}
 
 	return nil
+}
+
+func (s *userService) CreatePasswordResetToken(email string) (*models.PasswordResetToken, *errors.ApiError) {
+	u, err := s.userRepo.FindUserByEmail(email)
+	if err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, errors.NotFoundError("email does not exist")
+		}
+
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	token := s.authenticator.GeneratePasswordResetToken()
+	_, err = s.passwordResetTokenRepo.GetActivePasswordResetToken(token)
+	if err == nil {
+		return nil, errors.InternalServerError("token value already exists")
+	}
+	if !errors.IsRecordNotFoundError(err) {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	tokenExpiresAfter, err := strconv.Atoi(os.Getenv("PASSWORD_RESET_TOKEN_EXPIRES_AFTER_MINUTES"))
+	if err != nil {
+		return nil, errors.InternalServerError("invalid token expiry minutes: %v", err)
+	}
+
+	now := time.Now().UTC()
+	t := models.PasswordResetToken{
+		ID:         uuid.New(),
+		UserID:     u.ID,
+		TokenValue: token,
+		IsUsed:     false,
+		CreatedAt:  now,
+		ExpiresAt:  now.Add(time.Duration(tokenExpiresAfter) * time.Minute),
+	}
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.passwordResetTokenRepo.CreateToken(tx, &t)
+	}); err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return &t, nil
 }

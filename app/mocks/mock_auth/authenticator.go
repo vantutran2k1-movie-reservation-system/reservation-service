@@ -67,16 +67,30 @@ func (mr *MockAuthenticatorMockRecorder) GenerateHashedPassword(rawPassword any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateHashedPassword", reflect.TypeOf((*MockAuthenticator)(nil).GenerateHashedPassword), rawPassword)
 }
 
-// GenerateToken mocks base method.
-func (m *MockAuthenticator) GenerateToken() string {
+// GenerateLoginToken mocks base method.
+func (m *MockAuthenticator) GenerateLoginToken() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateToken")
+	ret := m.ctrl.Call(m, "GenerateLoginToken")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GenerateToken indicates an expected call of GenerateToken.
-func (mr *MockAuthenticatorMockRecorder) GenerateToken() *gomock.Call {
+// GenerateLoginToken indicates an expected call of GenerateLoginToken.
+func (mr *MockAuthenticatorMockRecorder) GenerateLoginToken() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockAuthenticator)(nil).GenerateToken))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateLoginToken", reflect.TypeOf((*MockAuthenticator)(nil).GenerateLoginToken))
+}
+
+// GeneratePasswordResetToken mocks base method.
+func (m *MockAuthenticator) GeneratePasswordResetToken() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GeneratePasswordResetToken")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GeneratePasswordResetToken indicates an expected call of GeneratePasswordResetToken.
+func (mr *MockAuthenticatorMockRecorder) GeneratePasswordResetToken() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GeneratePasswordResetToken", reflect.TypeOf((*MockAuthenticator)(nil).GeneratePasswordResetToken))
 }

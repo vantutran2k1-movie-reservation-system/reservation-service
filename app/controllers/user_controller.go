@@ -97,3 +97,19 @@ func (c *UserController) UpdateUserPassword(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"data": "Password is updated successfully"})
 }
+
+func (c *UserController) CreatePasswordResetToken(ctx *gin.Context) {
+	var req payloads.CreatePasswordResetTokenRequest
+	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
+		return
+	}
+
+	t, err := c.UserService.CreatePasswordResetToken(req.Email)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(t)})
+}

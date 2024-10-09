@@ -303,3 +303,64 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "Failed to update password")
 	})
 }
+
+func TestUserController_CreatePasswordResetToken(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockUserService(ctrl)
+	controller := UserController{
+		UserService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	token := utils.GenerateRandomPasswordResetToken()
+	payload := utils.GenerateRandomCreatePasswordResetTokenRequest()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.POST("/users/password-reset-token", controller.CreatePasswordResetToken)
+
+		service.EXPECT().CreatePasswordResetToken(payload.Email).Return(token, nil).Times(1)
+
+		reqBody := fmt.Sprintf(`{"email": "%s"}`, payload.Email)
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset-token", bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Contains(t, w.Body.String(), token.TokenValue)
+	})
+
+	t.Run("validation error", func(t *testing.T) {
+		router := gin.Default()
+		router.POST("/users/password-reset-token", controller.CreatePasswordResetToken)
+
+		reqBody := fmt.Sprintf(`{"email": "%s"}`, "invalid email")
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset-token", bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "Should be a valid email address")
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.POST("/users/password-reset-token", controller.CreatePasswordResetToken)
+
+		service.EXPECT().CreatePasswordResetToken(payload.Email).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		reqBody := fmt.Sprintf(`{"email": "%s"}`, payload.Email)
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset-token", bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}

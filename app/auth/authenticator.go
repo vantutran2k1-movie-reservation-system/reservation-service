@@ -8,7 +8,8 @@ import (
 type Authenticator interface {
 	GenerateHashedPassword(rawPassword string) (string, error)
 	DoPasswordsMatch(hashedPassword, rawPassword string) bool
-	GenerateToken() string
+	GenerateLoginToken() string
+	GeneratePasswordResetToken() string
 }
 
 func NewAuthenticator() Authenticator {
@@ -34,6 +35,8 @@ func (a *authenticator) DoPasswordsMatch(hashedPassword, rawPassword string) boo
 	return true
 }
 
-func (g *authenticator) GenerateToken() string {
+func (a *authenticator) GenerateLoginToken() string {
 	return uuid.NewString()
 }
+
+func (a *authenticator) GeneratePasswordResetToken() string { return uuid.NewString() }

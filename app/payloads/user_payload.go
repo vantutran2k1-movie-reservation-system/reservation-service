@@ -13,3 +13,7 @@ type LoginUserRequest struct {
 type UpdatePasswordRequest struct {
 	Password string `json:"password" binding:"required,min=8,max=32"`
 }
+
+type CreatePasswordResetTokenRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
