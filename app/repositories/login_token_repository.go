@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,8 +26,11 @@ func NewLoginTokenRepository(db *gorm.DB) LoginTokenRepository {
 
 func (r *loginTokenRepository) GetActiveLoginToken(tokenValue string) (*models.LoginToken, error) {
 	var t models.LoginToken
-	err := r.db.Where("token_value = ? AND expires_at > ?", tokenValue, time.Now().UTC()).First(&t).Error
-	if err != nil {
+	if err := r.db.Where("token_value = ? AND expires_at > ?", tokenValue, time.Now().UTC()).First(&t).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

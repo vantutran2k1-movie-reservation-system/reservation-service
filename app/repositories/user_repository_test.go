@@ -2,13 +2,13 @@ package repositories
 
 import (
 	"errors"
+	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
-	"gorm.io/gorm"
 )
 
 func TestUserRepository_GetUser(t *testing.T) {
@@ -20,9 +20,10 @@ func TestUserRepository_GetUser(t *testing.T) {
 	user := utils.GenerateRandomUser()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "email"}).AddRow(user.ID, user.Email)
+		rows := sqlmock.NewRows([]string{"id", "email", "password_hash", "created_at", "updated_at"}).
+			AddRow(user.ID, user.Email, user.PasswordHash, user.CreatedAt, user.UpdatedAt)
 
-		mock.ExpectQuery(`SELECT \* FROM "users" WHERE "users"\."id" = \$1 ORDER BY "users"."id" LIMIT \$2`).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(user.ID, 1).
 			WillReturnRows(rows)
 
@@ -30,28 +31,26 @@ func TestUserRepository_GetUser(t *testing.T) {
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, user.ID, result.ID)
-		assert.Equal(t, user.Email, result.Email)
+		assert.Equal(t, user, result)
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		mock.ExpectQuery(`SELECT \* FROM "users" WHERE "users"\."id" = \$1 ORDER BY "users"\."id" LIMIT \$2`).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(user.ID, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
 		result, err := NewUserRepository(db).GetUser(user.ID)
 
 		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
+		assert.Nil(t, err)
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
-		mock.ExpectQuery(`SELECT \* FROM "users" WHERE "users"\."id" = \$1 ORDER BY "users"\."id" LIMIT \$2`).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(user.ID, 1).
 			WillReturnError(errors.New("db error"))
 
@@ -61,11 +60,11 @@ func TestUserRepository_GetUser(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, "db error", err.Error())
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
-func TestUserRepository_FindUserByEmail(t *testing.T) {
+func TestUserRepository_GetUserByEmail(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		mock_db.TearDownTestDB(db, mock)
@@ -76,46 +75,45 @@ func TestUserRepository_FindUserByEmail(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "email"}).AddRow(user.ID, user.Email)
 
-		mock.ExpectQuery(`SELECT \* FROM "users" WHERE "users"\."email" = \$1 ORDER BY "users"\."id" LIMIT \$2`).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(user.Email, 1).
 			WillReturnRows(rows)
 
-		result, err := NewUserRepository(db).FindUserByEmail(user.Email)
+		result, err := NewUserRepository(db).GetUserByEmail(user.Email)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, user.ID, result.ID)
 		assert.Equal(t, user.Email, result.Email)
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		mock.ExpectQuery(`SELECT \* FROM "users" WHERE "users"\."email" = \$1 ORDER BY "users"\."id" LIMIT \$2`).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(user.Email, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := NewUserRepository(db).FindUserByEmail(user.Email)
+		result, err := NewUserRepository(db).GetUserByEmail(user.Email)
 
 		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
+		assert.Nil(t, err)
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
-		mock.ExpectQuery(`SELECT \* FROM "users" WHERE "users"\."email" = \$1 ORDER BY "users"\."id" LIMIT \$2`).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(user.Email, 1).
 			WillReturnError(errors.New("db error"))
 
-		result, err := NewUserRepository(db).FindUserByEmail(user.Email)
+		result, err := NewUserRepository(db).GetUserByEmail(user.Email)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.Equal(t, "db error", err.Error())
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -140,7 +138,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -157,7 +155,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -185,7 +183,7 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, hashedPassword, result.PasswordHash)
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -203,6 +201,6 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }

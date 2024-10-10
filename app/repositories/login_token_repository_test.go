@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"regexp"
 	"testing"
 	"time"
 
@@ -14,70 +15,59 @@ import (
 	"gorm.io/gorm"
 )
 
-func TestLoginTokenRepository_GetActiveLoginToken_Success(t *testing.T) {
+func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
-	expectedToken := utils.GenerateRandomLoginToken()
+	repo := NewLoginTokenRepository(db)
 
-	mock.ExpectQuery(`SELECT \* FROM "login_tokens" WHERE token_value = \$1 AND expires_at > \$2 ORDER BY "login_tokens"."id" LIMIT \$3`).
-		WithArgs(expectedToken.TokenValue, sqlmock.AnyArg(), 1).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "user_id", "token_value", "created_at", "expires_at"}).
-			AddRow(expectedToken.ID, expectedToken.UserID, expectedToken.TokenValue, expectedToken.CreatedAt, expectedToken.ExpiresAt))
+	token := utils.GenerateRandomLoginToken()
 
-	result, err := NewLoginTokenRepository(db).GetActiveLoginToken(expectedToken.TokenValue)
+	t.Run("success", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"id", "user_id", "token_value", "created_at", "expires_at"}).
+			AddRow(token.ID, token.UserID, token.TokenValue, token.CreatedAt, token.ExpiresAt)
 
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, expectedToken.ID, result.ID)
-	assert.Equal(t, expectedToken.UserID, result.UserID)
-	assert.Equal(t, expectedToken.TokenValue, result.TokenValue)
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE token_value = $1 AND expires_at > $2 ORDER BY "login_tokens"."id" LIMIT $3`)).
+			WithArgs(token.TokenValue, sqlmock.AnyArg(), 1).
+			WillReturnRows(rows)
 
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
+		result, err := repo.GetActiveLoginToken(token.TokenValue)
 
-func TestLoginTokenRepository_GetActiveLoginToken_Failure_NotFound(t *testing.T) {
-	db, mock := mock_db.SetupTestDB(t)
-	defer func() {
-		mock_db.TearDownTestDB(db, mock)
-	}()
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, token, result)
 
-	tokenValue := "non_existent_token"
+		assert.Nil(t, mock.ExpectationsWereMet())
+	})
 
-	mock.ExpectQuery(`SELECT \* FROM "login_tokens" WHERE token_value = \$1 AND expires_at > \$2 ORDER BY "login_tokens"."id" LIMIT \$3`).
-		WithArgs(tokenValue, sqlmock.AnyArg(), 1).
-		WillReturnError(gorm.ErrRecordNotFound)
+	t.Run("token not found", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE token_value = $1 AND expires_at > $2 ORDER BY "login_tokens"."id" LIMIT $3`)).
+			WithArgs(token.TokenValue, sqlmock.AnyArg(), 1).
+			WillReturnRows(sqlmock.NewRows(nil))
 
-	result, err := NewLoginTokenRepository(db).GetActiveLoginToken(tokenValue)
+		result, err := repo.GetActiveLoginToken(token.TokenValue)
 
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Equal(t, gorm.ErrRecordNotFound, err)
+		assert.Nil(t, result)
+		assert.Nil(t, err)
 
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
+		assert.Nil(t, mock.ExpectationsWereMet())
+	})
 
-func TestLoginTokenRepository_GetActiveLoginToken_Failure_ExpiredToken(t *testing.T) {
-	db, mock := mock_db.SetupTestDB(t)
-	defer func() {
-		mock_db.TearDownTestDB(db, mock)
-	}()
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE token_value = $1 AND expires_at > $2 ORDER BY "login_tokens"."id" LIMIT $3`)).
+			WithArgs(token.TokenValue, sqlmock.AnyArg(), 1).
+			WillReturnError(errors.New("db error"))
 
-	tokenValue := "expired_token"
+		result, err := NewLoginTokenRepository(db).GetActiveLoginToken(token.TokenValue)
 
-	mock.ExpectQuery(`SELECT \* FROM "login_tokens" WHERE token_value = \$1 AND expires_at > \$2 ORDER BY "login_tokens"."id" LIMIT \$3`).
-		WithArgs(tokenValue, sqlmock.AnyArg(), 1).
-		WillReturnRows(sqlmock.NewRows(nil))
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "db error", err.Error())
 
-	result, err := NewLoginTokenRepository(db).GetActiveLoginToken(tokenValue)
-
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	assert.Equal(t, gorm.ErrRecordNotFound, err)
-
-	assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
+	})
 }
 
 func TestLoginTokenRepository_CreateLoginToken_Success(t *testing.T) {

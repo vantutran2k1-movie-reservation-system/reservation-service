@@ -33,13 +33,22 @@ func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) 
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, token.ID, result.ID)
-		assert.Equal(t, token.UserID, result.UserID)
-		assert.Equal(t, token.TokenValue, result.TokenValue)
-		assert.Equal(t, token.IsUsed, result.IsUsed)
-		assert.Equal(t, token.CreatedAt, result.CreatedAt)
+		assert.Equal(t, token, result)
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("token not found", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "password_reset_tokens" WHERE token_value = $1 AND is_used = $2 AND expires_at > $3 ORDER BY "password_reset_tokens"."id" LIMIT $4`)).
+			WithArgs(token.TokenValue, false, sqlmock.AnyArg(), 1).
+			WillReturnRows(sqlmock.NewRows(nil))
+
+		result, err := repo.GetActivePasswordResetToken(token.TokenValue)
+
+		assert.Nil(t, result)
+		assert.Nil(t, err)
+
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -53,7 +62,7 @@ func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 

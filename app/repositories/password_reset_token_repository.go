@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 	"time"
@@ -26,6 +27,10 @@ type passwordResetTokenRepository struct {
 func (r *passwordResetTokenRepository) GetActivePasswordResetToken(tokenValue string) (*models.PasswordResetToken, error) {
 	var token models.PasswordResetToken
 	if err := r.db.Where("token_value = ? AND is_used = ? AND expires_at > ?", tokenValue, false, time.Now().UTC()).First(&token).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		
 		return nil, err
 	}
 

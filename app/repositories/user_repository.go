@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,8 +10,8 @@ import (
 )
 
 type UserRepository interface {
-	GetUser(userID uuid.UUID) (*models.User, error)
-	FindUserByEmail(email string) (*models.User, error)
+	GetUser(id uuid.UUID) (*models.User, error)
+	GetUserByEmail(email string) (*models.User, error)
 	CreateUser(tx *gorm.DB, user *models.User) error
 	UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error)
 }
@@ -23,20 +24,26 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) GetUser(userID uuid.UUID) (*models.User, error) {
+func (r *userRepository) GetUser(id uuid.UUID) (*models.User, error) {
 	var u models.User
+	if err := r.db.Where("id = ?", id).First(&u).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
 
-	if err := r.db.Where(&models.User{ID: userID}).First(&u).Error; err != nil {
 		return nil, err
 	}
 
 	return &u, nil
 }
 
-func (r *userRepository) FindUserByEmail(email string) (*models.User, error) {
+func (r *userRepository) GetUserByEmail(email string) (*models.User, error) {
 	var u models.User
+	if err := r.db.Where("email = ?", email).First(&u).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
 
-	if err := r.db.Where(&models.User{Email: email}).First(&u).Error; err != nil {
 		return nil, err
 	}
 
