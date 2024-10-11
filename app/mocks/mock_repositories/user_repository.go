@@ -55,7 +55,22 @@ func (mr *MockUserRepositoryMockRecorder) CreateUser(tx, user any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateUser), tx, user)
 }
 
-// FindUserByEmail mocks base method.
+// GetUser mocks base method.
+func (m *MockUserRepository) GetUser(id uuid.UUID) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser", id)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser indicates an expected call of GetUser.
+func (mr *MockUserRepositoryMockRecorder) GetUser(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserRepository)(nil).GetUser), id)
+}
+
+// GetUserByEmail mocks base method.
 func (m *MockUserRepository) GetUserByEmail(email string) (*models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByEmail", email)
@@ -64,25 +79,10 @@ func (m *MockUserRepository) GetUserByEmail(email string) (*models.User, error) 
 	return ret0, ret1
 }
 
-// FindUserByEmail indicates an expected call of FindUserByEmail.
-func (mr *MockUserRepositoryMockRecorder) FindUserByEmail(email any) *gomock.Call {
+// GetUserByEmail indicates an expected call of GetUserByEmail.
+func (mr *MockUserRepositoryMockRecorder) GetUserByEmail(email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserRepository)(nil).GetUserByEmail), email)
-}
-
-// GetUser mocks base method.
-func (m *MockUserRepository) GetUser(userID uuid.UUID) (*models.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUser", userID)
-	ret0, _ := ret[0].(*models.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUser indicates an expected call of GetUser.
-func (mr *MockUserRepositoryMockRecorder) GetUser(userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserRepository)(nil).GetUser), userID)
 }
 
 // UpdatePassword mocks base method.

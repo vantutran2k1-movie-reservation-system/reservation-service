@@ -24,26 +24,16 @@ func GenerateRandomUser() *models.User {
 	}
 }
 
-func GenerateRandomUserWithID(id uuid.UUID) *models.User {
-	return &models.User{
-		ID:           id,
-		Email:        generateRandomEmail(),
-		PasswordHash: GenerateRandomHashedPassword(),
-		CreatedAt:    time.Now().UTC(),
-		UpdatedAt:    time.Now().UTC(),
-	}
-}
-
 func GenerateRandomCreateUserRequest() *payloads.CreateUserRequest {
 	return &payloads.CreateUserRequest{
 		Email:    generateRandomEmail(),
-		Password: generateRandomPassword(),
+		Password: GenerateRandomPassword(),
 	}
 }
 
 func GenerateRandomUpdatePasswordRequest() *payloads.UpdatePasswordRequest {
 	return &payloads.UpdatePasswordRequest{
-		Password: generateRandomPassword(),
+		Password: GenerateRandomPassword(),
 	}
 }
 
@@ -56,26 +46,6 @@ func GenerateRandomUserProfile() *models.UserProfile {
 	return &models.UserProfile{
 		ID:                uuid.New(),
 		UserID:            uuid.New(),
-		FirstName:         generateRandomName(),
-		LastName:          generateRandomName(),
-		PhoneNumber:       &phoneNumber,
-		DateOfBirth:       &dateOfBirth,
-		ProfilePictureUrl: &profilePictureUrl,
-		Bio:               &bio,
-		CreatedAt:         time.Now().UTC(),
-		UpdatedAt:         time.Now().UTC(),
-	}
-}
-
-func GenerateRandomUserProfileWithIDAndUserID(id uuid.UUID, userID uuid.UUID) *models.UserProfile {
-	phoneNumber := generateRandomPhoneNumber()
-	dateOfBirth := generateRandomDate()
-	profilePictureUrl := GenerateRandomURL()
-	bio := generateRandomString(allChars, 50)
-
-	return &models.UserProfile{
-		ID:                id,
-		UserID:            userID,
 		FirstName:         generateRandomName(),
 		LastName:          generateRandomName(),
 		PhoneNumber:       &phoneNumber,
@@ -215,10 +185,14 @@ func GenerateRandomCreatePasswordResetTokenRequest() *payloads.CreatePasswordRes
 }
 
 func GenerateRandomHashedPassword() string {
-	password := generateRandomPassword()
+	password := GenerateRandomPassword()
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	return string(hashedPassword)
+}
+
+func GenerateRandomPassword() string {
+	return generateRandomString(letterChars, 12)
 }
 
 func GenerateRandomURL() string {
@@ -261,10 +235,6 @@ func generateRandomEmail() string {
 	domain := emailDomains[rand.Intn(len(emailDomains))]
 
 	return fmt.Sprintf("%s@%s", generateRandomString(lowercaseChars, nameLength), domain)
-}
-
-func generateRandomPassword() string {
-	return generateRandomString(allChars, 12)
 }
 
 func generateRandomPhoneNumber() string {

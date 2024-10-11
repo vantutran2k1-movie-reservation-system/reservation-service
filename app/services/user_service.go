@@ -182,9 +182,12 @@ func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
 }
 
 func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError {
-	u, apiError := s.GetUser(userID)
-	if apiError != nil {
-		return apiError
+	u, err := s.userRepo.GetUser(userID)
+	if err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+	if u == nil {
+		return errors.NotFoundError("user does not exist")
 	}
 
 	if s.authenticator.DoPasswordsMatch(u.PasswordHash, password) {
@@ -257,7 +260,6 @@ func (s *userService) ResetUserPassword(resetToken string, password string) *err
 	t, err := s.passwordResetTokenRepo.GetActivePasswordResetToken(resetToken)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
-
 	}
 	if t == nil {
 		return errors.UnauthorizedError("invalid or expired token")
@@ -289,7 +291,6 @@ func (s *userService) ResetUserPassword(resetToken string, password string) *err
 		if err != nil {
 			return err
 		}
-
 		if err := s.passwordResetTokenRepo.RevokeTokens(tx, tokens); err != nil {
 			return err
 		}

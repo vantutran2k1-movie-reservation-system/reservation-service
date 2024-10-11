@@ -127,7 +127,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "users"`).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users" ("id","email","password_hash","created_at","updated_at") VALUES ($1,$2,$3,$4,$5)`)).
 			WithArgs(user.ID, user.Email, user.PasswordHash, sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
@@ -143,7 +143,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 
 	t.Run("db error", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "users"`).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users" ("id","email","password_hash","created_at","updated_at") VALUES ($1,$2,$3,$4,$5)`)).
 			WithArgs(user.ID, user.Email, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnError(errors.New("db error"))
 		mock.ExpectRollback()
@@ -170,7 +170,7 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "users" SET "password_hash"=\$1,"updated_at"=\$2 WHERE "id" = \$3`).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "password_hash"=$1,"updated_at"=$2 WHERE "id" = $3`)).
 			WithArgs(hashedPassword, sqlmock.AnyArg(), user.ID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
@@ -181,6 +181,7 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
+		assert.Equal(t, user.ID, result.ID)
 		assert.Equal(t, hashedPassword, result.PasswordHash)
 
 		assert.Nil(t, mock.ExpectationsWereMet())
@@ -188,7 +189,7 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 
 	t.Run("db error", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "users" SET "password_hash"=\$1,"updated_at"=\$2 WHERE "id" = \$3`).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "password_hash"=$1,"updated_at"=$2 WHERE "id" = $3`)).
 			WithArgs(user.PasswordHash, sqlmock.AnyArg(), user.ID).
 			WillReturnError(errors.New("db error"))
 		mock.ExpectRollback()
