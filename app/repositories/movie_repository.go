@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
@@ -25,6 +26,10 @@ func NewMovieRepository(db *gorm.DB) MovieRepository {
 func (r *movieRepository) GetMovie(id uuid.UUID) (*models.Movie, error) {
 	var m models.Movie
 	if err := r.db.Where(&models.Movie{ID: id}).First(&m).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		
 		return nil, err
 	}
 

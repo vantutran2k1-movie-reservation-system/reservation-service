@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -9,7 +10,6 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
-	"gorm.io/gorm"
 )
 
 func TestMovieRepository_GetMovie(t *testing.T) {
@@ -20,55 +20,50 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 
 	repo := NewMovieRepository(db)
 
-	expectedMovie := utils.GenerateRandomMovie()
+	movie := utils.GenerateRandomMovie()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"}).
-			AddRow(expectedMovie.ID, expectedMovie.Title, expectedMovie.Description, expectedMovie.ReleaseDate, expectedMovie.DurationMinutes, expectedMovie.Language, expectedMovie.Rating, expectedMovie.CreatedAt, expectedMovie.UpdatedAt, expectedMovie.CreatedBy, expectedMovie.LastUpdatedBy)
+			AddRow(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy)
 
-		mock.ExpectQuery(`SELECT \* FROM "movies" WHERE "movies"\."id" = \$1 ORDER BY "movies"."id" LIMIT \$2`).
-			WithArgs(expectedMovie.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" WHERE "movies"."id" = $1 ORDER BY "movies"."id" LIMIT $2`)).
+			WithArgs(movie.ID, 1).
 			WillReturnRows(rows)
 
-		movie, err := repo.GetMovie(expectedMovie.ID)
+		result, err := repo.GetMovie(movie.ID)
 
-		assert.NotNil(t, movie)
+		assert.NotNil(t, result)
 		assert.Nil(t, err)
+		assert.Equal(t, movie, result)
 
-		assert.Equal(t, expectedMovie.ID, movie.ID)
-		assert.Equal(t, expectedMovie.Title, movie.Title)
-
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("movie not found", func(t *testing.T) {
-		mock.ExpectQuery(`SELECT \* FROM "movies" WHERE "movies"\."id" = \$1 ORDER BY "movies"."id" LIMIT \$2`).
-			WithArgs(expectedMovie.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" WHERE "movies"."id" = $1 ORDER BY "movies"."id" LIMIT $2`)).
+			WithArgs(movie.ID, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		movie, err := repo.GetMovie(expectedMovie.ID)
+		result, err := repo.GetMovie(movie.ID)
 
-		assert.Nil(t, movie)
-		assert.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Nil(t, err)
 
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
-
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
-	t.Run("query error", func(t *testing.T) {
+	t.Run("error getting movie", func(t *testing.T) {
 		mock.ExpectQuery(`SELECT \* FROM "movies" WHERE "movies"\."id" = \$1 ORDER BY "movies"."id" LIMIT \$2`).
-			WithArgs(expectedMovie.ID, 1).
-			WillReturnError(errors.New("query error"))
+			WithArgs(movie.ID, 1).
+			WillReturnError(errors.New("error getting movie"))
 
-		movie, err := repo.GetMovie(expectedMovie.ID)
+		result, err := repo.GetMovie(movie.ID)
 
-		assert.Nil(t, movie)
+		assert.Nil(t, result)
 		assert.Error(t, err)
+		assert.Equal(t, "error getting movie", err.Error())
 
-		assert.Equal(t, "query error", err.Error())
-
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -88,9 +83,10 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"}).
 			AddRow(movies[0].ID, movies[0].Title, movies[0].Description, movies[0].ReleaseDate, movies[0].DurationMinutes, movies[0].Language, movies[0].Rating, movies[0].CreatedAt, movies[0].UpdatedAt, movies[0].CreatedBy, movies[0].LastUpdatedBy).
-			AddRow(movies[1].ID, movies[1].Title, movies[1].Description, movies[1].ReleaseDate, movies[1].DurationMinutes, movies[1].Language, movies[1].Rating, movies[1].CreatedAt, movies[1].UpdatedAt, movies[1].CreatedBy, movies[1].LastUpdatedBy)
+			AddRow(movies[1].ID, movies[1].Title, movies[1].Description, movies[1].ReleaseDate, movies[1].DurationMinutes, movies[1].Language, movies[1].Rating, movies[1].CreatedAt, movies[1].UpdatedAt, movies[1].CreatedBy, movies[1].LastUpdatedBy).
+			AddRow(movies[2].ID, movies[2].Title, movies[2].Description, movies[2].ReleaseDate, movies[2].DurationMinutes, movies[2].Language, movies[2].Rating, movies[2].CreatedAt, movies[2].UpdatedAt, movies[2].CreatedBy, movies[2].LastUpdatedBy)
 
-		mock.ExpectQuery(`SELECT \* FROM "movies" LIMIT \$1 OFFSET \$2`).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
 			WithArgs(2, 2).
 			WillReturnRows(rows)
 
@@ -98,26 +94,24 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-
 		assert.Equal(t, movies[0], result[0])
 		assert.Equal(t, movies[1], result[1])
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
-	t.Run("db error", func(t *testing.T) {
-		mock.ExpectQuery(`SELECT \* FROM "movies" LIMIT \$1 OFFSET \$2`).
+	t.Run("error getting movies", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
 			WithArgs(2, 2).
-			WillReturnError(errors.New("db error"))
+			WillReturnError(errors.New("error getting movies"))
 
 		result, err := repo.GetMovies(2, 2)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
+		assert.Equal(t, "error getting movies", err.Error())
 
-		assert.Equal(t, "db error", err.Error())
-
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -135,31 +129,29 @@ func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		mock.ExpectQuery(`SELECT count\(\*\) FROM "movies"`).
-			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "movies"`)).
+			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3))
 
 		result, err := repo.GetNumbersOfMovie()
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
+		assert.Equal(t, 3, result)
 
-		assert.Equal(t, 2, result)
-
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
-	t.Run("db error", func(t *testing.T) {
-		mock.ExpectQuery(`SELECT count\(\*\) FROM "movies"`).
-			WillReturnError(errors.New("db error"))
+	t.Run("error counting movies", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "movies"`)).
+			WillReturnError(errors.New("error counting movies"))
 
 		result, err := repo.GetNumbersOfMovie()
 
 		assert.Equal(t, result, 0)
 		assert.NotNil(t, err)
+		assert.Equal(t, "error counting movies", err.Error())
 
-		assert.Equal(t, "db error", err.Error())
-
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -169,36 +161,41 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
+	repo := NewMovieRepository(db)
+
 	movie := utils.GenerateRandomMovie()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "movies"`).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "movies" ("id","title","description","release_date","duration_minutes","language","rating","created_at","updated_at","created_by","last_updated_by") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`)).
 			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
 		tx := db.Begin()
-		err := NewMovieRepository(db).CreateMovie(tx, movie)
+		err := repo.CreateMovie(tx, movie)
 		tx.Commit()
 
-		assert.NoError(t, err)
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, err)
+
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
-	t.Run("failure", func(t *testing.T) {
+	t.Run("error creating movie", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "movies"`).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "movies" ("id","title","description","release_date","duration_minutes","language","rating","created_at","updated_at","created_by","last_updated_by") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`)).
 			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy).
-			WillReturnError(errors.New("insert error"))
+			WillReturnError(errors.New("error creating movie"))
 		mock.ExpectRollback()
 
 		tx := db.Begin()
-		err := NewMovieRepository(db).CreateMovie(tx, movie)
+		err := repo.CreateMovie(tx, movie)
 		tx.Rollback()
 
-		assert.Error(t, err)
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.NotNil(t, err)
+		assert.Equal(t, "error creating movie", err.Error())
+
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -214,7 +211,7 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "movies" SET "title"=\$1,"description"=\$2,"release_date"=\$3,"duration_minutes"=\$4,"language"=\$5,"rating"=\$6,"created_at"=\$7,"updated_at"=\$8,"created_by"=\$9,"last_updated_by"=\$10 WHERE "id" = \$11`).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "movies" SET "title"=$1,"description"=$2,"release_date"=$3,"duration_minutes"=$4,"language"=$5,"rating"=$6,"created_at"=$7,"updated_at"=$8,"created_by"=$9,"last_updated_by"=$10 WHERE "id" = $11`)).
 			WithArgs(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, sqlmock.AnyArg(), movie.CreatedBy, movie.LastUpdatedBy, movie.ID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
@@ -223,15 +220,16 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 		err := repo.UpdateMovie(tx, movie)
 		tx.Commit()
 
-		assert.NoError(t, err)
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, err)
+
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
-	t.Run("failure", func(t *testing.T) {
+	t.Run("error updating movie", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "movies" SET "title"=\$1,"description"=\$2,"release_date"=\$3,"duration_minutes"=\$4,"language"=\$5,"rating"=\$6,"created_at"=\$7,"updated_at"=\$8,"created_by"=\$9,"last_updated_by"=\$10 WHERE "id" = \$11`).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "movies" SET "title"=$1,"description"=$2,"release_date"=$3,"duration_minutes"=$4,"language"=$5,"rating"=$6,"created_at"=$7,"updated_at"=$8,"created_by"=$9,"last_updated_by"=$10 WHERE "id" = $11`)).
 			WithArgs(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, sqlmock.AnyArg(), movie.CreatedBy, movie.LastUpdatedBy, movie.ID).
-			WillReturnError(errors.New("update error"))
+			WillReturnError(errors.New("error updating movie"))
 		mock.ExpectRollback()
 
 		tx := db.Begin()
@@ -239,8 +237,8 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 		tx.Rollback()
 
 		assert.Error(t, err)
-		assert.Equal(t, "update error", err.Error())
+		assert.Equal(t, "error updating movie", err.Error())
 
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }

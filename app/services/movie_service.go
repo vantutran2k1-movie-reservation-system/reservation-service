@@ -40,11 +40,10 @@ func NewMovieService(
 func (s *movieService) GetMovie(id uuid.UUID) (*models.Movie, *errors.ApiError) {
 	m, err := s.movieRepo.GetMovie(id)
 	if err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.NotFoundError("Movie not found")
-		}
-
 		return nil, errors.InternalServerError(err.Error())
+	}
+	if m == nil {
+		return nil, errors.NotFoundError("movie not found")
 	}
 
 	return m, nil
