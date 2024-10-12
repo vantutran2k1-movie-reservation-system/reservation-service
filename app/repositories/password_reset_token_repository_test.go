@@ -83,7 +83,6 @@ func TestPasswordResetTokenRepository_GetUserActivePasswordResetTokens(t *testin
 		}
 
 		rows := sqlmock.NewRows([]string{"id", "user_id", "token_value", "is_used", "created_at", "expires_at"})
-
 		for _, token := range tokens {
 			rows.AddRow(token.ID, token.UserID, token.TokenValue, token.IsUsed, token.CreatedAt, token.ExpiresAt)
 		}
@@ -128,7 +127,7 @@ func TestPasswordResetTokenRepository_CreateToken(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "password_reset_tokens"`).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "password_reset_tokens" ("id","user_id","token_value","is_used","created_at","expires_at") VALUES ($1,$2,$3,$4,$5,$6)`)).
 			WithArgs(token.ID, token.UserID, token.TokenValue, token.IsUsed, token.CreatedAt, token.ExpiresAt).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
@@ -144,7 +143,7 @@ func TestPasswordResetTokenRepository_CreateToken(t *testing.T) {
 
 	t.Run("db error", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "password_reset_tokens"`).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "password_reset_tokens" ("id","user_id","token_value","is_used","created_at","expires_at") VALUES ($1,$2,$3,$4,$5,$6)`)).
 			WithArgs(token.ID, token.UserID, token.TokenValue, token.IsUsed, token.CreatedAt, token.ExpiresAt).
 			WillReturnError(errors.New("db error"))
 		mock.ExpectRollback()
@@ -182,6 +181,7 @@ func TestPasswordResetTokenRepository_UseToken(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
+
 		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
@@ -198,6 +198,7 @@ func TestPasswordResetTokenRepository_UseToken(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
+
 		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
@@ -210,15 +211,15 @@ func TestPasswordResetTokenRepository_RevokeTokens(t *testing.T) {
 
 	repo := NewPasswordResetTokenRepository(db)
 
-	tokens := make([]*models.PasswordResetToken, 1)
+	tokens := make([]*models.PasswordResetToken, 3)
 	for i := 0; i < len(tokens); i++ {
 		tokens[i] = utils.GenerateRandomPasswordResetToken()
 	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "password_reset_tokens" SET "expires_at"=$1 WHERE "id" IN ($2,$3,$4)`)).
-			WithArgs(sqlmock.AnyArg(), tokens[0].ID).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "password_reset_tokens" SET "expires_at"=$1 WHERE id IN ($2,$3,$4)`)).
+			WithArgs(sqlmock.AnyArg(), tokens[0].ID, tokens[1].ID, tokens[2].ID).
 			WillReturnResult(sqlmock.NewResult(3, 3))
 		mock.ExpectCommit()
 
@@ -227,12 +228,13 @@ func TestPasswordResetTokenRepository_RevokeTokens(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
+
 		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "password_reset_tokens" SET "expires_at"=$1 WHERE "id" IN ($2,$3,$4)`)).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "password_reset_tokens" SET "expires_at"=$1 WHERE id IN ($2,$3,$4)`)).
 			WithArgs(sqlmock.AnyArg(), tokens[0].ID, tokens[1].ID, tokens[2].ID).
 			WillReturnError(errors.New("db error"))
 		mock.ExpectRollback()
@@ -243,6 +245,7 @@ func TestPasswordResetTokenRepository_RevokeTokens(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
+
 		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
