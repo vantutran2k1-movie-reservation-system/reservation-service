@@ -42,10 +42,9 @@ func (r *loginTokenRepository) CreateLoginToken(tx *gorm.DB, loginToken *models.
 }
 
 func (r *loginTokenRepository) RevokeLoginToken(tx *gorm.DB, loginToken *models.LoginToken) error {
-	loginToken.ExpiresAt = time.Now().UTC()
-	return tx.Save(&loginToken).Error
+	return tx.Model(loginToken).Updates(map[string]any{"expires_at": time.Now().UTC()}).Error
 }
 
 func (r *loginTokenRepository) RevokeUserLoginTokens(tx *gorm.DB, userID uuid.UUID) error {
-	return tx.Model(&models.LoginToken{}).Where("user_id = ? AND expires_at > ?", userID, time.Now().UTC()).Updates(map[string]interface{}{"expires_at": time.Now().UTC()}).Error
+	return tx.Model(&models.LoginToken{}).Where("user_id = ? AND expires_at > ?", userID, time.Now().UTC()).Updates(map[string]any{"expires_at": time.Now().UTC()}).Error
 }

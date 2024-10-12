@@ -30,7 +30,7 @@ func (r *passwordResetTokenRepository) GetActivePasswordResetToken(tokenValue st
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
-		
+
 		return nil, err
 	}
 
@@ -60,5 +60,5 @@ func (r *passwordResetTokenRepository) RevokeTokens(tx *gorm.DB, tokens []*model
 		tokenIDs[i] = token.ID
 	}
 
-	return tx.Model(&models.PasswordResetToken{}).Where("id IN (?)", tokenIDs).Updates(map[string]interface{}{"expires_at": time.Now().UTC()}).Error
+	return tx.Model(&models.PasswordResetToken{}).Where("id IN (?)", tokenIDs).Updates(map[string]any{"expires_at": time.Now().UTC()}).Error
 }
