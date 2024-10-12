@@ -46,23 +46,23 @@ func NewUserProfileService(
 func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError) {
 	p, err := s.userProfileRepo.GetProfileByUserID(userID)
 	if err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.NotFoundError("User profile does not exist")
-		}
-
 		return nil, errors.InternalServerError(err.Error())
+
+	}
+	if p == nil {
+		return nil, errors.NotFoundError("user profile does not exist")
 	}
 
 	return p, nil
 }
 
 func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
-	_, err := s.userProfileRepo.GetProfileByUserID(userID)
-	if err == nil {
-		return nil, errors.BadRequestError("Duplicate profile for current user")
-	}
-	if !errors.IsRecordNotFoundError(err) {
+	u, err := s.userProfileRepo.GetProfileByUserID(userID)
+	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
+	}
+	if u != nil {
+		return nil, errors.BadRequestError("duplicate profile for current user")
 	}
 
 	p := models.UserProfile{
@@ -85,9 +85,13 @@ func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, last
 }
 
 func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.GetProfileByUserID(userID)
+	p, err := s.userProfileRepo.GetProfileByUserID(userID)
 	if err != nil {
-		return nil, err
+		return nil, errors.InternalServerError(err.Error())
+
+	}
+	if p == nil {
+		return nil, errors.NotFoundError("user profile does not exist")
 	}
 
 	p.FirstName = firstName
@@ -105,9 +109,13 @@ func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, last
 }
 
 func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.GetProfileByUserID(userID)
+	p, err := s.userProfileRepo.GetProfileByUserID(userID)
 	if err != nil {
-		return nil, err
+		return nil, errors.InternalServerError(err.Error())
+
+	}
+	if p == nil {
+		return nil, errors.NotFoundError("user profile does not exist")
 	}
 
 	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
@@ -129,9 +137,13 @@ func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multip
 }
 
 func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiError {
-	p, err := s.GetProfileByUserID(userID)
+	p, err := s.userProfileRepo.GetProfileByUserID(userID)
 	if err != nil {
-		return err
+		return errors.InternalServerError(err.Error())
+
+	}
+	if p == nil {
+		return errors.NotFoundError("user profile does not exist")
 	}
 
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {

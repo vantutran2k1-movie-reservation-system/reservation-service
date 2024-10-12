@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,7 +26,11 @@ func NewUserProfileRepository(db *gorm.DB) UserProfileRepository {
 
 func (r *userProfileRepository) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error) {
 	var p models.UserProfile
-	if err := r.db.Where(&models.UserProfile{UserID: userID}).First(&p).Error; err != nil {
+	if err := r.db.Where("user_id = ?", userID).First(&p).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 
