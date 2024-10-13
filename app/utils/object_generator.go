@@ -167,6 +167,12 @@ func GenerateRandomCreateGenreRequest() *payloads.CreateGenreRequest {
 	}
 }
 
+func GenerateRandomUpdateGenreRequest() *payloads.UpdateGenreRequest {
+	return &payloads.UpdateGenreRequest{
+		Name: generateRandomString(letterChars, 10),
+	}
+}
+
 func GenerateRandomPasswordResetToken() *models.PasswordResetToken {
 	return &models.PasswordResetToken{
 		ID:         uuid.New(),

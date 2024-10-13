@@ -176,3 +176,42 @@ func TestGenreRepository_CreateGenre(t *testing.T) {
 		assert.Equal(t, "error creating genre", err.Error())
 	})
 }
+
+func TestGenreRepository_UpdateGenre(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewGenreRepository(db)
+
+	genre := utils.GenerateRandomGenre()
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "genres" SET "name"=$1 WHERE "id" = $2`)).
+			WithArgs(genre.Name, genre.ID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.UpdateGenre(tx, genre)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error updating genre", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "genres" SET "name"=$1 WHERE "id" = $2`)).
+			WithArgs(genre.Name, genre.ID).
+			WillReturnError(errors.New("error updating genre"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.UpdateGenre(tx, genre)
+		tx.Rollback()
+
+		assert.NotNil(t, err)
+	})
+}

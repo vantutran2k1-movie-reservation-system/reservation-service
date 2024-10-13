@@ -99,3 +99,17 @@ func (mr *MockGenreRepositoryMockRecorder) GetGenres() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenres", reflect.TypeOf((*MockGenreRepository)(nil).GetGenres))
 }
+
+// UpdateGenre mocks base method.
+func (m *MockGenreRepository) UpdateGenre(tx *gorm.DB, genre *models.Genre) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateGenre", tx, genre)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateGenre indicates an expected call of UpdateGenre.
+func (mr *MockGenreRepositoryMockRecorder) UpdateGenre(tx, genre any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGenre", reflect.TypeOf((*MockGenreRepository)(nil).UpdateGenre), tx, genre)
+}

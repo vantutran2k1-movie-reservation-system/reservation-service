@@ -164,8 +164,8 @@ func TestUserService_LoginUser(t *testing.T) {
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, nil).Times(1)
-		os.Setenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES", "60")
-		defer os.Unsetenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES")
+		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
+		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -258,8 +258,8 @@ func TestUserService_LoginUser(t *testing.T) {
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, nil).Times(1)
-		os.Setenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES", "60")
-		defer os.Unsetenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES")
+		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
+		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -280,8 +280,8 @@ func TestUserService_LoginUser(t *testing.T) {
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, nil).Times(1)
-		os.Setenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES", "60")
-		defer os.Unsetenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES")
+		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
+		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)

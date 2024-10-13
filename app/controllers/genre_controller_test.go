@@ -200,3 +200,68 @@ func TestGenreController_CreateGenre(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "service error")
 	})
 }
+
+func TestGenreController_UpdateGenre(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockGenreService(ctrl)
+	controller := GenreController{
+		GenreService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	genre := utils.GenerateRandomGenre()
+	payload := utils.GenerateRandomUpdateGenreRequest()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.PUT("/genres/:id", controller.UpdateGenre)
+
+		service.EXPECT().UpdateGenre(genre.ID, payload.Name).Return(genre, nil).Times(1)
+
+		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/genres/%s", genre.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), genre.Name)
+	})
+
+	t.Run("error validating data", func(t *testing.T) {
+		router := gin.Default()
+		router.PUT("/genres/:id", controller.UpdateGenre)
+
+		reqBody := `{}`
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/genres/%s", genre.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "This field is required")
+	})
+
+	t.Run("error updating genre", func(t *testing.T) {
+		router := gin.Default()
+		router.PUT("/genres/:id", controller.UpdateGenre)
+
+		service.EXPECT().UpdateGenre(genre.ID, payload.Name).Return(nil, errors.InternalServerError("error updating genre")).Times(1)
+
+		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/genres/%s", genre.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "error")
+		assert.Contains(t, w.Body.String(), "error updating genre")
+	})
+}

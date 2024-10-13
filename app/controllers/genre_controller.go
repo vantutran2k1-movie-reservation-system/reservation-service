@@ -60,3 +60,25 @@ func (c *GenreController) CreateGenre(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(g)})
 }
+
+func (c *GenreController) UpdateGenre(ctx *gin.Context) {
+	id, e := uuid.Parse(ctx.Param("id"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid genre id"})
+		return
+	}
+
+	var req payloads.UpdateGenreRequest
+	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
+		return
+	}
+
+	g, err := c.GenreService.UpdateGenre(id, req.Name)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(g)})
+}

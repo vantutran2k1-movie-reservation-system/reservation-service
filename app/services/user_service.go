@@ -124,7 +124,7 @@ func (s *userService) LoginUser(email string, password string) (*models.LoginTok
 	}
 
 	now := time.Now().UTC()
-	tokenExpiresAfter, err := strconv.Atoi(os.Getenv("AUTH_TOKEN_EXPIRES_AFTER_MINUTES"))
+	tokenExpiresAfter, err := strconv.Atoi(os.Getenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES"))
 	if err != nil {
 		return nil, errors.InternalServerError("invalid token expiry time: %v", err)
 	}

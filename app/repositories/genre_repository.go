@@ -12,6 +12,7 @@ type GenreRepository interface {
 	GetGenreByName(name string) (*models.Genre, error)
 	GetGenres() ([]*models.Genre, error)
 	CreateGenre(tx *gorm.DB, genre *models.Genre) error
+	UpdateGenre(tx *gorm.DB, genre *models.Genre) error
 }
 
 func NewGenreRepository(db *gorm.DB) GenreRepository {
@@ -59,4 +60,8 @@ func (r *genreRepository) GetGenres() ([]*models.Genre, error) {
 
 func (r *genreRepository) CreateGenre(tx *gorm.DB, genre *models.Genre) error {
 	return tx.Create(genre).Error
+}
+
+func (r *genreRepository) UpdateGenre(tx *gorm.DB, genre *models.Genre) error {
+	return tx.Save(genre).Error
 }

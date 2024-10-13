@@ -85,3 +85,18 @@ func (mr *MockGenreServiceMockRecorder) GetGenres() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenres", reflect.TypeOf((*MockGenreService)(nil).GetGenres))
 }
+
+// UpdateGenre mocks base method.
+func (m *MockGenreService) UpdateGenre(id uuid.UUID, name string) (*models.Genre, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateGenre", id, name)
+	ret0, _ := ret[0].(*models.Genre)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// UpdateGenre indicates an expected call of UpdateGenre.
+func (mr *MockGenreServiceMockRecorder) UpdateGenre(id, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGenre", reflect.TypeOf((*MockGenreService)(nil).UpdateGenre), id, name)
+}

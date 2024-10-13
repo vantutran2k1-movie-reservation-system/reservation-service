@@ -74,6 +74,11 @@ func RegisterRoutes() *gin.Engine {
 				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_GENRES),
 				c.GenreController.CreateGenre,
 			)
+			genres.PUT(
+				"/:id",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_GENRES),
+				c.GenreController.UpdateGenre)
 		}
 	}
 
