@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,27 +30,29 @@ func TestGenreService_GetGenre(t *testing.T) {
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, genre.Name, result.Name)
+		assert.Equal(t, genre, result)
 	})
 
 	t.Run("genre not found", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(nil, gorm.ErrRecordNotFound).Times(1)
+		repo.EXPECT().GetGenre(genre.ID).Return(nil, nil).Times(1)
 
 		result, err := service.GetGenre(genre.ID)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
 		assert.Equal(t, "genre not found", err.Error())
 	})
 
-	t.Run("repository returns error", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(nil, errors.New("error")).Times(1)
+	t.Run("error getting genre", func(t *testing.T) {
+		repo.EXPECT().GetGenre(genre.ID).Return(nil, errors.New("error getting genre")).Times(1)
 
 		result, err := service.GetGenre(genre.ID)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "error", err.Error())
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting genre", err.Error())
 	})
 }
 
@@ -75,14 +78,15 @@ func TestGenreService_GetGenres(t *testing.T) {
 		assert.Equal(t, genres, result)
 	})
 
-	t.Run("repo error", func(t *testing.T) {
-		repo.EXPECT().GetGenres().Return(nil, errors.New("error")).Times(1)
+	t.Run("error getting genres", func(t *testing.T) {
+		repo.EXPECT().GetGenres().Return(nil, errors.New("error getting genres")).Times(1)
 
 		result, err := service.GetGenres()
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "error", err.Error())
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting genres", err.Error())
 	})
 }
 
@@ -97,13 +101,12 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	genre := utils.GenerateRandomGenre()
 
 	t.Run("success", func(t *testing.T) {
+		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, gorm.ErrRecordNotFound).Times(1)
 		repo.EXPECT().CreateGenre(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
 		result, err := service.CreateGenre(genre.Name)
@@ -120,33 +123,35 @@ func TestGenreService_CreateGenre(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "Duplicate genre name", err.Error())
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "duplicate genre name", err.Error())
 	})
 
 	t.Run("error getting genre", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, errors.New("db error")).Times(1)
+		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, errors.New("error getting genre")).Times(1)
 
 		result, err := service.CreateGenre(genre.Name)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "db error", err.Error())
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting genre", err.Error())
 	})
 
 	t.Run("error creating genre", func(t *testing.T) {
+		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, gorm.ErrRecordNotFound).Times(1)
-		repo.EXPECT().CreateGenre(gomock.Any(), gomock.Any()).Return(errors.New("creating error")).Times(1)
+		repo.EXPECT().CreateGenre(gomock.Any(), gomock.Any()).Return(errors.New("error creating genre")).Times(1)
 
 		result, err := service.CreateGenre(genre.Name)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "creating error", err.Error())
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error creating genre", err.Error())
 	})
 }

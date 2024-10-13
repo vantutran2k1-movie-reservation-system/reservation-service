@@ -335,6 +335,7 @@ func TestUserProfileService_DeleteProfilePicture(t *testing.T) {
 		err := service.DeleteProfilePicture(profile.UserID)
 
 		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
 		assert.Equal(t, "error deleting profile picture", err.Error())
 	})
 }

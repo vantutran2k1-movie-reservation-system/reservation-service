@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
@@ -23,7 +24,11 @@ type genreRepository struct {
 
 func (r *genreRepository) GetGenre(id uuid.UUID) (*models.Genre, error) {
 	var g models.Genre
-	if err := r.db.Where(&models.Genre{ID: id}).First(&g).Error; err != nil {
+	if err := r.db.Where("id = ?", id).First(&g).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 
@@ -32,7 +37,11 @@ func (r *genreRepository) GetGenre(id uuid.UUID) (*models.Genre, error) {
 
 func (r *genreRepository) GetGenreByName(name string) (*models.Genre, error) {
 	var g models.Genre
-	if err := r.db.Where(&models.Genre{Name: name}).First(&g).Error; err != nil {
+	if err := r.db.Where("name = ?", name).First(&g).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

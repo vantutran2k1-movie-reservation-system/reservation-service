@@ -28,11 +28,10 @@ type genreService struct {
 func (s *genreService) GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError) {
 	g, err := s.genreRepo.GetGenre(id)
 	if err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, errors.NotFoundError("genre not found")
-		}
-
 		return nil, errors.InternalServerError(err.Error())
+	}
+	if g == nil {
+		return nil, errors.NotFoundError("genre not found")
 	}
 
 	return g, nil
@@ -48,23 +47,23 @@ func (s *genreService) GetGenres() ([]*models.Genre, *errors.ApiError) {
 }
 
 func (s *genreService) CreateGenre(name string) (*models.Genre, *errors.ApiError) {
-	_, err := s.genreRepo.GetGenreByName(name)
-	if err == nil {
-		return nil, errors.BadRequestError("Duplicate genre name")
-	}
-	if !errors.IsRecordNotFoundError(err) {
+	g, err := s.genreRepo.GetGenreByName(name)
+	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
+	if g != nil {
+		return nil, errors.BadRequestError("duplicate genre name")
+	}
 
-	g := models.Genre{
+	g = &models.Genre{
 		ID:   uuid.New(),
 		Name: name,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.genreRepo.CreateGenre(tx, &g)
+		return s.genreRepo.CreateGenre(tx, g)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	return &g, nil
+	return g, nil
 }
