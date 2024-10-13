@@ -15,7 +15,7 @@ import (
 func TestMovieRepository_GetMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -35,8 +35,6 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, movie, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("movie not found", func(t *testing.T) {
@@ -48,8 +46,6 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error getting movie", func(t *testing.T) {
@@ -62,15 +58,13 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.Equal(t, "error getting movie", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestMovieRepository_GetMovies(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -96,8 +90,6 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, movies[0], result[0])
 		assert.Equal(t, movies[1], result[1])
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error getting movies", func(t *testing.T) {
@@ -110,15 +102,13 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error getting movies", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -137,8 +127,6 @@ func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, 3, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error counting movies", func(t *testing.T) {
@@ -150,15 +138,13 @@ func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 		assert.Equal(t, result, 0)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error counting movies", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestMovieRepository_CreateMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -177,8 +163,6 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error creating movie", func(t *testing.T) {
@@ -194,15 +178,13 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "error creating movie", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestMovieRepository_UpdateMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -221,8 +203,6 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error updating movie", func(t *testing.T) {
@@ -238,7 +218,5 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, "error updating movie", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }

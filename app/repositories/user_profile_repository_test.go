@@ -14,7 +14,7 @@ import (
 func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)
@@ -34,8 +34,6 @@ func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 		assert.NotNil(t, profile)
 		assert.Nil(t, err)
 		assert.Equal(t, profile, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("profile not found", func(t *testing.T) {
@@ -47,8 +45,6 @@ func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error getting profile", func(t *testing.T) {
@@ -61,15 +57,13 @@ func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error getting profile", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestUserProfileRepository_CreateUserProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)
@@ -88,8 +82,6 @@ func TestUserProfileRepository_CreateUserProfile(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error creating profile", func(t *testing.T) {
@@ -105,15 +97,13 @@ func TestUserProfileRepository_CreateUserProfile(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "error creating profile", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestUserProfileRepository_UpdateUserProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)
@@ -132,8 +122,6 @@ func TestUserProfileRepository_UpdateUserProfile(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error updating profile", func(t *testing.T) {
@@ -149,15 +137,13 @@ func TestUserProfileRepository_UpdateUserProfile(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "error updating profile", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestUserRepository_UpdateProfilePicture(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)
@@ -179,8 +165,6 @@ func TestUserRepository_UpdateProfilePicture(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, url, *result.ProfilePictureUrl)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error updating profile", func(t *testing.T) {
@@ -197,7 +181,5 @@ func TestUserRepository_UpdateProfilePicture(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error updating profile", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }

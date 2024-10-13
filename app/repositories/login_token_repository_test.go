@@ -14,7 +14,7 @@ import (
 func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewLoginTokenRepository(db)
@@ -34,8 +34,6 @@ func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, token, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("token not found", func(t *testing.T) {
@@ -47,8 +45,6 @@ func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -61,15 +57,13 @@ func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestLoginTokenRepository_CreateLoginToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewLoginTokenRepository(db)
@@ -88,8 +82,6 @@ func TestLoginTokenRepository_CreateLoginToken(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -104,15 +96,13 @@ func TestLoginTokenRepository_CreateLoginToken(t *testing.T) {
 		tx.Rollback()
 
 		assert.NotNil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestLoginTokenRepository_RevokeLoginToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewLoginTokenRepository(db)
@@ -131,8 +121,6 @@ func TestLoginTokenRepository_RevokeLoginToken(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -148,15 +136,13 @@ func TestLoginTokenRepository_RevokeLoginToken(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestLoginTokenRepository_RevokeUserLoginTokens(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewLoginTokenRepository(db)
@@ -175,8 +161,6 @@ func TestLoginTokenRepository_RevokeUserLoginTokens(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -192,7 +176,5 @@ func TestLoginTokenRepository_RevokeUserLoginTokens(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }

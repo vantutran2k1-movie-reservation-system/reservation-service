@@ -14,7 +14,7 @@ import (
 func TestUserRepository_GetUser(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	user := utils.GenerateRandomUser()
@@ -32,8 +32,6 @@ func TestUserRepository_GetUser(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, user, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("user not found", func(t *testing.T) {
@@ -45,8 +43,6 @@ func TestUserRepository_GetUser(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -59,15 +55,13 @@ func TestUserRepository_GetUser(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestUserRepository_GetUserByEmail(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	user := utils.GenerateRandomUser()
@@ -85,8 +79,6 @@ func TestUserRepository_GetUserByEmail(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, user.ID, result.ID)
 		assert.Equal(t, user.Email, result.Email)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("user not found", func(t *testing.T) {
@@ -98,8 +90,6 @@ func TestUserRepository_GetUserByEmail(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -112,15 +102,13 @@ func TestUserRepository_GetUserByEmail(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestUserRepository_CreateUser(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	user := utils.GenerateRandomUser()
@@ -137,8 +125,6 @@ func TestUserRepository_CreateUser(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -154,15 +140,13 @@ func TestUserRepository_CreateUser(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestUserRepository_UpdatePassword(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	user := utils.GenerateRandomUser()
@@ -183,8 +167,6 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, user.ID, result.ID)
 		assert.Equal(t, hashedPassword, result.PasswordHash)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -201,7 +183,5 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }

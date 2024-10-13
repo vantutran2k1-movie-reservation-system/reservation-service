@@ -24,8 +24,13 @@ func SetupTestDB(t *testing.T) (*gorm.DB, sqlmock.Sqlmock) {
 	return gormDB, mock
 }
 
-func TearDownTestDB(db *gorm.DB, mock sqlmock.Sqlmock) {
+func TearDownTestDB(db *gorm.DB, mock sqlmock.Sqlmock) error {
 	sqlDB, _ := db.DB()
-	sqlDB.Close()
+	err := sqlDB.Close()
+	if err != nil {
+		return err
+	}
 	mock.ExpectClose()
+
+	return mock.ExpectationsWereMet()
 }

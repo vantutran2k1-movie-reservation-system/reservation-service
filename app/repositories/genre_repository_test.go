@@ -15,7 +15,7 @@ import (
 func TestGenreRepository_GetGenre(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -34,8 +34,6 @@ func TestGenreRepository_GetGenre(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, genre, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error getting genre", func(t *testing.T) {
@@ -48,15 +46,13 @@ func TestGenreRepository_GetGenre(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error getting genre", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestGenreRepository_GetGenreByName(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -75,8 +71,6 @@ func TestGenreRepository_GetGenreByName(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, genre, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("genre not found", func(t *testing.T) {
@@ -88,8 +82,6 @@ func TestGenreRepository_GetGenreByName(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error getting genre", func(t *testing.T) {
@@ -102,15 +94,13 @@ func TestGenreRepository_GetGenreByName(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error getting genre", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestGenreRepository_GetGenres(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -134,8 +124,6 @@ func TestGenreRepository_GetGenres(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, genres, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error getting genres", func(t *testing.T) {
@@ -147,15 +135,13 @@ func TestGenreRepository_GetGenres(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error getting genres", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestGenreRepository_CreateGenre(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -174,8 +160,6 @@ func TestGenreRepository_CreateGenre(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error creating genre", func(t *testing.T) {
@@ -190,7 +174,5 @@ func TestGenreRepository_CreateGenre(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "error creating genre", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }

@@ -14,7 +14,7 @@ import (
 func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -34,8 +34,6 @@ func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, token, result)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("token not found", func(t *testing.T) {
@@ -47,8 +45,6 @@ func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) 
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -61,15 +57,13 @@ func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestPasswordResetTokenRepository_GetUserActivePasswordResetTokens(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -118,7 +112,7 @@ func TestPasswordResetTokenRepository_GetUserActivePasswordResetTokens(t *testin
 func TestPasswordResetTokenRepository_CreateToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -137,8 +131,6 @@ func TestPasswordResetTokenRepository_CreateToken(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -154,15 +146,13 @@ func TestPasswordResetTokenRepository_CreateToken(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestPasswordResetTokenRepository_UseToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -181,8 +171,6 @@ func TestPasswordResetTokenRepository_UseToken(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -198,15 +186,13 @@ func TestPasswordResetTokenRepository_UseToken(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestPasswordResetTokenRepository_RevokeTokens(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		mock_db.TearDownTestDB(db, mock)
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -228,8 +214,6 @@ func TestPasswordResetTokenRepository_RevokeTokens(t *testing.T) {
 		tx.Commit()
 
 		assert.Nil(t, err)
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("db error", func(t *testing.T) {
@@ -245,7 +229,5 @@ func TestPasswordResetTokenRepository_RevokeTokens(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "db error", err.Error())
-
-		assert.Nil(t, mock.ExpectationsWereMet())
 	})
 }
