@@ -32,6 +32,10 @@ func NewUserSessionRepository(rdb *redis.Client) UserSessionRepository {
 func (r *userSessionRepository) GetUserSession(sessionID string) (*models.UserSession, error) {
 	sessionString, err := r.rdb.Get(r.ctx, sessionID).Result()
 	if err != nil {
+		if errors.IsRedisKeyNotFoundError(err) {
+			return nil, nil
+		}
+		
 		return nil, err
 	}
 

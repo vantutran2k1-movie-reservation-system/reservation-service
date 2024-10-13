@@ -9,218 +9,170 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 )
 
-func TestUserSessionRepository_GetUserSession_Success(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
+func TestUserSessionRepository_GetUserSession(t *testing.T) {
+	client, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
+		assert.Nil(t, mock_db.TearDownTestRedis(mock))
 	}()
 
-	sessionID := "test-session-id"
+	repo := NewUserSessionRepository(client)
+
 	session := utils.GenerateRandomUserSession()
+	sessionID := utils.GenerateRandomSessionID()
 
-	sessionJSON, err := json.Marshal(session)
-	require.NoError(t, err)
+	t.Run("success", func(t *testing.T) {
+		sessionJSON, _ := json.Marshal(session)
+		mock.ExpectGet(sessionID).SetVal(string(sessionJSON))
 
-	mock.ExpectGet(sessionID).SetVal(string(sessionJSON))
+		result, err := repo.GetUserSession(sessionID)
 
-	result, err := NewUserSessionRepository(redisClient).GetUserSession(sessionID)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, session.UserID, result.UserID)
+		assert.Equal(t, session.Email, result.Email)
+	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, session.UserID, result.UserID)
-	assert.Equal(t, session.Email, result.Email)
+	t.Run("session not found", func(t *testing.T) {
+		mock.ExpectGet(sessionID).RedisNil()
+
+		result, err := repo.GetUserSession(sessionID)
+
+		assert.Nil(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("error unmarshalling data", func(t *testing.T) {
+		mock.ExpectGet(sessionID).SetVal("invalid json")
+
+		result, err := repo.GetUserSession(sessionID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+	})
 }
 
-func TestUserSessionRepository_GetUserSession_NotFound(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
+func TestUserSessionRepository_CreateUserSession(t *testing.T) {
+	client, mock := mock_db.SetupTestRedis()
 	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
+		assert.Nil(t, mock_db.TearDownTestRedis(mock))
 	}()
 
-	sessionID := "non-existent-session-id"
+	repo := NewUserSessionRepository(client)
 
-	mock.ExpectGet(sessionID).RedisNil()
-
-	result, err := NewUserSessionRepository(redisClient).GetUserSession(sessionID)
-
-	assert.Error(t, err)
-	assert.Nil(t, result)
-}
-
-func TestUserSessionRepository_GetUserSession_JsonUnmarshalError(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
-
-	sessionID := "test-session-id"
-	mock.ExpectGet(sessionID).SetVal("invalid json")
-
-	result, err := NewUserSessionRepository(redisClient).GetUserSession(sessionID)
-
-	assert.Error(t, err)
-	assert.Nil(t, result)
-}
-
-func TestUserSessionRepository_CreateUserSession_Success(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
-
-	sessionID := "test-session-id"
+	session := utils.GenerateRandomUserSession()
+	sessionID := utils.GenerateRandomSessionID()
 	expiration := 24 * time.Hour
+
+	t.Run("success", func(t *testing.T) {
+		sessionJSON, _ := json.Marshal(session)
+		mock.ExpectSet(sessionID, sessionJSON, expiration).SetVal("OK")
+
+		err := repo.CreateUserSession(sessionID, expiration, session)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error marshalling data", func(t *testing.T) {
+		session.Email = string([]byte{255})
+
+		err := repo.CreateUserSession(sessionID, expiration, session)
+
+		assert.NotNil(t, err)
+	})
+
+	t.Run("error creating session", func(t *testing.T) {
+		sessionJSON, _ := json.Marshal(session)
+		mock.ExpectSet(sessionID, sessionJSON, expiration).SetErr(redis.Nil)
+
+		err := repo.CreateUserSession(sessionID, expiration, session)
+
+		assert.NotNil(t, err)
+	})
+}
+
+func TestUserSessionRepository_DeleteUserSession(t *testing.T) {
+	client, mock := mock_db.SetupTestRedis()
+	defer func() {
+		assert.Nil(t, mock_db.TearDownTestRedis(mock))
+	}()
+
+	repo := NewUserSessionRepository(client)
+
+	sessionID := utils.GenerateRandomSessionID()
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectDel(sessionID).SetVal(1)
+
+		err := repo.DeleteUserSession(sessionID)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error deleting session", func(t *testing.T) {
+		mock.ExpectDel(sessionID).SetErr(redis.Nil)
+
+		err := repo.DeleteUserSession(sessionID)
+
+		assert.NotNil(t, err)
+	})
+}
+
+func TestUserSessionRepository_DeleteUserSessions(t *testing.T) {
+	client, mock := mock_db.SetupTestRedis()
+	defer func() {
+		assert.Nil(t, mock_db.TearDownTestRedis(mock))
+	}()
+
+	repo := NewUserSessionRepository(client)
+
 	session := utils.GenerateRandomUserSession()
+	sessionID := utils.GenerateRandomSessionID()
 
-	sessionJSON, err := json.Marshal(session)
-	require.NoError(t, err)
+	t.Run("success", func(t *testing.T) {
+		sessionData, _ := json.Marshal(session)
 
-	mock.ExpectSet(sessionID, sessionJSON, expiration).SetVal("OK")
+		mock.ExpectScan(0, "*", 100).SetVal([]string{sessionID}, 0)
+		mock.ExpectGet(sessionID).SetVal(string(sessionData))
+		mock.ExpectDel(sessionID).SetVal(1)
 
-	err = NewUserSessionRepository(redisClient).CreateUserSession(sessionID, expiration, session)
+		err := repo.DeleteUserSessions(session.UserID)
 
-	assert.NoError(t, err)
-}
+		assert.Nil(t, err)
+	})
 
-func TestUserSessionRepository_CreateUserSession_MarshalError(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
+	t.Run("error scanning keys", func(t *testing.T) {
+		mock.ExpectScan(0, "*", 100).SetErr(errors.New("error scanning keys"))
 
-	sessionID := "test-session-id"
-	expiration := 24 * time.Hour
-	session := utils.GenerateRandomUserSession()
+		err := repo.DeleteUserSessions(uuid.New())
 
-	session.Email = string([]byte{255})
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "error scanning keys")
+	})
 
-	err := NewUserSessionRepository(redisClient).CreateUserSession(sessionID, expiration, session)
+	t.Run("error getting keys", func(t *testing.T) {
+		mock.ExpectScan(0, "*", 100).SetVal([]string{sessionID}, 0)
+		mock.ExpectGet(sessionID).SetErr(errors.New("error getting keys"))
 
-	assert.Error(t, err)
-}
+		err := repo.DeleteUserSessions(session.UserID)
 
-func TestUserSessionRepository_CreateUserSession_SetError(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "error getting keys")
+	})
 
-	sessionID := "test-session-id"
-	expiration := 24 * time.Hour
-	session := utils.GenerateRandomUserSession()
+	t.Run("error deleting sessions", func(t *testing.T) {
+		sessionData, _ := json.Marshal(session)
 
-	sessionJSON, err := json.Marshal(session)
-	require.NoError(t, err)
+		mock.ExpectScan(0, "*", 100).SetVal([]string{sessionID}, 0)
+		mock.ExpectGet(sessionID).SetVal(string(sessionData))
+		mock.ExpectDel(sessionID).SetErr(errors.New("error deleting sessions"))
 
-	mock.ExpectSet(sessionID, sessionJSON, expiration).SetErr(redis.Nil)
+		err := repo.DeleteUserSessions(session.UserID)
 
-	err = NewUserSessionRepository(redisClient).CreateUserSession(sessionID, expiration, session)
-
-	assert.Error(t, err)
-}
-
-func TestUserSessionRepository_DeleteUserSession_Success(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
-
-	sessionID := "test-session-id"
-
-	mock.ExpectDel(sessionID).SetVal(1)
-
-	err := NewUserSessionRepository(redisClient).DeleteUserSession(sessionID)
-
-	assert.NoError(t, err)
-}
-
-func TestUserSessionRepository_DeleteUserSession_Error(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
-
-	sessionID := "test-session-id"
-
-	mock.ExpectDel(sessionID).SetErr(redis.Nil)
-
-	err := NewUserSessionRepository(redisClient).DeleteUserSession(sessionID)
-
-	assert.Error(t, err)
-}
-
-func TestUserSessionRepository_DeleteUserSessions_Success(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
-
-	sessionKey := "session-key"
-	session := utils.GenerateRandomUserSession()
-	sessionData, _ := json.Marshal(session)
-
-	mock.ExpectScan(0, "*", 100).SetVal([]string{sessionKey}, 0)
-	mock.ExpectGet(sessionKey).SetVal(string(sessionData))
-	mock.ExpectDel(sessionKey).SetVal(1)
-
-	err := NewUserSessionRepository(redisClient).DeleteUserSessions(session.UserID)
-
-	assert.NoError(t, err)
-	mock.ExpectationsWereMet()
-}
-
-func TestUserSessionRepository_DeleteUserSessions_ErrorScanningKeys(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
-
-	mock.ExpectScan(0, "*", 100).SetErr(errors.New("scan error"))
-
-	err := NewUserSessionRepository(redisClient).DeleteUserSessions(uuid.New())
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "error scanning keys")
-}
-
-func TestUserSessionRepository_DeleteUserSessions_ErrorGettingKey(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
-
-	userID := uuid.New()
-	sessionKey := "session-key"
-	mock.ExpectScan(0, "*", 100).SetVal([]string{sessionKey}, 0)
-	mock.ExpectGet(sessionKey).SetErr(errors.New("get error"))
-
-	err := NewUserSessionRepository(redisClient).DeleteUserSessions(userID)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "error getting key")
-}
-
-func TestUserSessionRepository_DeleteUserSessions_ErrorDeletingKey(t *testing.T) {
-	redisClient, mock := mock_db.SetupTestRedis()
-	defer func() {
-		require.NoError(t, mock_db.TearDownTestRedis(mock))
-	}()
-
-	sessionKey := "session-key"
-	session := utils.GenerateRandomUserSession()
-	sessionData, _ := json.Marshal(session)
-
-	mock.ExpectScan(0, "*", 100).SetVal([]string{sessionKey}, 0)
-	mock.ExpectGet(sessionKey).SetVal(string(sessionData))
-	mock.ExpectDel(sessionKey).SetErr(errors.New("delete error"))
-
-	err := NewUserSessionRepository(redisClient).DeleteUserSessions(session.UserID)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "error deleting key")
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "error deleting sessions")
+	})
 }

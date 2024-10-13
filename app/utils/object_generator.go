@@ -205,6 +205,10 @@ func GenerateRandomURL() string {
 	return fmt.Sprintf("%s://%s.%s/%s?%s", protocol, subdomain, domain, path, queryParams)
 }
 
+func GenerateRandomSessionID() string {
+	return uuid.NewString()
+}
+
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
 const numberChars = "0123456789"
 const letterChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

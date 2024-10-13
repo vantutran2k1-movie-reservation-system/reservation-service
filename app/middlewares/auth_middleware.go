@@ -24,13 +24,17 @@ func (m *AuthMiddleware) RequireAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		tokenValue := utils.GetAuthorizationHeader(ctx.Request)
 		if tokenValue == "" {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header required"})
 			return
 		}
 
 		s, err := m.userSessionRepo.GetUserSession(m.userSessionRepo.GetUserSessionID(tokenValue))
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if s == nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
 			return
 		}
 
@@ -43,13 +47,13 @@ func (m *AuthMiddleware) RequireFeatureFlagMiddleware(flagName string) gin.Handl
 	return func(ctx *gin.Context) {
 		session, err := GetUserSession(ctx)
 		if err != nil {
-			ctx.AbortWithStatusJSON(err.StatusCode, gin.H{"error": "Can not get feature flags of user"})
+			ctx.AbortWithStatusJSON(err.StatusCode, gin.H{"error": "can not get feature flags of user"})
 			return
 		}
 
 		hasFlagEnabled := m.featureFlagRepo.HasFlagEnabled(session.Email, flagName)
 		if !hasFlagEnabled {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Permission error"})
+			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "permission error"})
 			return
 		}
 

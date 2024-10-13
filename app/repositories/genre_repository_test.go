@@ -158,6 +158,8 @@ func TestGenreRepository_CreateGenre(t *testing.T) {
 		mock_db.TearDownTestDB(db, mock)
 	}()
 
+	repo := NewGenreRepository(db)
+
 	genre := utils.GenerateRandomGenre()
 
 	t.Run("success", func(t *testing.T) {
@@ -168,7 +170,7 @@ func TestGenreRepository_CreateGenre(t *testing.T) {
 		mock.ExpectCommit()
 
 		tx := db.Begin()
-		err := NewGenreRepository(db).CreateGenre(tx, genre)
+		err := repo.CreateGenre(tx, genre)
 		tx.Commit()
 
 		assert.Nil(t, err)
@@ -183,7 +185,7 @@ func TestGenreRepository_CreateGenre(t *testing.T) {
 		mock.ExpectRollback()
 
 		tx := db.Begin()
-		err := NewGenreRepository(db).CreateGenre(tx, genre)
+		err := repo.CreateGenre(tx, genre)
 		tx.Rollback()
 
 		assert.NotNil(t, err)
