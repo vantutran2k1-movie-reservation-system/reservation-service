@@ -1,17 +1,19 @@
 package constants
 
 const (
-	USER_SESSION = "user_session"
+	UserSession = "user_session"
 
-	PROFILE_PICTURE_REQUEST_FORM_KEY = "profile_picture"
+	// Request headers
+	ProfilePictureRequestFormKey = "profile_picture"
+	IncludeGenres                = "include_genres"
 
-	// Content type
-	CONTENT_TYPE     = "Content-Type"
-	IMAGE_JPEG       = "image/jpeg"
-	IMAGE_PNG        = "image/png"
-	APPLICATION_JSON = "application/json"
+	// Content types
+	ContentType     = "Content-Type"
+	ImageJpeg       = "image/jpeg"
+	ImagePng        = "image/png"
+	ApplicationJson = "application/json"
 
 	// Configcat feature flags
-	CAN_MODIFY_MOVIES = "canModifyMovies"
-	CAN_MODIFY_GENRES = "canModifyGenres"
+	CanModifyMovies = "canModifyMovies"
+	CanModifyGenres = "canModifyGenres"
 )

@@ -87,7 +87,7 @@ func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
 		return
 	}
 
-	files, err := middlewares.GetUploadedFiles(ctx, constants.PROFILE_PICTURE_REQUEST_FORM_KEY)
+	files, err := middlewares.GetUploadedFiles(ctx, constants.ProfilePictureRequestFormKey)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

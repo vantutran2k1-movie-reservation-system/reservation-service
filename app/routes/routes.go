@@ -38,9 +38,9 @@ func RegisterRoutes() *gin.Engine {
 
 			profiles.PUT(
 				"/profile-picture",
-				m.FilesUploadMiddleware.RequireNumberOfUploadedFilesMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, 1),
-				m.FilesUploadMiddleware.IsAllowedFileTypeMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, middlewares.DEFAULT_IMAGE_FILE_TYPES),
-				m.FilesUploadMiddleware.NotExceedMaxSizeLimitMiddleware(constants.PROFILE_PICTURE_REQUEST_FORM_KEY, middlewares.GetMaxProfilePictureFileSize()),
+				m.FilesUploadMiddleware.RequireNumberOfUploadedFilesMiddleware(constants.ProfilePictureRequestFormKey, 1),
+				m.FilesUploadMiddleware.IsAllowedFileTypeMiddleware(constants.ProfilePictureRequestFormKey, middlewares.DEFAULT_IMAGE_FILE_TYPES),
+				m.FilesUploadMiddleware.NotExceedMaxSizeLimitMiddleware(constants.ProfilePictureRequestFormKey, middlewares.GetMaxProfilePictureFileSize()),
 				c.UserProfileController.UpdateProfilePicture,
 			)
 			profiles.DELETE("/profile-picture", c.UserProfileController.DeleteProfilePicture)
@@ -53,19 +53,19 @@ func RegisterRoutes() *gin.Engine {
 			movies.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),
-				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_MOVIES),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyMovies),
 				c.MovieController.CreateMovie,
 			)
 			movies.PUT(
 				"/:id",
 				m.AuthMiddleware.RequireAuthMiddleware(),
-				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_MOVIES),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyMovies),
 				c.MovieController.UpdateMovie,
 			)
 			movies.PUT(
 				"/:id/genres",
 				m.AuthMiddleware.RequireAuthMiddleware(),
-				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_MOVIES),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyMovies),
 				c.MovieController.UpdateMovieGenres,
 			)
 		}
@@ -77,13 +77,13 @@ func RegisterRoutes() *gin.Engine {
 			genres.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),
-				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_GENRES),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyGenres),
 				c.GenreController.CreateGenre,
 			)
 			genres.PUT(
 				"/:id",
 				m.AuthMiddleware.RequireAuthMiddleware(),
-				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_GENRES),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyGenres),
 				c.GenreController.UpdateGenre)
 		}
 	}

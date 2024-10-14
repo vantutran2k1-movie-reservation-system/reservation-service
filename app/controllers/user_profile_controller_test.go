@@ -33,7 +33,7 @@ func TestUserProfileController_GetProfileByUserID(t *testing.T) {
 	t.Run("successful profile retrieval", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.GET("/profiles", controller.GetProfileByUserID)
@@ -65,7 +65,7 @@ func TestUserProfileController_GetProfileByUserID(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.GET("/profiles", controller.GetProfileByUserID)
@@ -102,7 +102,7 @@ func TestUserProfileController_CreateUserProfile(t *testing.T) {
 
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.POST("/profiles", controller.CreateUserProfile)
@@ -129,7 +129,7 @@ func TestUserProfileController_CreateUserProfile(t *testing.T) {
 
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.POST("/profiles", controller.CreateUserProfile)
@@ -170,7 +170,7 @@ func TestUserProfileController_CreateUserProfile(t *testing.T) {
 
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.POST("/profiles", controller.CreateUserProfile)
@@ -212,7 +212,7 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.PUT("/profiles", controller.UpdateUserProfile)
@@ -239,7 +239,7 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.PUT("/profiles", controller.CreateUserProfile)
@@ -280,7 +280,7 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.PUT("/profiles", controller.UpdateUserProfile)

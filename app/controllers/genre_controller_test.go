@@ -38,7 +38,7 @@ func TestGenreController_GetGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", genre.ID), nil)
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -51,7 +51,7 @@ func TestGenreController_GetGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", "test id"), nil)
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -66,7 +66,7 @@ func TestGenreController_GetGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", genre.ID), nil)
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
@@ -81,7 +81,7 @@ func TestGenreController_GetGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", genre.ID), nil)
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -160,7 +160,7 @@ func TestGenreController_CreateGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/genres", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
@@ -175,7 +175,7 @@ func TestGenreController_CreateGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/genres", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -192,7 +192,7 @@ func TestGenreController_CreateGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/genres", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -225,7 +225,7 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/genres/%s", genre.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -240,7 +240,7 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/genres/%s", genre.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -257,7 +257,7 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/genres/%s", genre.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)

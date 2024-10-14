@@ -56,18 +56,18 @@ func (mr *MockMovieRepositoryMockRecorder) CreateMovie(tx, movie any) *gomock.Ca
 }
 
 // GetMovie mocks base method.
-func (m *MockMovieRepository) GetMovie(id uuid.UUID) (*models.Movie, error) {
+func (m *MockMovieRepository) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMovie", id)
+	ret := m.ctrl.Call(m, "GetMovie", id, includeGenres)
 	ret0, _ := ret[0].(*models.Movie)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMovie indicates an expected call of GetMovie.
-func (mr *MockMovieRepositoryMockRecorder) GetMovie(id any) *gomock.Call {
+func (mr *MockMovieRepositoryMockRecorder) GetMovie(id, includeGenres any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetMovie), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetMovie), id, includeGenres)
 }
 
 // GetMovies mocks base method.

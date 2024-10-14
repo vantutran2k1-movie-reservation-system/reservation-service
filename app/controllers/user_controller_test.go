@@ -34,7 +34,7 @@ func TestUserController_GetUser(t *testing.T) {
 	t.Run("successful user retrieval", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.GET("/user", controller.GetUser)
@@ -66,7 +66,7 @@ func TestUserController_GetUser(t *testing.T) {
 	t.Run("error retrieving user", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.GET("/user", controller.GetUser)
@@ -229,7 +229,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 	t.Run("successful password update", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.PUT("/users/password", controller.UpdateUserPassword)
@@ -250,7 +250,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 	t.Run("validation error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.PUT("/users/password", controller.UpdateUserPassword)
@@ -284,7 +284,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.PUT("/users/password", controller.UpdateUserPassword)
@@ -327,7 +327,7 @@ func TestUserController_CreatePasswordResetToken(t *testing.T) {
 		reqBody := fmt.Sprintf(`{"email": "%s"}`, payload.Email)
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset-token", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
@@ -341,7 +341,7 @@ func TestUserController_CreatePasswordResetToken(t *testing.T) {
 		reqBody := fmt.Sprintf(`{"email": "%s"}`, "invalid email")
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset-token", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -357,7 +357,7 @@ func TestUserController_CreatePasswordResetToken(t *testing.T) {
 		reqBody := fmt.Sprintf(`{"email": "%s"}`, payload.Email)
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset-token", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)

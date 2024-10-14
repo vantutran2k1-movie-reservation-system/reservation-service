@@ -38,7 +38,7 @@ func (m *AuthMiddleware) RequireAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(constants.USER_SESSION, s)
+		ctx.Set(constants.UserSession, s)
 		ctx.Next()
 	}
 }
@@ -62,7 +62,7 @@ func (m *AuthMiddleware) RequireFeatureFlagMiddleware(flagName string) gin.Handl
 }
 
 func GetUserSession(ctx *gin.Context) (*models.UserSession, *errors.ApiError) {
-	userSession, exist := ctx.Get(constants.USER_SESSION)
+	userSession, exist := ctx.Get(constants.UserSession)
 	if !exist {
 		return nil, errors.InternalServerError("Can not get user id from request")
 	}

@@ -102,7 +102,7 @@ func GenerateRandomFileHeader() *multipart.FileHeader {
 	return &multipart.FileHeader{
 		Filename: generateRandomName(),
 		Size:     100,
-		Header:   map[string][]string{constants.CONTENT_TYPE: {constants.IMAGE_PNG}},
+		Header:   map[string][]string{constants.ContentType: {constants.ImagePng}},
 	}
 }
 

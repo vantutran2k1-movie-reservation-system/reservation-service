@@ -8,7 +8,7 @@ import (
 )
 
 type MovieRepository interface {
-	GetMovie(id uuid.UUID) (*models.Movie, error)
+	GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, error)
 	GetMovies(limit, offset int) ([]*models.Movie, error)
 	GetNumbersOfMovie() (int, error)
 	CreateMovie(tx *gorm.DB, movie *models.Movie) error
@@ -23,9 +23,14 @@ func NewMovieRepository(db *gorm.DB) MovieRepository {
 	return &movieRepository{db: db}
 }
 
-func (r *movieRepository) GetMovie(id uuid.UUID) (*models.Movie, error) {
+func (r *movieRepository) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, error) {
+	query := r.db.Where("id = ?", id)
+	if includeGenres {
+		query = query.Preload("Genres")
+	}
+
 	var m models.Movie
-	if err := r.db.Where(&models.Movie{ID: id}).First(&m).Error; err != nil {
+	if err := query.First(&m).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

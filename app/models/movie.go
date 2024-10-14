@@ -18,4 +18,5 @@ type Movie struct {
 	UpdatedAt       time.Time `json:"-" gorm:"column:updated_at"`
 	CreatedBy       uuid.UUID `json:"created_by" gorm:"column:created_by"`
 	LastUpdatedBy   uuid.UUID `json:"last_updated_by" gorm:"column:last_updated_by"`
+	Genres          []Genre   `json:"genres,omitempty" gorm:"many2many:movie_genres"`
 }

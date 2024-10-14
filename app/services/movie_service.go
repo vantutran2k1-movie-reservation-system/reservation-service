@@ -13,7 +13,7 @@ import (
 )
 
 type MovieService interface {
-	GetMovie(id uuid.UUID) (*models.Movie, *errors.ApiError)
+	GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, *errors.ApiError)
 	GetMovies(limit, offset int) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
 	CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
 	UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError)
@@ -44,8 +44,8 @@ func NewMovieService(
 	}
 }
 
-func (s *movieService) GetMovie(id uuid.UUID) (*models.Movie, *errors.ApiError) {
-	m, err := s.movieRepo.GetMovie(id)
+func (s *movieService) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, *errors.ApiError) {
+	m, err := s.movieRepo.GetMovie(id, includeGenres)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -117,7 +117,7 @@ func (s *movieService) CreateMovie(title string, description *string, releaseDat
 }
 
 func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
-	m, err := s.movieRepo.GetMovie(id)
+	m, err := s.movieRepo.GetMovie(id, false)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -143,7 +143,7 @@ func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, title string, descri
 }
 
 func (s *movieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError {
-	m, err := s.movieRepo.GetMovie(id)
+	m, err := s.movieRepo.GetMovie(id, false)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}

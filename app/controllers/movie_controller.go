@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -28,7 +30,9 @@ func (c *MovieController) GetMovie(ctx *gin.Context) {
 		return
 	}
 
-	m, err := c.MovieService.GetMovie(id)
+	includeGenresHeader := ctx.GetHeader(constants.IncludeGenres)
+	includeHeader := strings.ToLower(includeGenresHeader) == "true"
+	m, err := c.MovieService.GetMovie(id, includeHeader)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

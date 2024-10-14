@@ -13,8 +13,8 @@ import (
 )
 
 var DEFAULT_IMAGE_FILE_TYPES = map[string]bool{
-	constants.IMAGE_JPEG: true,
-	constants.IMAGE_PNG:  true,
+	constants.ImageJpeg: true,
+	constants.ImagePng:  true,
 }
 
 type FilesUploadMiddleware struct {

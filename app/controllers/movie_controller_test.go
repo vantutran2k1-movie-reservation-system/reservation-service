@@ -30,11 +30,37 @@ func TestMovieController_GetMovie(t *testing.T) {
 
 	movie := utils.GenerateRandomMovie()
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("success with genres", func(t *testing.T) {
+		m := utils.GenerateRandomMovie()
+		g := utils.GenerateRandomGenre()
+		m.Genres = []models.Genre{*g}
+
 		router := gin.Default()
 		router.GET("/movies/:id", controller.GetMovie)
 
-		service.EXPECT().GetMovie(movie.ID).Return(movie, nil).Times(1)
+		service.EXPECT().GetMovie(m.ID, true).Return(m, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s", m.ID), nil)
+		req.Header.Set(constants.IncludeGenres, "true")
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), m.Title)
+		assert.Contains(t, w.Body.String(), *m.Description)
+		assert.Contains(t, w.Body.String(), m.ReleaseDate)
+		assert.Contains(t, w.Body.String(), fmt.Sprint(m.DurationMinutes))
+		assert.Contains(t, w.Body.String(), *m.Language)
+		assert.Contains(t, w.Body.String(), fmt.Sprint(*m.Rating))
+		assert.Contains(t, w.Body.String(), m.CreatedBy.String())
+		assert.Contains(t, w.Body.String(), g.ID.String())
+	})
+
+	t.Run("success without genres", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/movies/:id", controller.GetMovie)
+
+		service.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s", movie.ID), nil)
@@ -54,7 +80,7 @@ func TestMovieController_GetMovie(t *testing.T) {
 		router := gin.Default()
 		router.GET("/movies/:id", controller.GetMovie)
 
-		service.EXPECT().GetMovie(movie.ID).Return(nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().GetMovie(movie.ID, false).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s", movie.ID), nil)
@@ -163,7 +189,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.POST("/movies", controller.CreateMovie)
@@ -176,7 +202,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
@@ -198,7 +224,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -215,7 +241,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -226,7 +252,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.POST("/movies", controller.CreateMovie)
@@ -239,7 +265,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -267,7 +293,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.PUT("/movies/:id", controller.UpdateMovie)
@@ -280,7 +306,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s", movie.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -302,7 +328,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s", movie.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -313,7 +339,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.USER_SESSION, session)
+			c.Set(constants.UserSession, session)
 			c.Next()
 		})
 		router.PUT("/movies/:id", controller.UpdateMovie)
@@ -326,7 +352,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s", movie.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -360,7 +386,7 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s/genres", movie.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -375,7 +401,7 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s/genres", movie.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -392,7 +418,7 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s/genres", movie.ID), bytes.NewBufferString(reqBody))
-		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
