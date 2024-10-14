@@ -333,3 +333,69 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "Service error")
 	})
 }
+
+func TestMovieController_UpdateMovieGenres(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockMovieService(ctrl)
+	controller := MovieController{
+		MovieService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	movie := utils.GenerateRandomMovie()
+	payload := utils.GenerateRandomUpdateMovieGenresRequest()
+
+	errors.RegisterCustomValidators()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.PUT("/movies/:id/genres", controller.UpdateMovieGenres)
+
+		service.EXPECT().AssignGenres(movie.ID, payload.GenreIDs).Return(nil).Times(1)
+
+		reqBody := fmt.Sprintf(`{"genre_ids": ["%s", "%s"]}`, payload.GenreIDs[0], payload.GenreIDs[1])
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s/genres", movie.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), "genres of movie are updated successfully")
+	})
+
+	t.Run("validation error", func(t *testing.T) {
+		router := gin.Default()
+		router.PUT("/movies/:id/genres", controller.UpdateMovieGenres)
+
+		reqBody := fmt.Sprintf(`{"genre_ids": "%s"}`, payload.GenreIDs[0])
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s/genres", movie.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "Invalid data type: expected '[]uuid.UUID' but got 'string'")
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.PUT("/movies/:id/genres", controller.UpdateMovieGenres)
+
+		service.EXPECT().AssignGenres(movie.ID, payload.GenreIDs).Return(errors.InternalServerError("service error")).Times(1)
+
+		reqBody := fmt.Sprintf(`{"genre_ids": ["%s", "%s"]}`, payload.GenreIDs[0], payload.GenreIDs[1])
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s/genres", movie.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.CONTENT_TYPE, constants.APPLICATION_JSON)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}

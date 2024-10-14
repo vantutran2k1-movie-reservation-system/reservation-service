@@ -154,6 +154,12 @@ func GenerateRandomCreateMovieRequest() *payloads.CreateMovieRequest {
 	}
 }
 
+func GenerateRandomUpdateMovieGenresRequest() *payloads.UpdateMovieGenresRequest {
+	return &payloads.UpdateMovieGenresRequest{
+		GenreIDs: []uuid.UUID{uuid.New(), uuid.New()},
+	}
+}
+
 func GenerateRandomGenre() *models.Genre {
 	return &models.Genre{
 		ID:   uuid.New(),

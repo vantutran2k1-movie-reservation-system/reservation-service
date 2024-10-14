@@ -138,6 +138,50 @@ func TestGenreRepository_GetGenres(t *testing.T) {
 	})
 }
 
+func TestGenreRepository_GetGenreIDs(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewGenreRepository(db)
+
+	t.Run("success", func(t *testing.T) {
+		genres := make([]*models.Genre, 3)
+		for i := 0; i < len(genres); i++ {
+			genres[i] = utils.GenerateRandomGenre()
+		}
+
+		rows := sqlmock.NewRows([]string{"id"})
+		for _, genre := range genres {
+			rows.AddRow(genre.ID)
+		}
+
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "genres"`)).
+			WillReturnRows(rows)
+
+		result, err := repo.GetGenreIDs()
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, len(genres), len(result))
+		for i, g := range genres {
+			assert.Equal(t, g.ID, result[i])
+		}
+	})
+
+	t.Run("error getting genres", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "genres"`)).
+			WillReturnError(errors.New("error getting genres"))
+
+		result, err := repo.GetGenreIDs()
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting genres", err.Error())
+	})
+}
+
 func TestGenreRepository_CreateGenre(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {

@@ -85,6 +85,21 @@ func (mr *MockGenreRepositoryMockRecorder) GetGenreByName(name any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenreByName", reflect.TypeOf((*MockGenreRepository)(nil).GetGenreByName), name)
 }
 
+// GetGenreIDs mocks base method.
+func (m *MockGenreRepository) GetGenreIDs() ([]uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGenreIDs")
+	ret0, _ := ret[0].([]uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGenreIDs indicates an expected call of GetGenreIDs.
+func (mr *MockGenreRepositoryMockRecorder) GetGenreIDs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenreIDs", reflect.TypeOf((*MockGenreRepository)(nil).GetGenreIDs))
+}
+
 // GetGenres mocks base method.
 func (m *MockGenreRepository) GetGenres() ([]*models.Genre, error) {
 	m.ctrl.T.Helper()

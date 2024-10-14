@@ -29,7 +29,7 @@ func (r *movieRepository) GetMovie(id uuid.UUID) (*models.Movie, error) {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
-		
+
 		return nil, err
 	}
 

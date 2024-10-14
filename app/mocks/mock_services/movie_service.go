@@ -41,6 +41,20 @@ func (m *MockMovieService) EXPECT() *MockMovieServiceMockRecorder {
 	return m.recorder
 }
 
+// AssignGenres mocks base method.
+func (m *MockMovieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AssignGenres", id, genreIDs)
+	ret0, _ := ret[0].(*errors.ApiError)
+	return ret0
+}
+
+// AssignGenres indicates an expected call of AssignGenres.
+func (mr *MockMovieServiceMockRecorder) AssignGenres(id, genreIDs any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignGenres", reflect.TypeOf((*MockMovieService)(nil).AssignGenres), id, genreIDs)
+}
+
 // CreateMovie mocks base method.
 func (m *MockMovieService) CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError) {
 	m.ctrl.T.Helper()

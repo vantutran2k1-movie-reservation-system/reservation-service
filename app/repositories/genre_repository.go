@@ -11,6 +11,7 @@ type GenreRepository interface {
 	GetGenre(id uuid.UUID) (*models.Genre, error)
 	GetGenreByName(name string) (*models.Genre, error)
 	GetGenres() ([]*models.Genre, error)
+	GetGenreIDs() ([]uuid.UUID, error)
 	CreateGenre(tx *gorm.DB, genre *models.Genre) error
 	UpdateGenre(tx *gorm.DB, genre *models.Genre) error
 }
@@ -56,6 +57,20 @@ func (r *genreRepository) GetGenres() ([]*models.Genre, error) {
 	}
 
 	return genres, nil
+}
+
+func (r *genreRepository) GetGenreIDs() ([]uuid.UUID, error) {
+	var genres []*models.Genre
+	if err := r.db.Select("id").Find(&genres).Error; err != nil {
+		return nil, err
+	}
+
+	ids := make([]uuid.UUID, len(genres))
+	for i, g := range genres {
+		ids[i] = g.ID
+	}
+
+	return ids, nil
 }
 
 func (r *genreRepository) CreateGenre(tx *gorm.DB, genre *models.Genre) error {

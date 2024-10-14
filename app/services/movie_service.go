@@ -17,23 +17,30 @@ type MovieService interface {
 	GetMovies(limit, offset int) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
 	CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
 	UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError)
+	AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError
 }
 
 type movieService struct {
 	db                 *gorm.DB
 	transactionManager transaction.TransactionManager
 	movieRepo          repositories.MovieRepository
+	genreRepo          repositories.GenreRepository
+	movieGenreRepo     repositories.MovieGenreRepository
 }
 
 func NewMovieService(
 	db *gorm.DB,
 	transactionManager transaction.TransactionManager,
 	movieRepo repositories.MovieRepository,
+	genreRepo repositories.GenreRepository,
+	movieGenreRepo repositories.MovieGenreRepository,
 ) MovieService {
 	return &movieService{
 		db:                 db,
 		transactionManager: transactionManager,
 		movieRepo:          movieRepo,
+		genreRepo:          genreRepo,
+		movieGenreRepo:     movieGenreRepo,
 	}
 }
 
@@ -110,9 +117,12 @@ func (s *movieService) CreateMovie(title string, description *string, releaseDat
 }
 
 func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
-	m, err := s.GetMovie(id)
+	m, err := s.movieRepo.GetMovie(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if m == nil {
+		return nil, errors.NotFoundError("movie not found")
 	}
 
 	m.Title = title
@@ -130,6 +140,48 @@ func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, title string, descri
 	}
 
 	return m, nil
+}
+
+func (s *movieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError {
+	m, err := s.movieRepo.GetMovie(id)
+	if err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+	if m == nil {
+		return errors.NotFoundError("movie not found")
+	}
+
+	allGenreIDs, err := s.genreRepo.GetGenreIDs()
+	if err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	if !allIdsInSlice(genreIDs, allGenreIDs) {
+		return errors.BadRequestError("invalid genre ids")
+	}
+
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.movieGenreRepo.UpdateGenresOfMovie(tx, id, genreIDs)
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
+}
+
+func allIdsInSlice(first, second []uuid.UUID) bool {
+	valueMap := make(map[uuid.UUID]bool)
+	for _, id := range second {
+		valueMap[id] = true
+	}
+
+	for _, id := range first {
+		if !valueMap[id] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func buildPaginationURL(limit, offset int) *string {

@@ -10,6 +10,9 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
+var authenticator = auth.NewAuthenticator()
+var transactionManager = transaction.NewTransactionManager()
+
 type Repositories struct {
 	UserRepository               repositories.UserRepository
 	LoginTokenRepository         repositories.LoginTokenRepository
@@ -20,6 +23,7 @@ type Repositories struct {
 	FeatureFlagRepository        repositories.FeatureFlagRepository
 	GenreRepository              repositories.GenreRepository
 	PasswordResetTokenRepository repositories.PasswordResetTokenRepository
+	MovieGenreRepository         repositories.MovieGenreRepository
 }
 
 type Services struct {
@@ -52,6 +56,7 @@ func setupRepositories() *Repositories {
 		FeatureFlagRepository:        repositories.NewFeatureFlagRepository(config.ConfigcatClient),
 		GenreRepository:              repositories.NewGenreRepository(config.DB),
 		PasswordResetTokenRepository: repositories.NewPasswordResetTokenRepository(config.DB),
+		MovieGenreRepository:         repositories.NewMovieGenreRepository(config.DB),
 	}
 }
 
@@ -60,8 +65,8 @@ func setupServices(repositories *Repositories) *Services {
 		UserService: services.NewUserService(
 			config.DB,
 			config.RedisClient,
-			auth.NewAuthenticator(),
-			transaction.NewTransactionManager(),
+			authenticator,
+			transactionManager,
 			repositories.UserRepository,
 			repositories.LoginTokenRepository,
 			repositories.UserSessionRepository,
@@ -69,18 +74,20 @@ func setupServices(repositories *Repositories) *Services {
 		),
 		UserProfileService: services.NewUserProfileService(
 			config.DB,
-			transaction.NewTransactionManager(),
+			transactionManager,
 			repositories.UserProfileRepository,
 			repositories.ProfilePictureRepository,
 		),
 		MovieService: services.NewMovieService(
 			config.DB,
-			transaction.NewTransactionManager(),
+			transactionManager,
 			repositories.MovieRepository,
+			repositories.GenreRepository,
+			repositories.MovieGenreRepository,
 		),
 		GenreService: services.NewGenreService(
 			config.DB,
-			transaction.NewTransactionManager(),
+			transactionManager,
 			repositories.GenreRepository,
 		),
 	}

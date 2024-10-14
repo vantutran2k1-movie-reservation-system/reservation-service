@@ -2,9 +2,11 @@ package config
 
 import (
 	"fmt"
+	"gorm.io/gorm/logger"
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	configcat "github.com/configcat/go-sdk/v9"
 	"github.com/minio/minio-go/v7"
@@ -20,6 +22,18 @@ var MinioClient *minio.Client
 var ConfigcatClient *configcat.Client
 
 func InitDB() {
+	l := logger.Default.LogMode(logger.Silent)
+	if os.Getenv("SHOULD_LOG_QUERY") == "true" {
+		l = logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags),
+			logger.Config{
+				SlowThreshold: time.Second,
+				LogLevel:      logger.Info,
+				Colorful:      true,
+			},
+		)
+	}
+
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbUser := os.Getenv("DB_USER")
@@ -27,7 +41,9 @@ func InitDB() {
 	dbName := os.Getenv("DB_NAME")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbHost, dbUser, dbPassword, dbName, dbPort)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: l,
+	})
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}

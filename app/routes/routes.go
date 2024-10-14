@@ -62,6 +62,12 @@ func RegisterRoutes() *gin.Engine {
 				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_MOVIES),
 				c.MovieController.UpdateMovie,
 			)
+			movies.PUT(
+				"/:id/genres",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CAN_MODIFY_MOVIES),
+				c.MovieController.UpdateMovieGenres,
+			)
 		}
 
 		genres := apiV1.Group("/genres")

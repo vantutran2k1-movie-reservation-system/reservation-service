@@ -24,7 +24,7 @@ func NewMovieController(movieService *services.MovieService) *MovieController {
 func (c *MovieController) GetMovie(ctx *gin.Context) {
 	id, e := uuid.Parse(ctx.Param("id"))
 	if e != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid movie id"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid movie id"})
 		return
 	}
 
@@ -96,7 +96,7 @@ func (c *MovieController) UpdateMovie(ctx *gin.Context) {
 
 	id, e := uuid.Parse(ctx.Param("id"))
 	if e != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid movie id"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid movie id"})
 		return
 	}
 
@@ -107,4 +107,25 @@ func (c *MovieController) UpdateMovie(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(m)})
+}
+
+func (c *MovieController) UpdateMovieGenres(ctx *gin.Context) {
+	id, e := uuid.Parse(ctx.Param("id"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid movie id"})
+		return
+	}
+
+	var req payloads.UpdateMovieGenresRequest
+	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
+		return
+	}
+
+	if err := c.MovieService.AssignGenres(id, req.GenreIDs); err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": "genres of movie are updated successfully"})
 }
