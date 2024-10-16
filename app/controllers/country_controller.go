@@ -17,6 +17,16 @@ func NewCountryController(countryService *services.CountryService) *CountryContr
 	return &CountryController{CountryService: *countryService}
 }
 
+func (c *CountryController) GetCountries(ctx *gin.Context) {
+	countries, err := c.CountryService.GetCountries()
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"countries": utils.SliceToMaps(countries)})
+}
+
 func (c *CountryController) CreateCountry(ctx *gin.Context) {
 	var req payloads.CreateCountryRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {

@@ -8,12 +8,61 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
+
+func TestCountryController_GetCountries(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockCountryService(ctrl)
+	controller := CountryController{
+		CountryService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/countries", controller.GetCountries)
+
+		countries := make([]*models.Country, 3)
+		for i := 0; i < len(countries); i++ {
+			countries[i] = utils.GenerateRandomCountry()
+		}
+
+		service.EXPECT().GetCountries().Return(countries, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/countries", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		for _, country := range countries {
+			assert.Contains(t, w.Body.String(), country.Name)
+			assert.Contains(t, w.Body.String(), country.Code)
+		}
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/countries", controller.GetCountries)
+
+		service.EXPECT().GetCountries().Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/countries", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
 
 func TestCountryController_CreateCountry(t *testing.T) {
 	ctrl := gomock.NewController(t)

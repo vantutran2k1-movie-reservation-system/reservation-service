@@ -54,6 +54,21 @@ func (mr *MockCountryRepositoryMockRecorder) CreateCountry(tx, country any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCountry", reflect.TypeOf((*MockCountryRepository)(nil).CreateCountry), tx, country)
 }
 
+// GetCountries mocks base method.
+func (m *MockCountryRepository) GetCountries() ([]*models.Country, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCountries")
+	ret0, _ := ret[0].([]*models.Country)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCountries indicates an expected call of GetCountries.
+func (mr *MockCountryRepositoryMockRecorder) GetCountries() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountries", reflect.TypeOf((*MockCountryRepository)(nil).GetCountries))
+}
+
 // GetCountryByCode mocks base method.
 func (m *MockCountryRepository) GetCountryByCode(code string) (*models.Country, error) {
 	m.ctrl.T.Helper()

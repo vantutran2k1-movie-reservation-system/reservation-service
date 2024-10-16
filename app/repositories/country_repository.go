@@ -9,6 +9,7 @@ import (
 type CountryRepository interface {
 	GetCountryByName(name string) (*models.Country, error)
 	GetCountryByCode(code string) (*models.Country, error)
+	GetCountries() ([]*models.Country, error)
 	CreateCountry(tx *gorm.DB, country *models.Country) error
 }
 
@@ -46,6 +47,15 @@ func (r *countryRepository) GetCountryByCode(code string) (*models.Country, erro
 	}
 
 	return &country, nil
+}
+
+func (r *countryRepository) GetCountries() ([]*models.Country, error) {
+	var countries []*models.Country
+	if err := r.db.Find(&countries).Error; err != nil {
+		return nil, err
+	}
+
+	return countries, nil
 }
 
 func (r *countryRepository) CreateCountry(tx *gorm.DB, country *models.Country) error {

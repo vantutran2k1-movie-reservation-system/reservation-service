@@ -10,6 +10,7 @@ import (
 )
 
 type CountryService interface {
+	GetCountries() ([]*models.Country, *errors.ApiError)
 	CreateCountry(name string, code string) (*models.Country, *errors.ApiError)
 }
 
@@ -29,6 +30,15 @@ type countryService struct {
 	db                 *gorm.DB
 	transactionManager transaction.TransactionManager
 	countryRepo        repositories.CountryRepository
+}
+
+func (s *countryService) GetCountries() ([]*models.Country, *errors.ApiError) {
+	countries, err := s.countryRepo.GetCountries()
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return countries, nil
 }
 
 func (s *countryService) CreateCountry(name string, code string) (*models.Country, *errors.ApiError) {

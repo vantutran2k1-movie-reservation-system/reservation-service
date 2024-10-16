@@ -54,3 +54,18 @@ func (mr *MockCountryServiceMockRecorder) CreateCountry(name, code any) *gomock.
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCountry", reflect.TypeOf((*MockCountryService)(nil).CreateCountry), name, code)
 }
+
+// GetCountries mocks base method.
+func (m *MockCountryService) GetCountries() ([]*models.Country, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCountries")
+	ret0, _ := ret[0].([]*models.Country)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// GetCountries indicates an expected call of GetCountries.
+func (mr *MockCountryServiceMockRecorder) GetCountries() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountries", reflect.TypeOf((*MockCountryService)(nil).GetCountries))
+}
