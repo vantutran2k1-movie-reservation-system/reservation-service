@@ -39,7 +39,7 @@ func RegisterRoutes() *gin.Engine {
 			profiles.PUT(
 				"/profile-picture",
 				m.FilesUploadMiddleware.RequireNumberOfUploadedFilesMiddleware(constants.ProfilePictureRequestFormKey, 1),
-				m.FilesUploadMiddleware.IsAllowedFileTypeMiddleware(constants.ProfilePictureRequestFormKey, middlewares.DEFAULT_IMAGE_FILE_TYPES),
+				m.FilesUploadMiddleware.IsAllowedFileTypeMiddleware(constants.ProfilePictureRequestFormKey, middlewares.DefaultImageFileTypes),
 				m.FilesUploadMiddleware.NotExceedMaxSizeLimitMiddleware(constants.ProfilePictureRequestFormKey, middlewares.GetMaxProfilePictureFileSize()),
 				c.UserProfileController.UpdateProfilePicture,
 			)

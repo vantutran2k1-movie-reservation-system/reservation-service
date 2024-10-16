@@ -12,7 +12,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 )
 
-var DEFAULT_IMAGE_FILE_TYPES = map[string]bool{
+var DefaultImageFileTypes = map[string]bool{
 	constants.ImageJpeg: true,
 	constants.ImagePng:  true,
 }
