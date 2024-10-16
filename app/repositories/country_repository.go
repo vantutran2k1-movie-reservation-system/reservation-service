@@ -1,12 +1,14 @@
 package repositories
 
 import (
+	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type CountryRepository interface {
+	GetCountry(id uuid.UUID) (*models.Country, error)
 	GetCountryByName(name string) (*models.Country, error)
 	GetCountryByCode(code string) (*models.Country, error)
 	GetCountries() ([]*models.Country, error)
@@ -21,6 +23,19 @@ func NewCountryRepository(db *gorm.DB) CountryRepository {
 
 type countryRepository struct {
 	db *gorm.DB
+}
+
+func (r *countryRepository) GetCountry(id uuid.UUID) (*models.Country, error) {
+	var country models.Country
+	if err := r.db.Where("id = ?", id).First(&country).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &country, nil
 }
 
 func (r *countryRepository) GetCountryByName(name string) (*models.Country, error) {

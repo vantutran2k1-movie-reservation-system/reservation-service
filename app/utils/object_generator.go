@@ -211,6 +211,26 @@ func GenerateRandomCreateCountryRequest() *payloads.CreateCountryRequest {
 	}
 }
 
+func GenerateRandomState() *models.State {
+	code := generateRandomString(uppercaseChars, 2)
+
+	return &models.State{
+		ID:        uuid.New(),
+		Name:      generateRandomString(lowercaseChars, 10),
+		Code:      &code,
+		CountryID: uuid.New(),
+	}
+}
+
+func GenerateRandomCreateStateRequest() *payloads.CreateStateRequest {
+	code := generateRandomString(uppercaseChars, 2)
+
+	return &payloads.CreateStateRequest{
+		Name: generateRandomString(lowercaseChars, 10),
+		Code: &code,
+	}
+}
+
 func GenerateRandomHashedPassword() string {
 	password := GenerateRandomPassword()
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

@@ -97,6 +97,16 @@ func RegisterRoutes() *gin.Engine {
 				c.CountryController.CreateCountry,
 			)
 		}
+
+		states := apiV1.Group("/countries/:id/states")
+		{
+			states.POST(
+				"/",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyLocations),
+				c.StateController.CreateState,
+			)
+		}
 	}
 
 	return router

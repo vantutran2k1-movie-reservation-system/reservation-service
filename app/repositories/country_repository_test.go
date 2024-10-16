@@ -11,6 +11,54 @@ import (
 	"testing"
 )
 
+func TestCountryRepository_GetCountry(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewCountryRepository(db)
+
+	country := utils.GenerateRandomCountry()
+
+	t.Run("success", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"id", "name", "code"}).AddRow(country.ID, country.Name, country.Code)
+
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "countries" WHERE id = $1 ORDER BY "countries"."id" LIMIT $2`)).
+			WithArgs(country.ID, 1).
+			WillReturnRows(rows)
+
+		result, err := repo.GetCountry(country.ID)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, country, result)
+	})
+
+	t.Run("country not found", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "countries" WHERE id = $1 ORDER BY "countries"."id" LIMIT $2`)).
+			WithArgs(country.ID, 1).
+			WillReturnRows(sqlmock.NewRows(nil))
+
+		result, err := repo.GetCountry(country.ID)
+
+		assert.Nil(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("error getting country", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "countries" WHERE id = $1 ORDER BY "countries"."id" LIMIT $2`)).
+			WithArgs(country.ID, 1).
+			WillReturnError(errors.New("error getting country"))
+
+		result, err := repo.GetCountry(country.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting country", err.Error())
+	})
+}
+
 func TestCountryRepository_GetCountryByName(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {

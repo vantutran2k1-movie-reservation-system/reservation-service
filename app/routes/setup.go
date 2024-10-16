@@ -25,6 +25,7 @@ type Repositories struct {
 	PasswordResetTokenRepository repositories.PasswordResetTokenRepository
 	MovieGenreRepository         repositories.MovieGenreRepository
 	CountryRepository            repositories.CountryRepository
+	StateRepository              repositories.StateRepository
 }
 
 type Services struct {
@@ -33,6 +34,7 @@ type Services struct {
 	MovieService       services.MovieService
 	GenreService       services.GenreService
 	CountryService     services.CountryService
+	StateService       services.StateService
 }
 
 type Controllers struct {
@@ -41,6 +43,7 @@ type Controllers struct {
 	MovieController       controllers.MovieController
 	GenreController       controllers.GenreController
 	CountryController     controllers.CountryController
+	StateController       controllers.StateController
 }
 
 type Middlewares struct {
@@ -61,6 +64,7 @@ func setupRepositories() *Repositories {
 		PasswordResetTokenRepository: repositories.NewPasswordResetTokenRepository(config.DB),
 		MovieGenreRepository:         repositories.NewMovieGenreRepository(config.DB),
 		CountryRepository:            repositories.NewCountryRepository(config.DB),
+		StateRepository:              repositories.NewStateRepository(config.DB),
 	}
 }
 
@@ -99,6 +103,12 @@ func setupServices(repositories *Repositories) *Services {
 			transactionManager,
 			repositories.CountryRepository,
 		),
+		StateService: services.NewStateService(
+			config.DB,
+			transactionManager,
+			repositories.CountryRepository,
+			repositories.StateRepository,
+		),
 	}
 }
 
@@ -109,6 +119,7 @@ func setupControllers(services *Services) *Controllers {
 		MovieController:       *controllers.NewMovieController(&services.MovieService),
 		GenreController:       *controllers.NewGenreController(&services.GenreService),
 		CountryController:     *controllers.NewCountryController(&services.CountryService),
+		StateController:       *controllers.NewStateController(&services.StateService),
 	}
 }
 

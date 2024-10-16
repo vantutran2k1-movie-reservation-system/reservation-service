@@ -12,6 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -67,6 +68,21 @@ func (m *MockCountryRepository) GetCountries() ([]*models.Country, error) {
 func (mr *MockCountryRepositoryMockRecorder) GetCountries() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountries", reflect.TypeOf((*MockCountryRepository)(nil).GetCountries))
+}
+
+// GetCountry mocks base method.
+func (m *MockCountryRepository) GetCountry(id uuid.UUID) (*models.Country, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCountry", id)
+	ret0, _ := ret[0].(*models.Country)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCountry indicates an expected call of GetCountry.
+func (mr *MockCountryRepositoryMockRecorder) GetCountry(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountry", reflect.TypeOf((*MockCountryRepository)(nil).GetCountry), id)
 }
 
 // GetCountryByCode mocks base method.
