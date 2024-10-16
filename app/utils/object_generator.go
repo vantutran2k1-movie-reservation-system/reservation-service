@@ -196,6 +196,21 @@ func GenerateRandomCreatePasswordResetTokenRequest() *payloads.CreatePasswordRes
 	}
 }
 
+func GenerateRandomCountry() *models.Country {
+	return &models.Country{
+		ID:   uuid.New(),
+		Name: generateRandomString(lowercaseChars, 10),
+		Code: generateRandomString(uppercaseChars, 2),
+	}
+}
+
+func GenerateRandomCreateCountryRequest() *payloads.CreateCountryRequest {
+	return &payloads.CreateCountryRequest{
+		Name: generateRandomString(lowercaseChars, 10),
+		Code: generateRandomString(uppercaseChars, 2),
+	}
+}
+
 func GenerateRandomHashedPassword() string {
 	password := GenerateRandomPassword()
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -222,8 +237,9 @@ func GenerateRandomSessionID() string {
 }
 
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
+const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const numberChars = "0123456789"
-const letterChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const letterChars = lowercaseChars + uppercaseChars
 const allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+"
 
 var urlProtocols = []string{"http", "https"}

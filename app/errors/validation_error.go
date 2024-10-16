@@ -99,6 +99,8 @@ func getErrorMsg(fe validator.FieldError) string {
 		return "Should be a valid email address"
 	case "oneof":
 		return "Should be one of " + strings.Join(strings.Split(fe.Param(), " "), ", ")
+	case "len":
+		return "Should be a valid length of " + fe.Param()
 	case "date":
 		return "Should be a valid date with format YYYY-MM-DD"
 	case "beforeToday":

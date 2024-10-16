@@ -86,6 +86,16 @@ func RegisterRoutes() *gin.Engine {
 				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyGenres),
 				c.GenreController.UpdateGenre)
 		}
+
+		countries := apiV1.Group("/countries")
+		{
+			countries.POST(
+				"/",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyLocations),
+				c.CountryController.CreateCountry,
+			)
+		}
 	}
 
 	return router
