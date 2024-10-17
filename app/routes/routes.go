@@ -100,6 +100,7 @@ func RegisterRoutes() *gin.Engine {
 
 		states := apiV1.Group("/countries/:id/states")
 		{
+			states.GET("/", c.StateController.GetStatesByCountry)
 			states.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),

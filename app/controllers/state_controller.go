@@ -20,6 +20,22 @@ func NewStateController(stateService *services.StateService) *StateController {
 	}
 }
 
+func (c *StateController) GetStatesByCountry(ctx *gin.Context) {
+	countryID, e := uuid.Parse(ctx.Param("id"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid country id"})
+		return
+	}
+
+	states, err := c.StateService.GetStatesByCountry(countryID)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.SliceToMaps(states)})
+}
+
 func (c *StateController) CreateState(ctx *gin.Context) {
 	countryID, e := uuid.Parse(ctx.Param("id"))
 	if e != nil {

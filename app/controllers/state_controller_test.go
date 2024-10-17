@@ -4,16 +4,69 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
+
+func TestStateController_GetStatesByCountry(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockStateService(ctrl)
+	controller := StateController{
+		StateService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	countryID := uuid.New()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/countries/:id/states", controller.GetStatesByCountry)
+
+		states := make([]*models.State, 3)
+		for i := 0; i < len(states); i++ {
+			states[i] = utils.GenerateRandomState()
+		}
+
+		service.EXPECT().GetStatesByCountry(countryID).Return(states, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/countries/%s/states", countryID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		for _, state := range states {
+			assert.Contains(t, w.Body.String(), state.ID.String())
+			assert.Contains(t, w.Body.String(), state.Name)
+			assert.Contains(t, w.Body.String(), *state.Code)
+		}
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/countries/:id/states", controller.GetStatesByCountry)
+
+		service.EXPECT().GetStatesByCountry(countryID).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/countries/%s/states", countryID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
 
 func TestStateController_CreateState(t *testing.T) {
 	ctrl := gomock.NewController(t)

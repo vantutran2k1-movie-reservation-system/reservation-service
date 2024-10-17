@@ -10,6 +10,7 @@ import (
 )
 
 type StateService interface {
+	GetStatesByCountry(countryID uuid.UUID) ([]*models.State, *errors.ApiError)
 	CreateState(countryID uuid.UUID, name string, code *string) (*models.State, *errors.ApiError)
 }
 
@@ -32,6 +33,23 @@ type stateService struct {
 	transactionManager transaction.TransactionManager
 	countryRepo        repositories.CountryRepository
 	stateRepo          repositories.StateRepository
+}
+
+func (s *stateService) GetStatesByCountry(countryID uuid.UUID) ([]*models.State, *errors.ApiError) {
+	country, err := s.countryRepo.GetCountry(countryID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if country == nil {
+		return nil, errors.NotFoundError("country does not exist")
+	}
+	
+	states, err := s.stateRepo.GetStatesByCountry(countryID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return states, nil
 }
 
 func (s *stateService) CreateState(countryID uuid.UUID, name string, code *string) (*models.State, *errors.ApiError) {

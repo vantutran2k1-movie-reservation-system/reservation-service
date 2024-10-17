@@ -9,6 +9,7 @@ import (
 
 type StateRepository interface {
 	GetStateByName(countryID uuid.UUID, name string) (*models.State, error)
+	GetStatesByCountry(countryID uuid.UUID) ([]*models.State, error)
 	CreateState(tx *gorm.DB, state *models.State) error
 }
 
@@ -31,6 +32,15 @@ func (r *stateRepository) GetStateByName(countryID uuid.UUID, name string) (*mod
 	}
 
 	return &state, nil
+}
+
+func (r *stateRepository) GetStatesByCountry(countryID uuid.UUID) ([]*models.State, error) {
+	var states []*models.State
+	if err := r.db.Where("country_id = ?", countryID).Find(&states).Error; err != nil {
+		return nil, err
+	}
+
+	return states, nil
 }
 
 func (r *stateRepository) CreateState(tx *gorm.DB, state *models.State) error {

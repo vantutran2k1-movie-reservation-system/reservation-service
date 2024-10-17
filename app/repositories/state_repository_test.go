@@ -3,8 +3,10 @@ package repositories
 import (
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
@@ -56,6 +58,51 @@ func TestStateRepository_GetStateByName(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error getting state", err.Error())
+	})
+}
+
+func TestStateRepository_GetStatesByCountry(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewStateRepository(db)
+
+	countryID := uuid.New()
+
+	t.Run("success", func(t *testing.T) {
+		states := make([]*models.State, 3)
+		for i := 0; i < len(states); i++ {
+			states[i] = utils.GenerateRandomState()
+		}
+
+		rows := sqlmock.NewRows([]string{"id", "name", "code", "country_id"})
+		for _, state := range states {
+			rows.AddRow(state.ID, state.Name, state.Code, state.CountryID)
+		}
+
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "states" WHERE country_id = $1`)).
+			WithArgs(countryID).
+			WillReturnRows(rows)
+
+		result, err := repo.GetStatesByCountry(countryID)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, states, result)
+	})
+
+	t.Run("error getting states", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "states" WHERE country_id = $1`)).
+			WithArgs(countryID).
+			WillReturnError(errors.New("error getting states"))
+
+		result, err := repo.GetStatesByCountry(countryID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting states", err.Error())
 	})
 }
 

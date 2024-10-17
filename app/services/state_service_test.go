@@ -5,12 +5,74 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
 	"net/http"
 	"testing"
 )
+
+func TestStateService_GetStatesByCountry(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	countryRepo := mock_repositories.NewMockCountryRepository(ctrl)
+	stateRepo := mock_repositories.NewMockStateRepository(ctrl)
+	service := NewStateService(nil, nil, countryRepo, stateRepo)
+
+	country := utils.GenerateRandomCountry()
+
+	t.Run("success", func(t *testing.T) {
+		states := make([]*models.State, 3)
+		for i := 0; i < len(states); i++ {
+			states[i] = utils.GenerateRandomState()
+		}
+
+		countryRepo.EXPECT().GetCountry(country.ID).Return(country, nil).Times(1)
+		stateRepo.EXPECT().GetStatesByCountry(country.ID).Return(states, nil).Times(1)
+
+		result, err := service.GetStatesByCountry(country.ID)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, states, result)
+	})
+
+	t.Run("country not found", func(t *testing.T) {
+		countryRepo.EXPECT().GetCountry(country.ID).Return(nil, nil).Times(1)
+
+		result, err := service.GetStatesByCountry(country.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "country does not exist", err.Error())
+	})
+
+	t.Run("error getting country", func(t *testing.T) {
+		countryRepo.EXPECT().GetCountry(country.ID).Return(nil, errors.New("error getting country")).Times(1)
+
+		result, err := service.GetStatesByCountry(country.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting country", err.Error())
+	})
+
+	t.Run("error getting states", func(t *testing.T) {
+		countryRepo.EXPECT().GetCountry(country.ID).Return(country, nil).Times(1)
+		stateRepo.EXPECT().GetStatesByCountry(country.ID).Return(nil, errors.New("error getting states")).Times(1)
+
+		result, err := service.GetStatesByCountry(country.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting states", err.Error())
+	})
+}
 
 func TestStateService_CreateState(t *testing.T) {
 	ctrl := gomock.NewController(t)
