@@ -8,7 +8,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 )
 
@@ -20,23 +19,22 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 
 	repo := NewMovieRepository(db)
 
-	movie := utils.GenerateRandomMovie()
-	genres := make([]*models.Genre, 3)
-	for i := 0; i < len(genres); i++ {
-		genres[i] = utils.GenerateRandomGenre()
-	}
+	movie := utils.GenerateMovie()
+	genres := utils.GenerateGenres(3)
 
 	t.Run("success with genres", func(t *testing.T) {
 		movieRows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"}).
 			AddRow(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy)
-		genreRows := sqlmock.NewRows([]string{"id", "name"}).
-			AddRow(genres[0].ID, genres[0].Name).
-			AddRow(genres[1].ID, genres[1].Name).
-			AddRow(genres[2].ID, genres[2].Name)
-		movieGenreRows := sqlmock.NewRows([]string{"movie_id", "genre_id"}).
-			AddRow(movie.ID, genres[0].ID).
-			AddRow(movie.ID, genres[1].ID).
-			AddRow(movie.ID, genres[2].ID)
+
+		genreRows := sqlmock.NewRows([]string{"id", "name"})
+		for _, genre := range genres {
+			genreRows.AddRow(genre.ID, genre.Name)
+		}
+
+		movieGenreRows := sqlmock.NewRows([]string{"movie_id", "genre_id"})
+		for _, genre := range genres {
+			movieGenreRows.AddRow(movie.ID, genre.ID)
+		}
 
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" WHERE id = $1 ORDER BY "movies"."id" LIMIT $2`)).
 			WithArgs(movie.ID, 1).
@@ -54,9 +52,9 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, movie.ID, result.ID)
 		assert.Equal(t, movie.Title, result.Title)
-		assert.Equal(t, genres[0], &result.Genres[0])
-		assert.Equal(t, genres[1], &result.Genres[1])
-		assert.Equal(t, genres[2], &result.Genres[2])
+		for i, genre := range genres {
+			assert.Equal(t, genre, &result.Genres[i])
+		}
 	})
 
 	t.Run("success without genres", func(t *testing.T) {
@@ -106,16 +104,13 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 
 	repo := NewMovieRepository(db)
 
-	movies := make([]*models.Movie, 3)
-	for i := 0; i < len(movies); i++ {
-		movies[i] = utils.GenerateRandomMovie()
-	}
+	movies := utils.GenerateMovies(3)
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"}).
-			AddRow(movies[0].ID, movies[0].Title, movies[0].Description, movies[0].ReleaseDate, movies[0].DurationMinutes, movies[0].Language, movies[0].Rating, movies[0].CreatedAt, movies[0].UpdatedAt, movies[0].CreatedBy, movies[0].LastUpdatedBy).
-			AddRow(movies[1].ID, movies[1].Title, movies[1].Description, movies[1].ReleaseDate, movies[1].DurationMinutes, movies[1].Language, movies[1].Rating, movies[1].CreatedAt, movies[1].UpdatedAt, movies[1].CreatedBy, movies[1].LastUpdatedBy).
-			AddRow(movies[2].ID, movies[2].Title, movies[2].Description, movies[2].ReleaseDate, movies[2].DurationMinutes, movies[2].Language, movies[2].Rating, movies[2].CreatedAt, movies[2].UpdatedAt, movies[2].CreatedBy, movies[2].LastUpdatedBy)
+		rows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"})
+		for _, movie := range movies {
+			rows.AddRow(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy)
+		}
 
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
 			WithArgs(2, 2).
@@ -125,8 +120,9 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, movies[0], result[0])
-		assert.Equal(t, movies[1], result[1])
+		for i, movie := range movies {
+			assert.Equal(t, movie, result[i])
+		}
 	})
 
 	t.Run("error getting movies", func(t *testing.T) {
@@ -149,11 +145,6 @@ func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 	}()
 
 	repo := NewMovieRepository(db)
-
-	movies := make([]*models.Movie, 3)
-	for i := 0; i < len(movies); i++ {
-		movies[i] = utils.GenerateRandomMovie()
-	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "movies"`)).
@@ -186,7 +177,7 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 
 	repo := NewMovieRepository(db)
 
-	movie := utils.GenerateRandomMovie()
+	movie := utils.GenerateMovie()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
@@ -226,7 +217,7 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 
 	repo := NewMovieRepository(db)
 
-	movie := utils.GenerateRandomMovie()
+	movie := utils.GenerateMovie()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

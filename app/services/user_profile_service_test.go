@@ -21,7 +21,7 @@ func TestUserProfileService_GetProfileByUserID(t *testing.T) {
 	repo := mock_repositories.NewMockUserProfileRepository(ctrl)
 	service := NewUserProfileService(nil, nil, repo, nil)
 
-	userProfile := utils.GenerateRandomUserProfile()
+	userProfile := utils.GenerateUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(userProfile.UserID).Return(userProfile, nil).Times(1)
@@ -64,7 +64,7 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 	repo := mock_repositories.NewMockUserProfileRepository(ctrl)
 	service := NewUserProfileService(nil, transaction, repo, nil)
 
-	profile := utils.GenerateRandomUserProfile()
+	profile := utils.GenerateUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(nil, nil).Times(1)
@@ -131,7 +131,7 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 	repo := mock_repositories.NewMockUserProfileRepository(ctrl)
 	service := NewUserProfileService(nil, transaction, repo, nil)
 
-	profile := utils.GenerateRandomUserProfile()
+	profile := utils.GenerateUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)
@@ -206,8 +206,8 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 	profilePictureRepo := mock_repositories.NewMockProfilePictureRepository(ctrl)
 	service := NewUserProfileService(nil, transaction, profileRepo, profilePictureRepo)
 
-	profile := utils.GenerateRandomUserProfile()
-	file := utils.GenerateRandomFileHeader()
+	profile := utils.GenerateUserProfile()
+	file := utils.GenerateFileHeader()
 
 	t.Run("success", func(t *testing.T) {
 		profileRepo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)
@@ -286,7 +286,7 @@ func TestUserProfileService_DeleteProfilePicture(t *testing.T) {
 	repo := mock_repositories.NewMockUserProfileRepository(ctrl)
 	service := NewUserProfileService(nil, transaction, repo, nil)
 
-	profile := utils.GenerateRandomUserProfile()
+	profile := utils.GenerateUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)

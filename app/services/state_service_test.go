@@ -5,7 +5,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -21,13 +20,10 @@ func TestStateService_GetStatesByCountry(t *testing.T) {
 	stateRepo := mock_repositories.NewMockStateRepository(ctrl)
 	service := NewStateService(nil, nil, countryRepo, stateRepo)
 
-	country := utils.GenerateRandomCountry()
+	country := utils.GenerateCountry()
 
 	t.Run("success", func(t *testing.T) {
-		states := make([]*models.State, 3)
-		for i := 0; i < len(states); i++ {
-			states[i] = utils.GenerateRandomState()
-		}
+		states := utils.GenerateStates(3)
 
 		countryRepo.EXPECT().GetCountry(country.ID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetStatesByCountry(country.ID).Return(states, nil).Times(1)
@@ -83,8 +79,8 @@ func TestStateService_CreateState(t *testing.T) {
 	stateRepo := mock_repositories.NewMockStateRepository(ctrl)
 	service := NewStateService(nil, transaction, countryRepo, stateRepo)
 
-	country := utils.GenerateRandomCountry()
-	state := utils.GenerateRandomState()
+	country := utils.GenerateCountry()
+	state := utils.GenerateState()
 
 	t.Run("success", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)

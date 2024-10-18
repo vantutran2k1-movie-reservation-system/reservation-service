@@ -8,7 +8,6 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"net/http"
@@ -31,10 +30,7 @@ func TestCountryController_GetCountries(t *testing.T) {
 		router := gin.Default()
 		router.GET("/countries", controller.GetCountries)
 
-		countries := make([]*models.Country, 3)
-		for i := 0; i < len(countries); i++ {
-			countries[i] = utils.GenerateRandomCountry()
-		}
+		countries := utils.GenerateCountries(3)
 
 		service.EXPECT().GetCountries().Return(countries, nil).Times(1)
 
@@ -75,8 +71,8 @@ func TestCountryController_CreateCountry(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	country := utils.GenerateRandomCountry()
-	payload := utils.GenerateRandomCreateCountryRequest()
+	country := utils.GenerateCountry()
+	payload := utils.GenerateCreateCountryRequest()
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()

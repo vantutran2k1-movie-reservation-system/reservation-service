@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"fmt"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"net/http"
 	"os"
 	"testing"
@@ -25,7 +24,7 @@ func TestUserService_GetUser(t *testing.T) {
 	repo := mock_repositories.NewMockUserRepository(ctrl)
 	service := NewUserService(nil, nil, nil, nil, repo, nil, nil, nil)
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateUser()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetUser(user.ID).Return(user, nil).Times(1)
@@ -69,8 +68,8 @@ func TestUserService_CreateUser(t *testing.T) {
 	repo := mock_repositories.NewMockUserRepository(ctrl)
 	service := NewUserService(nil, nil, auth, transaction, repo, nil, nil, nil)
 
-	user := utils.GenerateRandomUser()
-	password := utils.GenerateRandomPassword()
+	user := utils.GenerateUser()
+	password := utils.GeneratePassword()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetUserByEmail(user.Email).Return(nil, nil).Times(1)
@@ -155,9 +154,9 @@ func TestUserService_LoginUser(t *testing.T) {
 
 	service := NewUserService(nil, nil, auth, transaction, userRepo, loginTokenRepo, userSessionRepo, nil)
 
-	user := utils.GenerateRandomUser()
-	token := utils.GenerateRandomLoginToken()
-	password := utils.GenerateRandomPassword()
+	user := utils.GenerateUser()
+	token := utils.GenerateLoginToken()
+	password := utils.GeneratePassword()
 
 	t.Run("success", func(t *testing.T) {
 		userRepo.EXPECT().GetUserByEmail(user.Email).Return(user, nil).Times(1)
@@ -315,7 +314,7 @@ func TestUserService_LogoutUser(t *testing.T) {
 
 	service := NewUserService(nil, nil, nil, transaction, nil, loginTokenRepo, userSessionRepo, nil)
 
-	token := utils.GenerateRandomLoginToken()
+	token := utils.GenerateLoginToken()
 
 	t.Run("success", func(t *testing.T) {
 		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(token, nil).Times(1)
@@ -410,10 +409,10 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 
 	service := NewUserService(nil, nil, auth, transaction, userRepo, loginTokenRepo, userSessionRepo, nil)
 
-	user := utils.GenerateRandomUser()
-	updatedUser := utils.GenerateRandomUser()
+	user := utils.GenerateUser()
+	updatedUser := utils.GenerateUser()
 	updatedUser.ID = user.ID
-	password := utils.GenerateRandomPassword()
+	password := utils.GeneratePassword()
 
 	t.Run("success", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(user.ID).Return(user, nil).Times(1)
@@ -555,8 +554,8 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 
 	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, nil, tokenRepo)
 
-	user := utils.GenerateRandomUser()
-	token := utils.GenerateRandomPasswordResetToken()
+	user := utils.GenerateUser()
+	token := utils.GeneratePasswordResetToken()
 
 	t.Run("success", func(t *testing.T) {
 		userRepo.EXPECT().GetUserByEmail(user.Email).Return(user, nil).Times(1)
@@ -676,14 +675,11 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	service := NewUserService(nil, nil, auth, transaction, userRepo, loginTokenRepo, sessionRepo, resetTokenRepo)
 
-	resetToken := utils.GenerateRandomPasswordResetToken()
-	user := utils.GenerateRandomUser()
-	password := utils.GenerateRandomPassword()
-	hashedPassword := utils.GenerateRandomHashedPassword()
-	allResetTokens := make([]*models.PasswordResetToken, 3)
-	for i := 0; i < len(allResetTokens)-1; i++ {
-		allResetTokens[i] = utils.GenerateRandomPasswordResetToken()
-	}
+	resetToken := utils.GeneratePasswordResetToken()
+	user := utils.GenerateUser()
+	password := utils.GeneratePassword()
+	hashedPassword := utils.GenerateHashedPassword()
+	allResetTokens := utils.GeneratePasswordResetTokens(3)
 	allResetTokens[len(allResetTokens)-1] = resetToken
 
 	t.Run("success", func(t *testing.T) {

@@ -28,11 +28,11 @@ func TestMovieController_GetMovie(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	movie := utils.GenerateRandomMovie()
+	movie := utils.GenerateMovie()
 
 	t.Run("success with genres", func(t *testing.T) {
-		m := utils.GenerateRandomMovie()
-		g := utils.GenerateRandomGenre()
+		m := utils.GenerateMovie()
+		g := utils.GenerateGenre()
 		m.Genres = []models.Genre{*g}
 
 		router := gin.Default()
@@ -103,11 +103,8 @@ func TestMovieController_GetMovies(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	movies := make([]*models.Movie, 20)
-	for i := 0; i < len(movies); i++ {
-		movies[i] = utils.GenerateRandomMovie()
-	}
-	meta := utils.GenerateRandomResponseMeta()
+	movies := utils.GenerateMovies(20)
+	meta := utils.GenerateResponseMeta()
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
@@ -180,9 +177,9 @@ func TestMovieController_CreateMovie(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	session := utils.GenerateRandomUserSession()
-	movie := utils.GenerateRandomMovie()
-	payload := utils.GenerateRandomCreateMovieRequest()
+	session := utils.GenerateUserSession()
+	movie := utils.GenerateMovie()
+	payload := utils.GenerateCreateMovieRequest()
 
 	errors.RegisterCustomValidators()
 
@@ -284,9 +281,9 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	session := utils.GenerateRandomUserSession()
-	movie := utils.GenerateRandomMovie()
-	payload := utils.GenerateRandomCreateMovieRequest()
+	session := utils.GenerateUserSession()
+	movie := utils.GenerateMovie()
+	payload := utils.GenerateCreateMovieRequest()
 
 	errors.RegisterCustomValidators()
 
@@ -371,8 +368,8 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	movie := utils.GenerateRandomMovie()
-	payload := utils.GenerateRandomUpdateMovieGenresRequest()
+	movie := utils.GenerateMovie()
+	payload := utils.GenerateUpdateMovieGenresRequest()
 
 	errors.RegisterCustomValidators()
 

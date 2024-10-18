@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
@@ -20,7 +19,7 @@ func TestStateRepository_GetStateByName(t *testing.T) {
 
 	repo := NewStateRepository(db)
 
-	state := utils.GenerateRandomState()
+	state := utils.GenerateState()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name", "code", "country_id"}).
@@ -72,10 +71,7 @@ func TestStateRepository_GetStatesByCountry(t *testing.T) {
 	countryID := uuid.New()
 
 	t.Run("success", func(t *testing.T) {
-		states := make([]*models.State, 3)
-		for i := 0; i < len(states); i++ {
-			states[i] = utils.GenerateRandomState()
-		}
+		states := utils.GenerateStates(3)
 
 		rows := sqlmock.NewRows([]string{"id", "name", "code", "country_id"})
 		for _, state := range states {
@@ -114,7 +110,7 @@ func TestStateRepository_CreateState(t *testing.T) {
 
 	repo := NewStateRepository(db)
 
-	state := utils.GenerateRandomState()
+	state := utils.GenerateState()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

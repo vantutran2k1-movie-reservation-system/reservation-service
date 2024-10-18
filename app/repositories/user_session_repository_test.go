@@ -21,8 +21,8 @@ func TestUserSessionRepository_GetUserSession(t *testing.T) {
 
 	repo := NewUserSessionRepository(client)
 
-	session := utils.GenerateRandomUserSession()
-	sessionID := utils.GenerateRandomSessionID()
+	session := utils.GenerateUserSession()
+	sessionID := utils.GenerateSessionID()
 
 	t.Run("success", func(t *testing.T) {
 		sessionJSON, _ := json.Marshal(session)
@@ -63,8 +63,8 @@ func TestUserSessionRepository_CreateUserSession(t *testing.T) {
 
 	repo := NewUserSessionRepository(client)
 
-	session := utils.GenerateRandomUserSession()
-	sessionID := utils.GenerateRandomSessionID()
+	session := utils.GenerateUserSession()
+	sessionID := utils.GenerateSessionID()
 	expiration := 24 * time.Hour
 
 	t.Run("success", func(t *testing.T) {
@@ -102,7 +102,7 @@ func TestUserSessionRepository_DeleteUserSession(t *testing.T) {
 
 	repo := NewUserSessionRepository(client)
 
-	sessionID := utils.GenerateRandomSessionID()
+	sessionID := utils.GenerateSessionID()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectDel(sessionID).SetVal(1)
@@ -129,8 +129,8 @@ func TestUserSessionRepository_DeleteUserSessions(t *testing.T) {
 
 	repo := NewUserSessionRepository(client)
 
-	session := utils.GenerateRandomUserSession()
-	sessionID := utils.GenerateRandomSessionID()
+	session := utils.GenerateUserSession()
+	sessionID := utils.GenerateSessionID()
 
 	t.Run("success", func(t *testing.T) {
 		sessionData, _ := json.Marshal(session)

@@ -19,7 +19,7 @@ func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 
 	repo := NewLoginTokenRepository(db)
 
-	token := utils.GenerateRandomLoginToken()
+	token := utils.GenerateLoginToken()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "user_id", "token_value", "created_at", "expires_at"}).
@@ -68,7 +68,7 @@ func TestLoginTokenRepository_CreateLoginToken(t *testing.T) {
 
 	repo := NewLoginTokenRepository(db)
 
-	token := utils.GenerateRandomLoginToken()
+	token := utils.GenerateLoginToken()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
@@ -107,7 +107,7 @@ func TestLoginTokenRepository_RevokeLoginToken(t *testing.T) {
 
 	repo := NewLoginTokenRepository(db)
 
-	token := utils.GenerateRandomLoginToken()
+	token := utils.GenerateLoginToken()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

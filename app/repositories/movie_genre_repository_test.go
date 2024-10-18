@@ -19,10 +19,10 @@ func TestMovieGenreRepository_UpdateGenresOfMovie(t *testing.T) {
 
 	repo := NewMovieGenreRepository(db)
 
-	movie := utils.GenerateRandomMovie()
+	movie := utils.GenerateMovie()
 	genreIDs := make([]uuid.UUID, 3)
 	for i := 0; i < len(genreIDs); i++ {
-		genreIDs[i] = utils.GenerateRandomGenre().ID
+		genreIDs[i] = utils.GenerateGenre().ID
 	}
 
 	t.Run("success", func(t *testing.T) {

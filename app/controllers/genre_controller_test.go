@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"fmt"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -28,7 +27,7 @@ func TestGenreController_GetGenre(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	genre := utils.GenerateRandomGenre()
+	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
@@ -104,10 +103,7 @@ func TestGenreController_GetGenres(t *testing.T) {
 		router := gin.Default()
 		router.GET("/genres", controller.GetGenres)
 
-		genres := make([]*models.Genre, 3)
-		for i := 0; i < len(genres); i++ {
-			genres[i] = utils.GenerateRandomGenre()
-		}
+		genres := utils.GenerateGenres(3)
 
 		service.EXPECT().GetGenres().Return(genres, nil).Times(1)
 
@@ -147,8 +143,8 @@ func TestGenreController_CreateGenre(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	genre := utils.GenerateRandomGenre()
-	payload := utils.GenerateRandomCreateGenreRequest()
+	genre := utils.GenerateGenre()
+	payload := utils.GenerateCreateGenreRequest()
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
@@ -212,8 +208,8 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	genre := utils.GenerateRandomGenre()
-	payload := utils.GenerateRandomUpdateGenreRequest()
+	genre := utils.GenerateGenre()
+	payload := utils.GenerateUpdateGenreRequest()
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()

@@ -17,7 +17,7 @@ func TestUserRepository_GetUser(t *testing.T) {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateUser()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "email", "password_hash", "created_at", "updated_at"}).
@@ -64,7 +64,7 @@ func TestUserRepository_GetUserByEmail(t *testing.T) {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateUser()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "email"}).AddRow(user.ID, user.Email)
@@ -111,7 +111,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateUser()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
@@ -149,8 +149,8 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
-	user := utils.GenerateRandomUser()
-	hashedPassword := utils.GenerateRandomHashedPassword()
+	user := utils.GenerateUser()
+	hashedPassword := utils.GenerateHashedPassword()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

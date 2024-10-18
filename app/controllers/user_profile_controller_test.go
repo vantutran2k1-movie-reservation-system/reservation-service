@@ -27,8 +27,8 @@ func TestUserProfileController_GetProfileByUserID(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	session := utils.GenerateRandomUserSession()
-	profile := utils.GenerateRandomUserProfile()
+	session := utils.GenerateUserSession()
+	profile := utils.GenerateUserProfile()
 
 	t.Run("successful profile retrieval", func(t *testing.T) {
 		router := gin.Default()
@@ -93,9 +93,9 @@ func TestUserProfileController_CreateUserProfile(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	session := utils.GenerateRandomUserSession()
-	profile := utils.GenerateRandomUserProfile()
-	payload := utils.GenerateRandomCreateUserProfileRequest()
+	session := utils.GenerateUserSession()
+	profile := utils.GenerateUserProfile()
+	payload := utils.GenerateCreateUserProfileRequest()
 
 	t.Run("successful profile creation", func(t *testing.T) {
 		errors.RegisterCustomValidators()
@@ -203,9 +203,9 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	session := utils.GenerateRandomUserSession()
-	profile := utils.GenerateRandomUserProfile()
-	payload := utils.GenerateRandomUpdateUserProfileRequest()
+	session := utils.GenerateUserSession()
+	profile := utils.GenerateUserProfile()
+	payload := utils.GenerateUpdateUserProfileRequest()
 
 	t.Run("successful profile update", func(t *testing.T) {
 		errors.RegisterCustomValidators()

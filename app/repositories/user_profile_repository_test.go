@@ -19,7 +19,7 @@ func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 
 	repo := NewUserProfileRepository(db)
 
-	profile := utils.GenerateRandomUserProfile()
+	profile := utils.GenerateUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "user_id", "first_name", "last_name", "phone_number", "date_of_birth", "profile_picture_url", "bio", "created_at", "updated_at"}).
@@ -68,7 +68,7 @@ func TestUserProfileRepository_CreateUserProfile(t *testing.T) {
 
 	repo := NewUserProfileRepository(db)
 
-	profile := utils.GenerateRandomUserProfile()
+	profile := utils.GenerateUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
@@ -108,7 +108,7 @@ func TestUserProfileRepository_UpdateUserProfile(t *testing.T) {
 
 	repo := NewUserProfileRepository(db)
 
-	profile := utils.GenerateRandomUserProfile()
+	profile := utils.GenerateUserProfile()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
@@ -148,8 +148,8 @@ func TestUserRepository_UpdateProfilePicture(t *testing.T) {
 
 	repo := NewUserProfileRepository(db)
 
-	profile := utils.GenerateRandomUserProfile()
-	url := utils.GenerateRandomURL()
+	profile := utils.GenerateUserProfile()
+	url := utils.GenerateURL()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

@@ -20,7 +20,7 @@ func TestGenreRepository_GetGenre(t *testing.T) {
 
 	repo := NewGenreRepository(db)
 
-	genre := utils.GenerateRandomGenre()
+	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(genre.ID, genre.Name)
@@ -57,7 +57,7 @@ func TestGenreRepository_GetGenreByName(t *testing.T) {
 
 	repo := NewGenreRepository(db)
 
-	genre := utils.GenerateRandomGenre()
+	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(genre.ID, genre.Name)
@@ -108,7 +108,7 @@ func TestGenreRepository_GetGenres(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		genres := make([]*models.Genre, 3)
 		for i := 0; i < len(genres); i++ {
-			genres[i] = utils.GenerateRandomGenre()
+			genres[i] = utils.GenerateGenre()
 		}
 
 		rows := sqlmock.NewRows([]string{"id", "name"})
@@ -149,7 +149,7 @@ func TestGenreRepository_GetGenreIDs(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		genres := make([]*models.Genre, 3)
 		for i := 0; i < len(genres); i++ {
-			genres[i] = utils.GenerateRandomGenre()
+			genres[i] = utils.GenerateGenre()
 		}
 
 		rows := sqlmock.NewRows([]string{"id"})
@@ -190,7 +190,7 @@ func TestGenreRepository_CreateGenre(t *testing.T) {
 
 	repo := NewGenreRepository(db)
 
-	genre := utils.GenerateRandomGenre()
+	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
@@ -229,7 +229,7 @@ func TestGenreRepository_UpdateGenre(t *testing.T) {
 
 	repo := NewGenreRepository(db)
 
-	genre := utils.GenerateRandomGenre()
+	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

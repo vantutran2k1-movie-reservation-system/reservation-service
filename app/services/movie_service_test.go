@@ -22,7 +22,7 @@ func TestMovieService_GetMovie(t *testing.T) {
 	repo := mock_repositories.NewMockMovieRepository(ctrl)
 	service := NewMovieService(nil, nil, repo, nil, nil)
 
-	movie := utils.GenerateRandomMovie()
+	movie := utils.GenerateMovie()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
@@ -64,10 +64,7 @@ func TestMovieService_GetMovies(t *testing.T) {
 	repo := mock_repositories.NewMockMovieRepository(ctrl)
 	service := NewMovieService(nil, nil, repo, nil, nil)
 
-	movies := make([]*models.Movie, 20)
-	for i := 0; i < len(movies); i++ {
-		movies[i] = utils.GenerateRandomMovie()
-	}
+	movies := utils.GenerateMovies(20)
 	limit := 10
 	offset := 0
 
@@ -129,7 +126,7 @@ func TestMovieService_CreateMovie(t *testing.T) {
 	repo := mock_repositories.NewMockMovieRepository(ctrl)
 	service := NewMovieService(nil, transaction, repo, nil, nil)
 
-	movie := utils.GenerateRandomMovie()
+	movie := utils.GenerateMovie()
 
 	t.Run("success", func(t *testing.T) {
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -177,7 +174,7 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 	repo := mock_repositories.NewMockMovieRepository(ctrl)
 	service := NewMovieService(nil, transaction, repo, nil, nil)
 
-	movie := utils.GenerateRandomMovie()
+	movie := utils.GenerateMovie()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
@@ -238,10 +235,10 @@ func TestMovieService_AssignGenres(t *testing.T) {
 	movieGenreRepo := mock_repositories.NewMockMovieGenreRepository(ctrl)
 	service := NewMovieService(nil, transaction, movieRepo, genreRepo, movieGenreRepo)
 
-	movie := utils.GenerateRandomMovie()
+	movie := utils.GenerateMovie()
 	allGenreIds := make([]uuid.UUID, 3)
 	for i := 0; i < len(allGenreIds); i++ {
-		allGenreIds[i] = utils.GenerateRandomGenre().ID
+		allGenreIds[i] = utils.GenerateGenre().ID
 	}
 	updatedGenreIds := []uuid.UUID{allGenreIds[0], allGenreIds[1]}
 

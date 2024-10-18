@@ -5,7 +5,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
@@ -19,7 +18,7 @@ func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) 
 
 	repo := NewPasswordResetTokenRepository(db)
 
-	token := utils.GenerateRandomPasswordResetToken()
+	token := utils.GeneratePasswordResetToken()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "user_id", "token_value", "is_used", "created_at", "expires_at"}).
@@ -68,13 +67,10 @@ func TestPasswordResetTokenRepository_GetUserActivePasswordResetTokens(t *testin
 
 	repo := NewPasswordResetTokenRepository(db)
 
-	user := utils.GenerateRandomUser()
+	user := utils.GenerateUser()
 
 	t.Run("success", func(t *testing.T) {
-		tokens := make([]*models.PasswordResetToken, 3)
-		for i := 0; i < len(tokens); i++ {
-			tokens[i] = utils.GenerateRandomPasswordResetToken()
-		}
+		tokens := utils.GeneratePasswordResetTokens(3)
 
 		rows := sqlmock.NewRows([]string{"id", "user_id", "token_value", "is_used", "created_at", "expires_at"})
 		for _, token := range tokens {
@@ -117,7 +113,7 @@ func TestPasswordResetTokenRepository_CreateToken(t *testing.T) {
 
 	repo := NewPasswordResetTokenRepository(db)
 
-	token := utils.GenerateRandomPasswordResetToken()
+	token := utils.GeneratePasswordResetToken()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
@@ -157,7 +153,7 @@ func TestPasswordResetTokenRepository_UseToken(t *testing.T) {
 
 	repo := NewPasswordResetTokenRepository(db)
 
-	token := utils.GenerateRandomPasswordResetToken()
+	token := utils.GeneratePasswordResetToken()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
@@ -197,10 +193,7 @@ func TestPasswordResetTokenRepository_RevokeTokens(t *testing.T) {
 
 	repo := NewPasswordResetTokenRepository(db)
 
-	tokens := make([]*models.PasswordResetToken, 3)
-	for i := 0; i < len(tokens); i++ {
-		tokens[i] = utils.GenerateRandomPasswordResetToken()
-	}
+	tokens := utils.GeneratePasswordResetTokens(3)
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

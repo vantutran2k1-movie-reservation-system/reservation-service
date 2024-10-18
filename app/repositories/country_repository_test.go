@@ -5,7 +5,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
@@ -19,7 +18,7 @@ func TestCountryRepository_GetCountry(t *testing.T) {
 
 	repo := NewCountryRepository(db)
 
-	country := utils.GenerateRandomCountry()
+	country := utils.GenerateCountry()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name", "code"}).AddRow(country.ID, country.Name, country.Code)
@@ -67,7 +66,7 @@ func TestCountryRepository_GetCountryByName(t *testing.T) {
 
 	repo := NewCountryRepository(db)
 
-	country := utils.GenerateRandomCountry()
+	country := utils.GenerateCountry()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name", "code"}).AddRow(country.ID, country.Name, country.Code)
@@ -115,7 +114,7 @@ func TestCountryRepository_GetCountryByCode(t *testing.T) {
 
 	repo := NewCountryRepository(db)
 
-	country := utils.GenerateRandomCountry()
+	country := utils.GenerateCountry()
 
 	t.Run("success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name", "code"}).AddRow(country.ID, country.Name, country.Code)
@@ -164,10 +163,7 @@ func TestCountryRepository_GetCountries(t *testing.T) {
 	repo := NewCountryRepository(db)
 
 	t.Run("success", func(t *testing.T) {
-		countries := make([]*models.Country, 3)
-		for i := 0; i < len(countries); i++ {
-			countries[i] = utils.GenerateRandomCountry()
-		}
+		countries := utils.GenerateCountries(3)
 
 		rows := sqlmock.NewRows([]string{"id", "name", "code"})
 		for _, country := range countries {
@@ -204,7 +200,7 @@ func TestCountryRepository_CreateCountry(t *testing.T) {
 
 	repo := NewCountryRepository(db)
 
-	country := utils.GenerateRandomCountry()
+	country := utils.GenerateCountry()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

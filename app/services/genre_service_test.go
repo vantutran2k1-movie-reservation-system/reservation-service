@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"net/http"
 	"testing"
 
@@ -21,7 +20,7 @@ func TestGenreService_GetGenre(t *testing.T) {
 	repo := mock_repositories.NewMockGenreRepository(ctrl)
 	service := NewGenreService(nil, nil, repo)
 
-	genre := utils.GenerateRandomGenre()
+	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
@@ -64,10 +63,7 @@ func TestGenreService_GetGenres(t *testing.T) {
 	service := NewGenreService(nil, nil, repo)
 
 	t.Run("success", func(t *testing.T) {
-		genres := make([]*models.Genre, 3)
-		for i := 0; i < len(genres); i++ {
-			genres[i] = utils.GenerateRandomGenre()
-		}
+		genres := utils.GenerateGenres(3)
 
 		repo.EXPECT().GetGenres().Return(genres, nil).Times(1)
 
@@ -98,7 +94,7 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	repo := mock_repositories.NewMockGenreRepository(ctrl)
 	service := NewGenreService(nil, transaction, repo)
 
-	genre := utils.GenerateRandomGenre()
+	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, nil).Times(1)
@@ -164,7 +160,7 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	repo := mock_repositories.NewMockGenreRepository(ctrl)
 	service := NewGenreService(nil, transaction, repo)
 
-	genre := utils.GenerateRandomGenre()
+	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
