@@ -340,6 +340,21 @@ func GenerateCreateStateRequest() *payloads.CreateStateRequest {
 	}
 }
 
+// City
+func GenerateCity() *models.City {
+	return &models.City{
+		ID:      generateUUID(),
+		Name:    generateString(lowercaseChars, 10),
+		StateID: generateUUID(),
+	}
+}
+
+func GenerateCreateCityRequest() *payloads.CreateCityRequest {
+	return &payloads.CreateCityRequest{
+		Name: generateString(lowercaseChars, 10),
+	}
+}
+
 // Helpers
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
 const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

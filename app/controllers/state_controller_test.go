@@ -31,7 +31,7 @@ func TestStateController_GetStatesByCountry(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
-		router.GET("/countries/:id/states", controller.GetStatesByCountry)
+		router.GET("/countries/:countryId/states", controller.GetStatesByCountry)
 
 		states := utils.GenerateStates(3)
 
@@ -51,7 +51,7 @@ func TestStateController_GetStatesByCountry(t *testing.T) {
 
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
-		router.GET("/countries/:id/states", controller.GetStatesByCountry)
+		router.GET("/countries/:countryId/states", controller.GetStatesByCountry)
 
 		service.EXPECT().GetStatesByCountry(countryID).Return(nil, errors.InternalServerError("service error")).Times(1)
 
@@ -80,7 +80,7 @@ func TestStateController_CreateState(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
-		router.POST("/countries/:id/states", controller.CreateState)
+		router.POST("/countries/:countryId/states", controller.CreateState)
 
 		service.EXPECT().CreateState(state.CountryID, payload.Name, payload.Code).Return(state, nil).Times(1)
 
@@ -98,7 +98,7 @@ func TestStateController_CreateState(t *testing.T) {
 
 	t.Run("invalid country id", func(t *testing.T) {
 		router := gin.Default()
-		router.POST("/countries/:id/states", controller.CreateState)
+		router.POST("/countries/:countryId/states", controller.CreateState)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, *payload.Code)
 
@@ -113,7 +113,7 @@ func TestStateController_CreateState(t *testing.T) {
 
 	t.Run("validation error", func(t *testing.T) {
 		router := gin.Default()
-		router.POST("/countries/:id/states", controller.CreateState)
+		router.POST("/countries/:countryId/states", controller.CreateState)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, "A")
 
@@ -128,7 +128,7 @@ func TestStateController_CreateState(t *testing.T) {
 
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
-		router.POST("/countries/:id/states", controller.CreateState)
+		router.POST("/countries/:countryId/states", controller.CreateState)
 
 		service.EXPECT().CreateState(state.CountryID, payload.Name, payload.Code).Return(nil, errors.InternalServerError("service error")).Times(1)
 

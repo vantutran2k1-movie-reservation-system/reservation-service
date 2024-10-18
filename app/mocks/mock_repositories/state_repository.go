@@ -55,6 +55,21 @@ func (mr *MockStateRepositoryMockRecorder) CreateState(tx, state any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateState", reflect.TypeOf((*MockStateRepository)(nil).CreateState), tx, state)
 }
 
+// GetState mocks base method.
+func (m *MockStateRepository) GetState(id uuid.UUID) (*models.State, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetState", id)
+	ret0, _ := ret[0].(*models.State)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetState indicates an expected call of GetState.
+func (mr *MockStateRepositoryMockRecorder) GetState(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetState", reflect.TypeOf((*MockStateRepository)(nil).GetState), id)
+}
+
 // GetStateByName mocks base method.
 func (m *MockStateRepository) GetStateByName(countryID uuid.UUID, name string) (*models.State, error) {
 	m.ctrl.T.Helper()
