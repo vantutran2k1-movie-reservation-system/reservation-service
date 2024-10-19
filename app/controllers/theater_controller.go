@@ -1,0 +1,36 @@
+package controllers
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
+	"net/http"
+)
+
+type TheaterController struct {
+	TheaterService services.TheaterService
+}
+
+func NewTheaterController(theaterService *services.TheaterService) *TheaterController {
+	return &TheaterController{
+		TheaterService: *theaterService,
+	}
+}
+
+func (c *TheaterController) CreateTheater(ctx *gin.Context) {
+	var req payloads.CreateTheaterRequest
+	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
+		return
+	}
+
+	theater, err := c.TheaterService.CreateTheater(req.Name)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(theater)})
+}

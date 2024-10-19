@@ -118,6 +118,16 @@ func RegisterRoutes() *gin.Engine {
 				}
 			}
 		}
+
+		theaters := apiV1.Group("/theaters")
+		{
+			theaters.POST(
+				"/",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyTheaters),
+				c.TheaterController.CreateTheater,
+			)
+		}
 	}
 
 	return router

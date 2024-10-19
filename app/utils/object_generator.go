@@ -355,6 +355,20 @@ func GenerateCreateCityRequest() *payloads.CreateCityRequest {
 	}
 }
 
+// Theater
+func GenerateTheater() *models.Theater {
+	return &models.Theater{
+		ID:   generateUUID(),
+		Name: generateString(letterChars, 10),
+	}
+}
+
+func GenerateCreateTheaterRequest() *payloads.CreateTheaterRequest {
+	return &payloads.CreateTheaterRequest{
+		Name: generateString(letterChars, 10),
+	}
+}
+
 // Helpers
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
 const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

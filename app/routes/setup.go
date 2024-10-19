@@ -27,6 +27,7 @@ type Repositories struct {
 	CountryRepository            repositories.CountryRepository
 	StateRepository              repositories.StateRepository
 	CityRepository               repositories.CityRepository
+	TheaterRepository            repositories.TheaterRepository
 }
 
 type Services struct {
@@ -37,6 +38,7 @@ type Services struct {
 	CountryService     services.CountryService
 	StateService       services.StateService
 	CityService        services.CityService
+	TheaterService     services.TheaterService
 }
 
 type Controllers struct {
@@ -47,6 +49,7 @@ type Controllers struct {
 	CountryController     controllers.CountryController
 	StateController       controllers.StateController
 	CityController        controllers.CityController
+	TheaterController     controllers.TheaterController
 }
 
 type Middlewares struct {
@@ -69,6 +72,7 @@ func setupRepositories() *Repositories {
 		CountryRepository:            repositories.NewCountryRepository(config.DB),
 		StateRepository:              repositories.NewStateRepository(config.DB),
 		CityRepository:               repositories.NewCityRepository(config.DB),
+		TheaterRepository:            repositories.NewTheaterRepository(config.DB),
 	}
 }
 
@@ -120,6 +124,11 @@ func setupServices(repositories *Repositories) *Services {
 			repositories.StateRepository,
 			repositories.CityRepository,
 		),
+		TheaterService: services.NewTheaterService(
+			config.DB,
+			transactionManager,
+			repositories.TheaterRepository,
+		),
 	}
 }
 
@@ -132,6 +141,7 @@ func setupControllers(services *Services) *Controllers {
 		CountryController:     *controllers.NewCountryController(&services.CountryService),
 		StateController:       *controllers.NewStateController(&services.StateService),
 		CityController:        *controllers.NewCityController(&services.CityService),
+		TheaterController:     *controllers.NewTheaterController(&services.TheaterService),
 	}
 }
 

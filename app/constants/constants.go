@@ -17,4 +17,5 @@ const (
 	CanModifyMovies    = "canModifyMovies"
 	CanModifyGenres    = "canModifyGenres"
 	CanModifyLocations = "canModifyLocations"
+	CanModifyTheaters  = "canModifyTheaters"
 )
