@@ -35,9 +35,7 @@ type Services struct {
 	UserProfileService services.UserProfileService
 	MovieService       services.MovieService
 	GenreService       services.GenreService
-	CountryService     services.CountryService
-	StateService       services.StateService
-	CityService        services.CityService
+	LocationService    services.LocationService
 	TheaterService     services.TheaterService
 }
 
@@ -46,9 +44,7 @@ type Controllers struct {
 	UserProfileController controllers.UserProfileController
 	MovieController       controllers.MovieController
 	GenreController       controllers.GenreController
-	CountryController     controllers.CountryController
-	StateController       controllers.StateController
-	CityController        controllers.CityController
+	LocationController    controllers.LocationController
 	TheaterController     controllers.TheaterController
 }
 
@@ -106,18 +102,7 @@ func setupServices(repositories *Repositories) *Services {
 			transactionManager,
 			repositories.GenreRepository,
 		),
-		CountryService: services.NewCountryService(
-			config.DB,
-			transactionManager,
-			repositories.CountryRepository,
-		),
-		StateService: services.NewStateService(
-			config.DB,
-			transactionManager,
-			repositories.CountryRepository,
-			repositories.StateRepository,
-		),
-		CityService: services.NewCityService(
+		LocationService: services.NewLocationService(
 			config.DB,
 			transactionManager,
 			repositories.CountryRepository,
@@ -138,9 +123,7 @@ func setupControllers(services *Services) *Controllers {
 		UserProfileController: *controllers.NewUserProfileController(&services.UserProfileService),
 		MovieController:       *controllers.NewMovieController(&services.MovieService),
 		GenreController:       *controllers.NewGenreController(&services.GenreService),
-		CountryController:     *controllers.NewCountryController(&services.CountryService),
-		StateController:       *controllers.NewStateController(&services.StateService),
-		CityController:        *controllers.NewCityController(&services.CityService),
+		LocationController:    *controllers.NewLocationController(&services.LocationService),
 		TheaterController:     *controllers.NewTheaterController(&services.TheaterService),
 	}
 }

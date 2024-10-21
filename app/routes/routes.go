@@ -89,22 +89,22 @@ func RegisterRoutes() *gin.Engine {
 
 		countries := apiV1.Group("/countries")
 		{
-			countries.GET("/", c.CountryController.GetCountries)
+			countries.GET("/", c.LocationController.GetCountries)
 			countries.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),
 				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyLocations),
-				c.CountryController.CreateCountry,
+				c.LocationController.CreateCountry,
 			)
 
 			states := countries.Group("/:countryId/states")
 			{
-				states.GET("/", c.StateController.GetStatesByCountry)
+				states.GET("/", c.LocationController.GetStatesByCountry)
 				states.POST(
 					"/",
 					m.AuthMiddleware.RequireAuthMiddleware(),
 					m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyLocations),
-					c.StateController.CreateState,
+					c.LocationController.CreateState,
 				)
 
 				cities := states.Group("/:stateId/cities")
@@ -113,7 +113,7 @@ func RegisterRoutes() *gin.Engine {
 						"/",
 						m.AuthMiddleware.RequireAuthMiddleware(),
 						m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyLocations),
-						c.CityController.CreateCity,
+						c.LocationController.CreateCity,
 					)
 				}
 			}
