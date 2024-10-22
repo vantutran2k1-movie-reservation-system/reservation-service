@@ -20,8 +20,7 @@ func TestUserRepository_GetUser(t *testing.T) {
 	user := utils.GenerateUser()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "email", "password_hash", "created_at", "updated_at"}).
-			AddRow(user.ID, user.Email, user.PasswordHash, user.CreatedAt, user.UpdatedAt)
+		rows := utils.GenerateSqlMockRow(user)
 
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(user.ID, 1).

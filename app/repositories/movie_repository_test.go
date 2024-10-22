@@ -23,14 +23,6 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 	genres := utils.GenerateGenres(3)
 
 	t.Run("success with genres", func(t *testing.T) {
-		movieRows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"}).
-			AddRow(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy)
-
-		genreRows := sqlmock.NewRows([]string{"id", "name"})
-		for _, genre := range genres {
-			genreRows.AddRow(genre.ID, genre.Name)
-		}
-
 		movieGenreRows := sqlmock.NewRows([]string{"movie_id", "genre_id"})
 		for _, genre := range genres {
 			movieGenreRows.AddRow(movie.ID, genre.ID)
@@ -38,13 +30,13 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" WHERE id = $1 ORDER BY "movies"."id" LIMIT $2`)).
 			WithArgs(movie.ID, 1).
-			WillReturnRows(movieRows)
+			WillReturnRows(utils.GenerateSqlMockRow(movie))
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movie_genres" WHERE "movie_genres"."movie_id" = $1`)).
 			WithArgs(movie.ID).
 			WillReturnRows(movieGenreRows)
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE "genres"."id" IN ($1,$2,$3)`)).
 			WithArgs(genres[0].ID, genres[1].ID, genres[2].ID).
-			WillReturnRows(genreRows)
+			WillReturnRows(utils.GenerateSqlMockRows(genres))
 
 		result, err := repo.GetMovie(movie.ID, true)
 
@@ -58,12 +50,9 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 	})
 
 	t.Run("success without genres", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"}).
-			AddRow(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" WHERE id = $1 ORDER BY "movies"."id" LIMIT $2`)).
 			WithArgs(movie.ID, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(movie))
 
 		result, err := repo.GetMovie(movie.ID, false)
 
@@ -107,14 +96,9 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 	movies := utils.GenerateMovies(3)
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "title", "description", "release_date", "duration_minutes", "language", "rating", "created_at", "updated_at", "created_by", "last_updated_by"})
-		for _, movie := range movies {
-			rows.AddRow(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy)
-		}
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
 			WithArgs(2, 2).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRows(movies))
 
 		result, err := repo.GetMovies(2, 2)
 

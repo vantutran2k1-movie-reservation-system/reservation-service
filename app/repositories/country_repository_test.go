@@ -21,11 +21,9 @@ func TestCountryRepository_GetCountry(t *testing.T) {
 	country := utils.GenerateCountry()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name", "code"}).AddRow(country.ID, country.Name, country.Code)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "countries" WHERE id = $1 ORDER BY "countries"."id" LIMIT $2`)).
 			WithArgs(country.ID, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(country))
 
 		result, err := repo.GetCountry(country.ID)
 
@@ -69,11 +67,9 @@ func TestCountryRepository_GetCountryByName(t *testing.T) {
 	country := utils.GenerateCountry()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name", "code"}).AddRow(country.ID, country.Name, country.Code)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "countries" WHERE name = $1 ORDER BY "countries"."id" LIMIT $2`)).
 			WithArgs(country.Name, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(country))
 
 		result, err := repo.GetCountryByName(country.Name)
 
@@ -117,11 +113,9 @@ func TestCountryRepository_GetCountryByCode(t *testing.T) {
 	country := utils.GenerateCountry()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name", "code"}).AddRow(country.ID, country.Name, country.Code)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "countries" WHERE code = $1 ORDER BY "countries"."id" LIMIT $2`)).
 			WithArgs(country.Code, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(country))
 
 		result, err := repo.GetCountryByCode(country.Code)
 
@@ -165,13 +159,8 @@ func TestCountryRepository_GetCountries(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		countries := utils.GenerateCountries(3)
 
-		rows := sqlmock.NewRows([]string{"id", "name", "code"})
-		for _, country := range countries {
-			rows.AddRow(country.ID, country.Name, country.Code)
-		}
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "countries"`)).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRows(countries))
 
 		result, err := repo.GetCountries()
 

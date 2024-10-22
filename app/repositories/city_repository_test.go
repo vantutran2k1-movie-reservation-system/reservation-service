@@ -21,12 +21,9 @@ func TestCityRepository_GetCityByName(t *testing.T) {
 	city := utils.GenerateCity()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name", "state_id"}).
-			AddRow(city.ID, city.Name, city.StateID)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE state_id = $1 AND name = $2 ORDER BY "cities"."id" LIMIT $3`)).
 			WithArgs(city.StateID, city.Name, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(city))
 
 		result, err := repo.GetCityByName(city.StateID, city.Name)
 

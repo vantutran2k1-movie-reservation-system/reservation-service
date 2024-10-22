@@ -22,12 +22,9 @@ func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 	token := utils.GenerateLoginToken()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "user_id", "token_value", "created_at", "expires_at"}).
-			AddRow(token.ID, token.UserID, token.TokenValue, token.CreatedAt, token.ExpiresAt)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE token_value = $1 AND expires_at > $2 ORDER BY "login_tokens"."id" LIMIT $3`)).
 			WithArgs(token.TokenValue, sqlmock.AnyArg(), 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(token))
 
 		result, err := repo.GetActiveLoginToken(token.TokenValue)
 

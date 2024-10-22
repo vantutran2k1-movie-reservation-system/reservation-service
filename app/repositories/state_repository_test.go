@@ -22,12 +22,9 @@ func TestStateRepository_GetState(t *testing.T) {
 	state := utils.GenerateState()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name", "code", "country_id"}).
-			AddRow(state.ID, state.Name, state.Code, state.CountryID)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "states" WHERE id = $1 ORDER BY "states"."id" LIMIT $2`)).
 			WithArgs(state.ID, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(state))
 
 		result, err := repo.GetState(state.ID)
 
@@ -71,12 +68,9 @@ func TestStateRepository_GetStateByName(t *testing.T) {
 	state := utils.GenerateState()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name", "code", "country_id"}).
-			AddRow(state.ID, state.Name, state.Code, state.CountryID)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "states" WHERE country_id = $1 AND name = $2 ORDER BY "states"."id" LIMIT $3`)).
 			WithArgs(state.CountryID, state.Name, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(state))
 
 		result, err := repo.GetStateByName(state.CountryID, state.Name)
 
@@ -122,14 +116,9 @@ func TestStateRepository_GetStatesByCountry(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		states := utils.GenerateStates(3)
 
-		rows := sqlmock.NewRows([]string{"id", "name", "code", "country_id"})
-		for _, state := range states {
-			rows.AddRow(state.ID, state.Name, state.Code, state.CountryID)
-		}
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "states" WHERE country_id = $1`)).
 			WithArgs(countryID).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRows(states))
 
 		result, err := repo.GetStatesByCountry(countryID)
 

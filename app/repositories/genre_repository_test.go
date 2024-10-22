@@ -23,11 +23,9 @@ func TestGenreRepository_GetGenre(t *testing.T) {
 	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(genre.ID, genre.Name)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE id = $1 ORDER BY "genres"."id" LIMIT $2`)).
 			WithArgs(genre.ID, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(genre))
 
 		result, err := repo.GetGenre(genre.ID)
 
@@ -60,11 +58,9 @@ func TestGenreRepository_GetGenreByName(t *testing.T) {
 	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(genre.ID, genre.Name)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE name = $1 ORDER BY "genres"."id" LIMIT $2`)).
 			WithArgs(genre.Name, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(genre))
 
 		result, err := repo.GetGenreByName(genre.Name)
 
@@ -111,13 +107,8 @@ func TestGenreRepository_GetGenres(t *testing.T) {
 			genres[i] = utils.GenerateGenre()
 		}
 
-		rows := sqlmock.NewRows([]string{"id", "name"})
-		for _, genre := range genres {
-			rows.AddRow(genre.ID, genre.Name)
-		}
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres"`)).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRows(genres))
 
 		result, err := repo.GetGenres()
 

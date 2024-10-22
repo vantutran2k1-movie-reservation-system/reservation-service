@@ -21,11 +21,9 @@ func TestTheaterRepository_GetTheaterByName(t *testing.T) {
 	theater := utils.GenerateTheater()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "name"}).AddRow(theater.ID, theater.Name)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" WHERE name = $1 ORDER BY "theaters"."id" LIMIT $2`)).
 			WithArgs(theater.Name, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(theater))
 
 		result, err := repo.GetTheaterByName(theater.Name)
 

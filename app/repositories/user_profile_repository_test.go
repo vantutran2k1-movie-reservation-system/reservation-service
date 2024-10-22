@@ -22,12 +22,9 @@ func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 	profile := utils.GenerateUserProfile()
 
 	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "user_id", "first_name", "last_name", "phone_number", "date_of_birth", "profile_picture_url", "bio", "created_at", "updated_at"}).
-			AddRow(profile.ID, profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth, profile.ProfilePictureUrl, profile.Bio, profile.CreatedAt, profile.UpdatedAt)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "user_profiles" WHERE user_id = $1 ORDER BY "user_profiles"."id" LIMIT $2`)).
 			WithArgs(profile.UserID, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(profile))
 
 		result, err := repo.GetProfileByUserID(profile.UserID)
 
