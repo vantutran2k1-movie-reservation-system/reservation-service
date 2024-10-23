@@ -49,7 +49,7 @@ func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	p, err := c.UserProfileService.CreateUserProfile(s.UserID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
+	p, err := c.UserProfileService.CreateUserProfile(s.UserID, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -59,7 +59,7 @@ func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 }
 
 func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
-	var req payloads.CreateUserProfileRequest
+	var req payloads.UpdateUserProfileRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
 		return
@@ -71,7 +71,7 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	p, err := c.UserProfileService.UpdateUserProfile(s.UserID, req.FirstName, req.LastName, req.PhoneNumber, req.DateOfBirth)
+	p, err := c.UserProfileService.UpdateUserProfile(s.UserID, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

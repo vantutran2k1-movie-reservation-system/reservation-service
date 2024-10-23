@@ -127,6 +127,7 @@ func TestMovieService_CreateMovie(t *testing.T) {
 	service := NewMovieService(nil, transaction, repo, nil, nil)
 
 	movie := utils.GenerateMovie()
+	req := utils.GenerateCreateMovieRequest()
 
 	t.Run("success", func(t *testing.T) {
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -136,16 +137,16 @@ func TestMovieService_CreateMovie(t *testing.T) {
 		).Times(1)
 		repo.EXPECT().CreateMovie(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.CreateMovie(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedBy)
+		result, err := service.CreateMovie(req, movie.CreatedBy)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, movie.Title, result.Title)
-		assert.Equal(t, movie.Description, result.Description)
-		assert.Equal(t, movie.ReleaseDate, result.ReleaseDate)
-		assert.Equal(t, movie.DurationMinutes, result.DurationMinutes)
-		assert.Equal(t, movie.Language, result.Language)
-		assert.Equal(t, movie.Rating, result.Rating)
+		assert.Equal(t, req.Title, result.Title)
+		assert.Equal(t, req.Description, result.Description)
+		assert.Equal(t, req.ReleaseDate, result.ReleaseDate)
+		assert.Equal(t, req.DurationMinutes, result.DurationMinutes)
+		assert.Equal(t, req.Language, result.Language)
+		assert.Equal(t, req.Rating, result.Rating)
 		assert.Equal(t, movie.CreatedBy, result.CreatedBy)
 	})
 
@@ -157,7 +158,7 @@ func TestMovieService_CreateMovie(t *testing.T) {
 		).Times(1)
 		repo.EXPECT().CreateMovie(gomock.Any(), gomock.Any()).Return(errors.New("error creating movie")).Times(1)
 
-		result, err := service.CreateMovie(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedBy)
+		result, err := service.CreateMovie(req, movie.CreatedBy)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -175,6 +176,7 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 	service := NewMovieService(nil, transaction, repo, nil, nil)
 
 	movie := utils.GenerateMovie()
+	req := utils.GenerateUpdateMovieRequest()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
@@ -184,24 +186,24 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 			}).Times(1)
 		repo.EXPECT().UpdateMovie(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.UpdateMovie(movie.ID, movie.LastUpdatedBy, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating)
+		result, err := service.UpdateMovie(movie.ID, movie.LastUpdatedBy, req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, movie.ID, result.ID)
-		assert.Equal(t, movie.Title, result.Title)
-		assert.Equal(t, movie.Description, result.Description)
-		assert.Equal(t, movie.ReleaseDate, result.ReleaseDate)
-		assert.Equal(t, movie.DurationMinutes, result.DurationMinutes)
-		assert.Equal(t, movie.Language, result.Language)
-		assert.Equal(t, movie.Rating, result.Rating)
+		assert.Equal(t, req.Title, result.Title)
+		assert.Equal(t, req.Description, result.Description)
+		assert.Equal(t, req.ReleaseDate, result.ReleaseDate)
+		assert.Equal(t, req.DurationMinutes, result.DurationMinutes)
+		assert.Equal(t, req.Language, result.Language)
+		assert.Equal(t, req.Rating, result.Rating)
 		assert.Equal(t, movie.CreatedBy, result.CreatedBy)
 	})
 
 	t.Run("movie not found", func(t *testing.T) {
 		repo.EXPECT().GetMovie(movie.ID, false).Return(nil, nil).Times(1)
 
-		result, err := service.UpdateMovie(movie.ID, movie.LastUpdatedBy, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating)
+		result, err := service.UpdateMovie(movie.ID, movie.LastUpdatedBy, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -217,7 +219,7 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 			}).Times(1)
 		repo.EXPECT().UpdateMovie(gomock.Any(), gomock.Any()).Return(errors.New("error updating movie")).Times(1)
 
-		result, err := service.UpdateMovie(movie.ID, movie.LastUpdatedBy, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating)
+		result, err := service.UpdateMovie(movie.ID, movie.LastUpdatedBy, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

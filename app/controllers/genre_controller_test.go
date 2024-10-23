@@ -150,7 +150,7 @@ func TestGenreController_CreateGenre(t *testing.T) {
 		router := gin.Default()
 		router.POST("/genres", controller.CreateGenre)
 
-		service.EXPECT().CreateGenre(payload.Name).Return(genre, nil).Times(1)
+		service.EXPECT().CreateGenre(payload).Return(genre, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 
@@ -182,7 +182,7 @@ func TestGenreController_CreateGenre(t *testing.T) {
 		router := gin.Default()
 		router.POST("/genres", controller.CreateGenre)
 
-		service.EXPECT().CreateGenre(payload.Name).Return(nil, errors.InternalServerError("service error"))
+		service.EXPECT().CreateGenre(payload).Return(nil, errors.InternalServerError("service error"))
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 
@@ -215,7 +215,7 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 		router := gin.Default()
 		router.PUT("/genres/:id", controller.UpdateGenre)
 
-		service.EXPECT().UpdateGenre(genre.ID, payload.Name).Return(genre, nil).Times(1)
+		service.EXPECT().UpdateGenre(genre.ID, payload).Return(genre, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 
@@ -247,7 +247,7 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 		router := gin.Default()
 		router.PUT("/genres/:id", controller.UpdateGenre)
 
-		service.EXPECT().UpdateGenre(genre.ID, payload.Name).Return(nil, errors.InternalServerError("error updating genre")).Times(1)
+		service.EXPECT().UpdateGenre(genre.ID, payload).Return(nil, errors.InternalServerError("error updating genre")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 

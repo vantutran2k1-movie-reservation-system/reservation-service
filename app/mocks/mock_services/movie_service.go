@@ -15,6 +15,7 @@ import (
 	uuid "github.com/google/uuid"
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -56,18 +57,18 @@ func (mr *MockMovieServiceMockRecorder) AssignGenres(id, genreIDs any) *gomock.C
 }
 
 // CreateMovie mocks base method.
-func (m *MockMovieService) CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError) {
+func (m *MockMovieService) CreateMovie(req payloads.CreateMovieRequest, createdBy uuid.UUID) (*models.Movie, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateMovie", title, description, releaseDate, duration, language, rating, createdBy)
+	ret := m.ctrl.Call(m, "CreateMovie", req, createdBy)
 	ret0, _ := ret[0].(*models.Movie)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateMovie indicates an expected call of CreateMovie.
-func (mr *MockMovieServiceMockRecorder) CreateMovie(title, description, releaseDate, duration, language, rating, createdBy any) *gomock.Call {
+func (mr *MockMovieServiceMockRecorder) CreateMovie(req, createdBy any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMovie", reflect.TypeOf((*MockMovieService)(nil).CreateMovie), title, description, releaseDate, duration, language, rating, createdBy)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMovie", reflect.TypeOf((*MockMovieService)(nil).CreateMovie), req, createdBy)
 }
 
 // GetMovie mocks base method.
@@ -102,16 +103,16 @@ func (mr *MockMovieServiceMockRecorder) GetMovies(limit, offset any) *gomock.Cal
 }
 
 // UpdateMovie mocks base method.
-func (m *MockMovieService) UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
+func (m *MockMovieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMovie", id, updatedBy, title, description, releaseDate, duration, language, rating)
+	ret := m.ctrl.Call(m, "UpdateMovie", id, updatedBy, req)
 	ret0, _ := ret[0].(*models.Movie)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // UpdateMovie indicates an expected call of UpdateMovie.
-func (mr *MockMovieServiceMockRecorder) UpdateMovie(id, updatedBy, title, description, releaseDate, duration, language, rating any) *gomock.Call {
+func (mr *MockMovieServiceMockRecorder) UpdateMovie(id, updatedBy, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMovie", reflect.TypeOf((*MockMovieService)(nil).UpdateMovie), id, updatedBy, title, description, releaseDate, duration, language, rating)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMovie", reflect.TypeOf((*MockMovieService)(nil).UpdateMovie), id, updatedBy, req)
 }

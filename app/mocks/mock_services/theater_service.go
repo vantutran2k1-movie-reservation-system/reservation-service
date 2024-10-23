@@ -14,6 +14,7 @@ import (
 
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -41,16 +42,16 @@ func (m *MockTheaterService) EXPECT() *MockTheaterServiceMockRecorder {
 }
 
 // CreateTheater mocks base method.
-func (m *MockTheaterService) CreateTheater(name string) (*models.Theater, *errors.ApiError) {
+func (m *MockTheaterService) CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTheater", name)
+	ret := m.ctrl.Call(m, "CreateTheater", req)
 	ret0, _ := ret[0].(*models.Theater)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateTheater indicates an expected call of CreateTheater.
-func (mr *MockTheaterServiceMockRecorder) CreateTheater(name any) *gomock.Call {
+func (mr *MockTheaterServiceMockRecorder) CreateTheater(req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheater", reflect.TypeOf((*MockTheaterService)(nil).CreateTheater), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheater", reflect.TypeOf((*MockTheaterService)(nil).CreateTheater), req)
 }

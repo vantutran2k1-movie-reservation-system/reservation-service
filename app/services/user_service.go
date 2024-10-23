@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"os"
 	"strconv"
 	"time"
@@ -17,12 +18,12 @@ import (
 
 type UserService interface {
 	GetUser(id uuid.UUID) (*models.User, *errors.ApiError)
-	CreateUser(email string, password string) (*models.User, *errors.ApiError)
-	LoginUser(email string, password string) (*models.LoginToken, *errors.ApiError)
+	CreateUser(req payloads.CreateUserRequest) (*models.User, *errors.ApiError)
+	LoginUser(req payloads.LoginUserRequest) (*models.LoginToken, *errors.ApiError)
 	LogoutUser(tokenValue string) *errors.ApiError
-	UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError
-	CreatePasswordResetToken(email string) (*models.PasswordResetToken, *errors.ApiError)
-	ResetUserPassword(resetToken string, password string) *errors.ApiError
+	UpdateUserPassword(userID uuid.UUID, req payloads.UpdatePasswordRequest) *errors.ApiError
+	CreatePasswordResetToken(req payloads.CreatePasswordResetTokenRequest) (*models.PasswordResetToken, *errors.ApiError)
+	ResetUserPassword(resetToken string, request payloads.ResetPasswordRequest) *errors.ApiError
 }
 
 type userService struct {
@@ -70,23 +71,23 @@ func (s *userService) GetUser(id uuid.UUID) (*models.User, *errors.ApiError) {
 	return u, nil
 }
 
-func (s *userService) CreateUser(email string, password string) (*models.User, *errors.ApiError) {
-	u, err := s.userRepo.GetUserByEmail(email)
+func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, *errors.ApiError) {
+	u, err := s.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 	if u != nil {
-		return nil, errors.BadRequestError("email %s already exists", email)
+		return nil, errors.BadRequestError("email %s already exists", req.Email)
 	}
 
-	hashedPassword, err := s.authenticator.GenerateHashedPassword(password)
+	hashedPassword, err := s.authenticator.GenerateHashedPassword(req.Password)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 
 	u = &models.User{
 		ID:           uuid.New(),
-		Email:        email,
+		Email:        req.Email,
 		PasswordHash: hashedPassword,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
@@ -100,16 +101,16 @@ func (s *userService) CreateUser(email string, password string) (*models.User, *
 	return u, nil
 }
 
-func (s *userService) LoginUser(email string, password string) (*models.LoginToken, *errors.ApiError) {
-	u, err := s.userRepo.GetUserByEmail(email)
+func (s *userService) LoginUser(req payloads.LoginUserRequest) (*models.LoginToken, *errors.ApiError) {
+	u, err := s.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 	if u == nil {
-		return nil, errors.UnauthorizedError("invalid email %s", email)
+		return nil, errors.UnauthorizedError("invalid email %s", req.Email)
 	}
 
-	if !s.authenticator.DoPasswordsMatch(u.PasswordHash, password) {
+	if !s.authenticator.DoPasswordsMatch(u.PasswordHash, req.Password) {
 		return nil, errors.UnauthorizedError("invalid password")
 	}
 
@@ -181,7 +182,7 @@ func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
 	return nil
 }
 
-func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError {
+func (s *userService) UpdateUserPassword(userID uuid.UUID, req payloads.UpdatePasswordRequest) *errors.ApiError {
 	u, err := s.userRepo.GetUser(userID)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
@@ -190,11 +191,11 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 		return errors.NotFoundError("user does not exist")
 	}
 
-	if s.authenticator.DoPasswordsMatch(u.PasswordHash, password) {
+	if s.authenticator.DoPasswordsMatch(u.PasswordHash, req.Password) {
 		return errors.BadRequestError("new password can not be the same as current value")
 	}
 
-	p, err := s.authenticator.GenerateHashedPassword(password)
+	p, err := s.authenticator.GenerateHashedPassword(req.Password)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}
@@ -214,13 +215,13 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, password string) *err
 	return nil
 }
 
-func (s *userService) CreatePasswordResetToken(email string) (*models.PasswordResetToken, *errors.ApiError) {
-	u, err := s.userRepo.GetUserByEmail(email)
+func (s *userService) CreatePasswordResetToken(req payloads.CreatePasswordResetTokenRequest) (*models.PasswordResetToken, *errors.ApiError) {
+	u, err := s.userRepo.GetUserByEmail(req.Email)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 	if u == nil {
-		return nil, errors.NotFoundError("email %s does not exist", email)
+		return nil, errors.NotFoundError("email %s does not exist", req.Email)
 	}
 
 	token := s.authenticator.GeneratePasswordResetToken()
@@ -256,7 +257,7 @@ func (s *userService) CreatePasswordResetToken(email string) (*models.PasswordRe
 	return t, nil
 }
 
-func (s *userService) ResetUserPassword(resetToken string, password string) *errors.ApiError {
+func (s *userService) ResetUserPassword(resetToken string, req payloads.ResetPasswordRequest) *errors.ApiError {
 	t, err := s.passwordResetTokenRepo.GetActivePasswordResetToken(resetToken)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
@@ -273,7 +274,7 @@ func (s *userService) ResetUserPassword(resetToken string, password string) *err
 		return errors.InternalServerError("user not found")
 	}
 
-	p, err := s.authenticator.GenerateHashedPassword(password)
+	p, err := s.authenticator.GenerateHashedPassword(req.Password)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}

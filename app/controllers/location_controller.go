@@ -35,7 +35,7 @@ func (c *LocationController) CreateCountry(ctx *gin.Context) {
 		return
 	}
 
-	country, err := c.LocationService.CreateCountry(req.Name, req.Code)
+	country, err := c.LocationService.CreateCountry(req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -73,7 +73,7 @@ func (c *LocationController) CreateState(ctx *gin.Context) {
 		return
 	}
 
-	state, err := c.LocationService.CreateState(countryID, req.Name, req.Code)
+	state, err := c.LocationService.CreateState(countryID, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -101,7 +101,7 @@ func (c *LocationController) CreateCity(ctx *gin.Context) {
 		return
 	}
 
-	city, err := c.LocationService.CreateCity(countryID, stateID, req.Name)
+	city, err := c.LocationService.CreateCity(countryID, stateID, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

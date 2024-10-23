@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,8 +16,8 @@ import (
 type MovieService interface {
 	GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, *errors.ApiError)
 	GetMovies(limit, offset int) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
-	CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
-	UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError)
+	CreateMovie(req payloads.CreateMovieRequest, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
+	UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError)
 	AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError
 }
 
@@ -93,15 +94,15 @@ func (s *movieService) GetMovies(limit, offset int) ([]*models.Movie, *models.Re
 	return movies, meta, nil
 }
 
-func (s *movieService) CreateMovie(title string, description *string, releaseDate string, duration int, language *string, rating *float64, createdBy uuid.UUID) (*models.Movie, *errors.ApiError) {
+func (s *movieService) CreateMovie(req payloads.CreateMovieRequest, createdBy uuid.UUID) (*models.Movie, *errors.ApiError) {
 	m := models.Movie{
 		ID:              uuid.New(),
-		Title:           title,
-		Description:     description,
-		ReleaseDate:     releaseDate,
-		DurationMinutes: duration,
-		Language:        language,
-		Rating:          rating,
+		Title:           req.Title,
+		Description:     req.Description,
+		ReleaseDate:     req.ReleaseDate,
+		DurationMinutes: req.DurationMinutes,
+		Language:        req.Language,
+		Rating:          req.Rating,
 		CreatedAt:       time.Now().UTC(),
 		UpdatedAt:       time.Now().UTC(),
 		CreatedBy:       createdBy,
@@ -116,7 +117,7 @@ func (s *movieService) CreateMovie(title string, description *string, releaseDat
 	return &m, nil
 }
 
-func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, title string, description *string, releaseDate string, duration int, language *string, rating *float64) (*models.Movie, *errors.ApiError) {
+func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError) {
 	m, err := s.movieRepo.GetMovie(id, false)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -125,12 +126,12 @@ func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, title string, descri
 		return nil, errors.NotFoundError("movie not found")
 	}
 
-	m.Title = title
-	m.Description = description
-	m.ReleaseDate = releaseDate
-	m.DurationMinutes = duration
-	m.Language = language
-	m.Rating = rating
+	m.Title = req.Title
+	m.Description = req.Description
+	m.ReleaseDate = req.ReleaseDate
+	m.DurationMinutes = req.DurationMinutes
+	m.Language = req.Language
+	m.Rating = req.Rating
 	m.UpdatedAt = time.Now().UTC()
 	m.LastUpdatedBy = updatedBy
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {

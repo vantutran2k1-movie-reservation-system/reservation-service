@@ -79,7 +79,7 @@ func TestLocationController_CreateCountry(t *testing.T) {
 		router := gin.Default()
 		router.POST("/countries", controller.CreateCountry)
 
-		service.EXPECT().CreateCountry(payload.Name, payload.Code).Return(country, nil).Times(1)
+		service.EXPECT().CreateCountry(payload).Return(country, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, payload.Code)
 
@@ -113,7 +113,7 @@ func TestLocationController_CreateCountry(t *testing.T) {
 		router := gin.Default()
 		router.POST("/countries", controller.CreateCountry)
 
-		service.EXPECT().CreateCountry(payload.Name, payload.Code).Return(nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().CreateCountry(payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, payload.Code)
 
@@ -194,7 +194,7 @@ func TestLocationController_CreateState(t *testing.T) {
 		router := gin.Default()
 		router.POST("/countries/:countryId/states", controller.CreateState)
 
-		service.EXPECT().CreateState(state.CountryID, payload.Name, payload.Code).Return(state, nil).Times(1)
+		service.EXPECT().CreateState(state.CountryID, payload).Return(state, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, *payload.Code)
 
@@ -242,7 +242,7 @@ func TestLocationController_CreateState(t *testing.T) {
 		router := gin.Default()
 		router.POST("/countries/:countryId/states", controller.CreateState)
 
-		service.EXPECT().CreateState(state.CountryID, payload.Name, payload.Code).Return(nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().CreateState(state.CountryID, payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, *payload.Code)
 
@@ -275,7 +275,7 @@ func TestLocationController_CreateCity(t *testing.T) {
 		router := gin.Default()
 		router.POST("/countries/:countryId/states/:stateId/cities", controller.CreateCity)
 
-		service.EXPECT().CreateCity(state.CountryID, city.StateID, payload.Name).Return(city, nil).Times(1)
+		service.EXPECT().CreateCity(state.CountryID, city.StateID, payload).Return(city, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 
@@ -337,7 +337,7 @@ func TestLocationController_CreateCity(t *testing.T) {
 		router := gin.Default()
 		router.POST("/countries/:countryId/states/:stateId/cities", controller.CreateCity)
 
-		service.EXPECT().CreateCity(state.CountryID, city.StateID, payload.Name).Return(nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().CreateCity(state.CountryID, city.StateID, payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 

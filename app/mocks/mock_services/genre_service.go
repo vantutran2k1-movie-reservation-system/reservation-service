@@ -15,6 +15,7 @@ import (
 	uuid "github.com/google/uuid"
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,18 +43,18 @@ func (m *MockGenreService) EXPECT() *MockGenreServiceMockRecorder {
 }
 
 // CreateGenre mocks base method.
-func (m *MockGenreService) CreateGenre(name string) (*models.Genre, *errors.ApiError) {
+func (m *MockGenreService) CreateGenre(req payloads.CreateGenreRequest) (*models.Genre, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGenre", name)
+	ret := m.ctrl.Call(m, "CreateGenre", req)
 	ret0, _ := ret[0].(*models.Genre)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateGenre indicates an expected call of CreateGenre.
-func (mr *MockGenreServiceMockRecorder) CreateGenre(name any) *gomock.Call {
+func (mr *MockGenreServiceMockRecorder) CreateGenre(req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGenre", reflect.TypeOf((*MockGenreService)(nil).CreateGenre), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGenre", reflect.TypeOf((*MockGenreService)(nil).CreateGenre), req)
 }
 
 // GetGenre mocks base method.
@@ -87,16 +88,16 @@ func (mr *MockGenreServiceMockRecorder) GetGenres() *gomock.Call {
 }
 
 // UpdateGenre mocks base method.
-func (m *MockGenreService) UpdateGenre(id uuid.UUID, name string) (*models.Genre, *errors.ApiError) {
+func (m *MockGenreService) UpdateGenre(id uuid.UUID, req payloads.UpdateGenreRequest) (*models.Genre, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateGenre", id, name)
+	ret := m.ctrl.Call(m, "UpdateGenre", id, req)
 	ret0, _ := ret[0].(*models.Genre)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // UpdateGenre indicates an expected call of UpdateGenre.
-func (mr *MockGenreServiceMockRecorder) UpdateGenre(id, name any) *gomock.Call {
+func (mr *MockGenreServiceMockRecorder) UpdateGenre(id, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGenre", reflect.TypeOf((*MockGenreService)(nil).UpdateGenre), id, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGenre", reflect.TypeOf((*MockGenreService)(nil).UpdateGenre), id, req)
 }

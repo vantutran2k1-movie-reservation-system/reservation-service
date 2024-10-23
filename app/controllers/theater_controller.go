@@ -26,7 +26,7 @@ func (c *TheaterController) CreateTheater(ctx *gin.Context) {
 		return
 	}
 
-	theater, err := c.TheaterService.CreateTheater(req.Name)
+	theater, err := c.TheaterService.CreateTheater(req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

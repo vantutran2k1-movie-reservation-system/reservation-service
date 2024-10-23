@@ -100,7 +100,7 @@ func TestUserController_CreateUser(t *testing.T) {
 		router := gin.Default()
 		router.POST("/user", controller.CreateUser)
 
-		service.EXPECT().CreateUser(payload.Email, payload.Password).Return(&models.User{Email: payload.Email}, nil)
+		service.EXPECT().CreateUser(payload).Return(&models.User{Email: payload.Email}, nil)
 
 		reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, payload.Email, payload.Password)
 
@@ -132,7 +132,7 @@ func TestUserController_CreateUser(t *testing.T) {
 		router := gin.Default()
 		router.POST("/user", controller.CreateUser)
 
-		service.EXPECT().CreateUser(payload.Email, payload.Password).Return(nil, errors.InternalServerError("Service error"))
+		service.EXPECT().CreateUser(payload).Return(nil, errors.InternalServerError("Service error"))
 
 		reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, payload.Email, payload.Password)
 
@@ -159,13 +159,13 @@ func TestUserController_LoginUser(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	token := utils.GenerateLoginToken()
-	payload := utils.GenerateCreateUserRequest()
+	payload := utils.GenerateLoginUserRequest()
 
 	t.Run("successful login", func(t *testing.T) {
 		router := gin.Default()
 		router.POST("/login", userController.LoginUser)
 
-		mockUserService.EXPECT().LoginUser(payload.Email, payload.Password).Return(token, nil)
+		mockUserService.EXPECT().LoginUser(payload).Return(token, nil)
 
 		reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, payload.Email, payload.Password)
 
@@ -198,7 +198,7 @@ func TestUserController_LoginUser(t *testing.T) {
 		router := gin.Default()
 		router.POST("/login", userController.LoginUser)
 
-		mockUserService.EXPECT().LoginUser(payload.Email, payload.Password).Return(nil, errors.UnauthorizedError("Invalid credentials"))
+		mockUserService.EXPECT().LoginUser(payload).Return(nil, errors.UnauthorizedError("Invalid credentials"))
 
 		reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, payload.Email, payload.Password)
 
@@ -234,7 +234,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 		})
 		router.PUT("/users/password", controller.UpdateUserPassword)
 
-		service.EXPECT().UpdateUserPassword(session.UserID, payload.Password).Return(nil)
+		service.EXPECT().UpdateUserPassword(session.UserID, payload).Return(nil)
 
 		reqBody := fmt.Sprintf(`{"password": "%s"}`, payload.Password)
 
@@ -289,7 +289,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 		})
 		router.PUT("/users/password", controller.UpdateUserPassword)
 
-		service.EXPECT().UpdateUserPassword(session.UserID, payload.Password).Return(errors.InternalServerError("Failed to update password"))
+		service.EXPECT().UpdateUserPassword(session.UserID, payload).Return(errors.InternalServerError("Failed to update password"))
 
 		reqBody := fmt.Sprintf(`{"password": "%s"}`, payload.Password)
 
@@ -322,7 +322,7 @@ func TestUserController_CreatePasswordResetToken(t *testing.T) {
 		router := gin.Default()
 		router.POST("/users/password-reset-token", controller.CreatePasswordResetToken)
 
-		service.EXPECT().CreatePasswordResetToken(payload.Email).Return(token, nil).Times(1)
+		service.EXPECT().CreatePasswordResetToken(payload).Return(token, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"email": "%s"}`, payload.Email)
 		w := httptest.NewRecorder()
@@ -352,7 +352,7 @@ func TestUserController_CreatePasswordResetToken(t *testing.T) {
 		router := gin.Default()
 		router.POST("/users/password-reset-token", controller.CreatePasswordResetToken)
 
-		service.EXPECT().CreatePasswordResetToken(payload.Email).Return(nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().CreatePasswordResetToken(payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"email": "%s"}`, payload.Email)
 		w := httptest.NewRecorder()

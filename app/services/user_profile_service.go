@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"mime/multipart"
 	"os"
 	"time"
@@ -16,8 +17,8 @@ import (
 
 type UserProfileService interface {
 	GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError)
-	CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
-	UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError)
+	CreateUserProfile(userID uuid.UUID, req payloads.CreateUserProfileRequest) (*models.UserProfile, *errors.ApiError)
+	UpdateUserProfile(userID uuid.UUID, req payloads.UpdateUserProfileRequest) (*models.UserProfile, *errors.ApiError)
 	UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) (*models.UserProfile, *errors.ApiError)
 	DeleteProfilePicture(userID uuid.UUID) *errors.ApiError
 }
@@ -56,7 +57,7 @@ func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserP
 	return p, nil
 }
 
-func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
+func (s *userProfileService) CreateUserProfile(userID uuid.UUID, req payloads.CreateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
 	u, err := s.userProfileRepo.GetProfileByUserID(userID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -68,10 +69,10 @@ func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, last
 	p := models.UserProfile{
 		ID:          uuid.New(),
 		UserID:      userID,
-		FirstName:   firstName,
-		LastName:    lastName,
-		PhoneNumber: phoneNumber,
-		DateOfBirth: dateOfBirth,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		PhoneNumber: req.PhoneNumber,
+		DateOfBirth: req.DateOfBirth,
 		CreatedAt:   time.Now().UTC(),
 		UpdatedAt:   time.Now().UTC(),
 	}
@@ -84,7 +85,7 @@ func (s *userProfileService) CreateUserProfile(userID uuid.UUID, firstName, last
 	return &p, nil
 }
 
-func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
+func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, req payloads.UpdateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
 	p, err := s.userProfileRepo.GetProfileByUserID(userID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -94,10 +95,10 @@ func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, firstName, last
 		return nil, errors.NotFoundError("user profile does not exist")
 	}
 
-	p.FirstName = firstName
-	p.LastName = lastName
-	p.PhoneNumber = phoneNumber
-	p.DateOfBirth = dateOfBirth
+	p.FirstName = req.FirstName
+	p.LastName = req.LastName
+	p.PhoneNumber = req.PhoneNumber
+	p.DateOfBirth = req.DateOfBirth
 	p.UpdatedAt = time.Now().UTC()
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.userProfileRepo.UpdateUserProfile(tx, p)

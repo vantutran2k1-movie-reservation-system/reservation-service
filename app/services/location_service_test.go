@@ -52,10 +52,11 @@ func TestLocationService_CreateCountry(t *testing.T) {
 	service := NewLocationService(nil, transaction, countryRepo, nil, nil)
 
 	country := utils.GenerateCountry()
+	req := utils.GenerateCreateCountryRequest()
 
 	t.Run("success", func(t *testing.T) {
-		countryRepo.EXPECT().GetCountryByName(country.Name).Return(nil, nil).Times(1)
-		countryRepo.EXPECT().GetCountryByCode(country.Code).Return(nil, nil).Times(1)
+		countryRepo.EXPECT().GetCountryByName(req.Name).Return(nil, nil).Times(1)
+		countryRepo.EXPECT().GetCountryByCode(req.Code).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -63,18 +64,18 @@ func TestLocationService_CreateCountry(t *testing.T) {
 		).Times(1)
 		countryRepo.EXPECT().CreateCountry(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.CreateCountry(country.Name, country.Code)
+		result, err := service.CreateCountry(req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, country.Name, result.Name)
-		assert.Equal(t, country.Code, result.Code)
+		assert.Equal(t, req.Name, result.Name)
+		assert.Equal(t, req.Code, result.Code)
 	})
 
 	t.Run("duplicate name", func(t *testing.T) {
-		countryRepo.EXPECT().GetCountryByName(country.Name).Return(country, nil).Times(1)
+		countryRepo.EXPECT().GetCountryByName(req.Name).Return(country, nil).Times(1)
 
-		result, err := service.CreateCountry(country.Name, country.Code)
+		result, err := service.CreateCountry(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -83,9 +84,9 @@ func TestLocationService_CreateCountry(t *testing.T) {
 	})
 
 	t.Run("error getting by name", func(t *testing.T) {
-		countryRepo.EXPECT().GetCountryByName(country.Name).Return(nil, errors.New("error getting by name")).Times(1)
+		countryRepo.EXPECT().GetCountryByName(req.Name).Return(nil, errors.New("error getting by name")).Times(1)
 
-		result, err := service.CreateCountry(country.Name, country.Code)
+		result, err := service.CreateCountry(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -94,10 +95,10 @@ func TestLocationService_CreateCountry(t *testing.T) {
 	})
 
 	t.Run("duplicate code", func(t *testing.T) {
-		countryRepo.EXPECT().GetCountryByName(country.Name).Return(nil, nil).Times(1)
-		countryRepo.EXPECT().GetCountryByCode(country.Code).Return(country, nil).Times(1)
+		countryRepo.EXPECT().GetCountryByName(req.Name).Return(nil, nil).Times(1)
+		countryRepo.EXPECT().GetCountryByCode(req.Code).Return(country, nil).Times(1)
 
-		result, err := service.CreateCountry(country.Name, country.Code)
+		result, err := service.CreateCountry(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -106,10 +107,10 @@ func TestLocationService_CreateCountry(t *testing.T) {
 	})
 
 	t.Run("error getting by code", func(t *testing.T) {
-		countryRepo.EXPECT().GetCountryByName(country.Name).Return(nil, nil).Times(1)
-		countryRepo.EXPECT().GetCountryByCode(country.Code).Return(nil, errors.New("error getting by code")).Times(1)
+		countryRepo.EXPECT().GetCountryByName(req.Name).Return(nil, nil).Times(1)
+		countryRepo.EXPECT().GetCountryByCode(req.Code).Return(nil, errors.New("error getting by code")).Times(1)
 
-		result, err := service.CreateCountry(country.Name, country.Code)
+		result, err := service.CreateCountry(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -118,8 +119,8 @@ func TestLocationService_CreateCountry(t *testing.T) {
 	})
 
 	t.Run("error creating country", func(t *testing.T) {
-		countryRepo.EXPECT().GetCountryByName(country.Name).Return(nil, nil).Times(1)
-		countryRepo.EXPECT().GetCountryByCode(country.Code).Return(nil, nil).Times(1)
+		countryRepo.EXPECT().GetCountryByName(req.Name).Return(nil, nil).Times(1)
+		countryRepo.EXPECT().GetCountryByCode(req.Code).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -127,7 +128,7 @@ func TestLocationService_CreateCountry(t *testing.T) {
 		).Times(1)
 		countryRepo.EXPECT().CreateCountry(gomock.Any(), gomock.Any()).Return(errors.New("error creating country")).Times(1)
 
-		result, err := service.CreateCountry(country.Name, country.Code)
+		result, err := service.CreateCountry(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -205,10 +206,11 @@ func TestLocationService_CreateState(t *testing.T) {
 
 	country := utils.GenerateCountry()
 	state := utils.GenerateState()
+	req := utils.GenerateCreateStateRequest()
 
 	t.Run("success", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
-		stateRepo.EXPECT().GetStateByName(state.CountryID, state.Name).Return(nil, nil).Times(1)
+		stateRepo.EXPECT().GetStateByName(state.CountryID, req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -216,19 +218,19 @@ func TestLocationService_CreateState(t *testing.T) {
 		).Times(1)
 		stateRepo.EXPECT().CreateState(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.CreateState(state.CountryID, state.Name, state.Code)
+		result, err := service.CreateState(state.CountryID, req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, state.Name, result.Name)
-		assert.Equal(t, state.Code, result.Code)
+		assert.Equal(t, req.Name, result.Name)
+		assert.Equal(t, req.Code, result.Code)
 		assert.Equal(t, state.CountryID, result.CountryID)
 	})
 
 	t.Run("country not found", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(nil, nil).Times(1)
 
-		result, err := service.CreateState(state.CountryID, state.Name, state.Code)
+		result, err := service.CreateState(state.CountryID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -239,7 +241,7 @@ func TestLocationService_CreateState(t *testing.T) {
 	t.Run("error getting country", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(nil, errors.New("error getting country")).Times(1)
 
-		result, err := service.CreateState(state.CountryID, state.Name, state.Code)
+		result, err := service.CreateState(state.CountryID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -249,9 +251,9 @@ func TestLocationService_CreateState(t *testing.T) {
 
 	t.Run("duplicate state name", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
-		stateRepo.EXPECT().GetStateByName(state.CountryID, state.Name).Return(state, nil).Times(1)
+		stateRepo.EXPECT().GetStateByName(state.CountryID, req.Name).Return(state, nil).Times(1)
 
-		result, err := service.CreateState(state.CountryID, state.Name, state.Code)
+		result, err := service.CreateState(state.CountryID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -261,9 +263,9 @@ func TestLocationService_CreateState(t *testing.T) {
 
 	t.Run("error getting state", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
-		stateRepo.EXPECT().GetStateByName(state.CountryID, state.Name).Return(nil, errors.New("error getting state")).Times(1)
+		stateRepo.EXPECT().GetStateByName(state.CountryID, req.Name).Return(nil, errors.New("error getting state")).Times(1)
 
-		result, err := service.CreateState(state.CountryID, state.Name, state.Code)
+		result, err := service.CreateState(state.CountryID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -273,7 +275,7 @@ func TestLocationService_CreateState(t *testing.T) {
 
 	t.Run("error creating state", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
-		stateRepo.EXPECT().GetStateByName(state.CountryID, state.Name).Return(nil, nil).Times(1)
+		stateRepo.EXPECT().GetStateByName(state.CountryID, req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -281,7 +283,7 @@ func TestLocationService_CreateState(t *testing.T) {
 		).Times(1)
 		stateRepo.EXPECT().CreateState(gomock.Any(), gomock.Any()).Return(errors.New("error creating state")).Times(1)
 
-		result, err := service.CreateState(state.CountryID, state.Name, state.Code)
+		result, err := service.CreateState(state.CountryID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -303,11 +305,12 @@ func TestLocationService_CreateCity(t *testing.T) {
 	country := utils.GenerateCountry()
 	state := utils.GenerateState()
 	city := utils.GenerateCity()
+	req := utils.GenerateCreateCityRequest()
 
 	t.Run("success", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(state, nil).Times(1)
-		cityRepo.EXPECT().GetCityByName(city.StateID, city.Name).Return(nil, nil).Times(1)
+		cityRepo.EXPECT().GetCityByName(city.StateID, req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -315,17 +318,17 @@ func TestLocationService_CreateCity(t *testing.T) {
 		).Times(1)
 		cityRepo.EXPECT().CreateCity(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.CreateCity(state.CountryID, city.StateID, city.Name)
+		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, city.Name, result.Name)
+		assert.Equal(t, req.Name, result.Name)
 	})
 
 	t.Run("country not found", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(nil, nil).Times(1)
 
-		result, err := service.CreateCity(state.CountryID, city.StateID, city.Name)
+		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -336,7 +339,7 @@ func TestLocationService_CreateCity(t *testing.T) {
 	t.Run("error getting country", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(nil, errors.New("error getting country")).Times(1)
 
-		result, err := service.CreateCity(state.CountryID, city.StateID, city.Name)
+		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -348,7 +351,7 @@ func TestLocationService_CreateCity(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(nil, nil).Times(1)
 
-		result, err := service.CreateCity(state.CountryID, city.StateID, city.Name)
+		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -360,7 +363,7 @@ func TestLocationService_CreateCity(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(nil, errors.New("error getting state")).Times(1)
 
-		result, err := service.CreateCity(state.CountryID, city.StateID, city.Name)
+		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -371,9 +374,9 @@ func TestLocationService_CreateCity(t *testing.T) {
 	t.Run("duplicate city name", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(state, nil).Times(1)
-		cityRepo.EXPECT().GetCityByName(city.StateID, city.Name).Return(city, nil).Times(1)
+		cityRepo.EXPECT().GetCityByName(city.StateID, req.Name).Return(city, nil).Times(1)
 
-		result, err := service.CreateCity(state.CountryID, city.StateID, city.Name)
+		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -384,9 +387,9 @@ func TestLocationService_CreateCity(t *testing.T) {
 	t.Run("error getting city", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(state, nil).Times(1)
-		cityRepo.EXPECT().GetCityByName(city.StateID, city.Name).Return(nil, errors.New("error getting city")).Times(1)
+		cityRepo.EXPECT().GetCityByName(city.StateID, req.Name).Return(nil, errors.New("error getting city")).Times(1)
 
-		result, err := service.CreateCity(state.CountryID, city.StateID, city.Name)
+		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -397,7 +400,7 @@ func TestLocationService_CreateCity(t *testing.T) {
 	t.Run("error creating city", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(state, nil).Times(1)
-		cityRepo.EXPECT().GetCityByName(city.StateID, city.Name).Return(nil, nil).Times(1)
+		cityRepo.EXPECT().GetCityByName(city.StateID, req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -405,7 +408,7 @@ func TestLocationService_CreateCity(t *testing.T) {
 		).Times(1)
 		cityRepo.EXPECT().CreateCity(gomock.Any(), gomock.Any()).Return(errors.New("error creating city")).Times(1)
 
-		result, err := service.CreateCity(state.CountryID, city.StateID, city.Name)
+		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

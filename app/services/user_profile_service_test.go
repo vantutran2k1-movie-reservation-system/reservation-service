@@ -65,6 +65,7 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 	service := NewUserProfileService(nil, transaction, repo, nil)
 
 	profile := utils.GenerateUserProfile()
+	req := utils.GenerateCreateUserProfileRequest()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(nil, nil).Times(1)
@@ -74,20 +75,20 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 			}).Times(1)
 		repo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.CreateUserProfile(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth)
+		result, err := service.CreateUserProfile(profile.UserID, req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, profile.FirstName, result.FirstName)
-		assert.Equal(t, profile.LastName, result.LastName)
-		assert.Equal(t, profile.PhoneNumber, result.PhoneNumber)
-		assert.Equal(t, profile.DateOfBirth, result.DateOfBirth)
+		assert.Equal(t, req.FirstName, result.FirstName)
+		assert.Equal(t, req.LastName, result.LastName)
+		assert.Equal(t, req.PhoneNumber, result.PhoneNumber)
+		assert.Equal(t, req.DateOfBirth, result.DateOfBirth)
 	})
 
 	t.Run("duplicate user", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)
 
-		result, err := service.CreateUserProfile(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth)
+		result, err := service.CreateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -98,7 +99,7 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 	t.Run("error getting profile", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(nil, errors.New("error getting profile")).Times(1)
 
-		result, err := service.CreateUserProfile(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth)
+		result, err := service.CreateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -114,7 +115,7 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 			}).Times(1)
 		repo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error creating profile")).Times(1)
 
-		result, err := service.CreateUserProfile(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth)
+		result, err := service.CreateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -132,6 +133,7 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 	service := NewUserProfileService(nil, transaction, repo, nil)
 
 	profile := utils.GenerateUserProfile()
+	req := utils.GenerateUpdateUserProfileRequest()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(profile, nil).Times(1)
@@ -141,23 +143,23 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 			}).Times(1)
 		repo.EXPECT().UpdateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.UpdateUserProfile(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth)
+		result, err := service.UpdateUserProfile(profile.UserID, req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, profile.ID, result.ID)
 		assert.Equal(t, profile.UserID, result.UserID)
-		assert.Equal(t, profile.FirstName, result.FirstName)
-		assert.Equal(t, profile.LastName, result.LastName)
-		assert.Equal(t, profile.PhoneNumber, result.PhoneNumber)
-		assert.Equal(t, profile.DateOfBirth, result.DateOfBirth)
+		assert.Equal(t, req.FirstName, result.FirstName)
+		assert.Equal(t, req.LastName, result.LastName)
+		assert.Equal(t, req.PhoneNumber, result.PhoneNumber)
+		assert.Equal(t, req.DateOfBirth, result.DateOfBirth)
 
 	})
 
 	t.Run("profile not found", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(nil, nil).Times(1)
 
-		result, err := service.UpdateUserProfile(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth)
+		result, err := service.UpdateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -168,7 +170,7 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 	t.Run("error getting user", func(t *testing.T) {
 		repo.EXPECT().GetProfileByUserID(profile.UserID).Return(nil, errors.New("error getting user")).Times(1)
 
-		result, err := service.UpdateUserProfile(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth)
+		result, err := service.UpdateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -184,7 +186,7 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 			}).Times(1)
 		repo.EXPECT().UpdateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error updating profile")).Times(1)
 
-		result, err := service.UpdateUserProfile(profile.UserID, profile.FirstName, profile.LastName, profile.PhoneNumber, profile.DateOfBirth)
+		result, err := service.UpdateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

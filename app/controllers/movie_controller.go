@@ -76,7 +76,7 @@ func (c *MovieController) CreateMovie(ctx *gin.Context) {
 		return
 	}
 
-	m, err := c.MovieService.CreateMovie(req.Title, req.Description, req.ReleaseDate, req.DurationMinutes, req.Language, req.Rating, s.UserID)
+	m, err := c.MovieService.CreateMovie(req, s.UserID)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -104,7 +104,7 @@ func (c *MovieController) UpdateMovie(ctx *gin.Context) {
 		return
 	}
 
-	m, err := c.MovieService.UpdateMovie(id, s.UserID, req.Title, req.Description, req.ReleaseDate, req.DurationMinutes, req.Language, req.Rating)
+	m, err := c.MovieService.UpdateMovie(id, s.UserID, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

@@ -15,6 +15,7 @@ import (
 	uuid "github.com/google/uuid"
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,63 +43,63 @@ func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 }
 
 // CreatePasswordResetToken mocks base method.
-func (m *MockUserService) CreatePasswordResetToken(email string) (*models.PasswordResetToken, *errors.ApiError) {
+func (m *MockUserService) CreatePasswordResetToken(req payloads.CreatePasswordResetTokenRequest) (*models.PasswordResetToken, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePasswordResetToken", email)
+	ret := m.ctrl.Call(m, "CreatePasswordResetToken", req)
 	ret0, _ := ret[0].(*models.PasswordResetToken)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreatePasswordResetToken indicates an expected call of CreatePasswordResetToken.
-func (mr *MockUserServiceMockRecorder) CreatePasswordResetToken(email any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) CreatePasswordResetToken(req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePasswordResetToken", reflect.TypeOf((*MockUserService)(nil).CreatePasswordResetToken), email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePasswordResetToken", reflect.TypeOf((*MockUserService)(nil).CreatePasswordResetToken), req)
 }
 
 // CreateUser mocks base method.
-func (m *MockUserService) CreateUser(email, password string) (*models.User, *errors.ApiError) {
+func (m *MockUserService) CreateUser(req payloads.CreateUserRequest) (*models.User, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUser", email, password)
+	ret := m.ctrl.Call(m, "CreateUser", req)
 	ret0, _ := ret[0].(*models.User)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateUser indicates an expected call of CreateUser.
-func (mr *MockUserServiceMockRecorder) CreateUser(email, password any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) CreateUser(req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserService)(nil).CreateUser), email, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserService)(nil).CreateUser), req)
 }
 
 // GetUser mocks base method.
-func (m *MockUserService) GetUser(userID uuid.UUID) (*models.User, *errors.ApiError) {
+func (m *MockUserService) GetUser(id uuid.UUID) (*models.User, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUser", userID)
+	ret := m.ctrl.Call(m, "GetUser", id)
 	ret0, _ := ret[0].(*models.User)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // GetUser indicates an expected call of GetUser.
-func (mr *MockUserServiceMockRecorder) GetUser(userID any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) GetUser(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserService)(nil).GetUser), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserService)(nil).GetUser), id)
 }
 
 // LoginUser mocks base method.
-func (m *MockUserService) LoginUser(email, password string) (*models.LoginToken, *errors.ApiError) {
+func (m *MockUserService) LoginUser(req payloads.LoginUserRequest) (*models.LoginToken, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoginUser", email, password)
+	ret := m.ctrl.Call(m, "LoginUser", req)
 	ret0, _ := ret[0].(*models.LoginToken)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // LoginUser indicates an expected call of LoginUser.
-func (mr *MockUserServiceMockRecorder) LoginUser(email, password any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) LoginUser(req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginUser", reflect.TypeOf((*MockUserService)(nil).LoginUser), email, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginUser", reflect.TypeOf((*MockUserService)(nil).LoginUser), req)
 }
 
 // LogoutUser mocks base method.
@@ -116,29 +117,29 @@ func (mr *MockUserServiceMockRecorder) LogoutUser(tokenValue any) *gomock.Call {
 }
 
 // ResetUserPassword mocks base method.
-func (m *MockUserService) ResetUserPassword(resetToken, password string) *errors.ApiError {
+func (m *MockUserService) ResetUserPassword(resetToken string, request payloads.ResetPasswordRequest) *errors.ApiError {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResetUserPassword", resetToken, password)
+	ret := m.ctrl.Call(m, "ResetUserPassword", resetToken, request)
 	ret0, _ := ret[0].(*errors.ApiError)
 	return ret0
 }
 
 // ResetUserPassword indicates an expected call of ResetUserPassword.
-func (mr *MockUserServiceMockRecorder) ResetUserPassword(resetToken, password any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) ResetUserPassword(resetToken, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUserPassword", reflect.TypeOf((*MockUserService)(nil).ResetUserPassword), resetToken, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUserPassword", reflect.TypeOf((*MockUserService)(nil).ResetUserPassword), resetToken, request)
 }
 
 // UpdateUserPassword mocks base method.
-func (m *MockUserService) UpdateUserPassword(userID uuid.UUID, password string) *errors.ApiError {
+func (m *MockUserService) UpdateUserPassword(userID uuid.UUID, req payloads.UpdatePasswordRequest) *errors.ApiError {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserPassword", userID, password)
+	ret := m.ctrl.Call(m, "UpdateUserPassword", userID, req)
 	ret0, _ := ret[0].(*errors.ApiError)
 	return ret0
 }
 
 // UpdateUserPassword indicates an expected call of UpdateUserPassword.
-func (mr *MockUserServiceMockRecorder) UpdateUserPassword(userID, password any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) UpdateUserPassword(userID, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockUserService)(nil).UpdateUserPassword), userID, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockUserService)(nil).UpdateUserPassword), userID, req)
 }

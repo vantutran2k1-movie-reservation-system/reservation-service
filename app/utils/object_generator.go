@@ -88,15 +88,28 @@ func GenerateUser() *models.User {
 	}
 }
 
-func GenerateCreateUserRequest() *payloads.CreateUserRequest {
-	return &payloads.CreateUserRequest{
+func GenerateCreateUserRequest() payloads.CreateUserRequest {
+	return payloads.CreateUserRequest{
 		Email:    GenerateEmail(),
 		Password: GeneratePassword(),
 	}
 }
 
-func GenerateUpdatePasswordRequest() *payloads.UpdatePasswordRequest {
-	return &payloads.UpdatePasswordRequest{
+func GenerateUpdatePasswordRequest() payloads.UpdatePasswordRequest {
+	return payloads.UpdatePasswordRequest{
+		Password: GeneratePassword(),
+	}
+}
+
+func GenerateLoginUserRequest() payloads.LoginUserRequest {
+	return payloads.LoginUserRequest{
+		Email:    GenerateEmail(),
+		Password: GeneratePassword(),
+	}
+}
+
+func GenerateResetUserPasswordRequest() payloads.ResetPasswordRequest {
+	return payloads.ResetPasswordRequest{
 		Password: GeneratePassword(),
 	}
 }
@@ -122,11 +135,11 @@ func GenerateUserProfile() *models.UserProfile {
 	}
 }
 
-func GenerateCreateUserProfileRequest() *payloads.CreateUserProfileRequest {
+func GenerateCreateUserProfileRequest() payloads.CreateUserProfileRequest {
 	phoneNumber := GeneratePhoneNumber()
 	dateOfBirth := GenerateDate()
 
-	return &payloads.CreateUserProfileRequest{
+	return payloads.CreateUserProfileRequest{
 		FirstName:   GenerateName(),
 		LastName:    GenerateName(),
 		PhoneNumber: &phoneNumber,
@@ -134,11 +147,11 @@ func GenerateCreateUserProfileRequest() *payloads.CreateUserProfileRequest {
 	}
 }
 
-func GenerateUpdateUserProfileRequest() *payloads.UpdateUserProfileRequest {
+func GenerateUpdateUserProfileRequest() payloads.UpdateUserProfileRequest {
 	phoneNumber := GeneratePhoneNumber()
 	dateOfBirth := GenerateDate()
 
-	return &payloads.UpdateUserProfileRequest{
+	return payloads.UpdateUserProfileRequest{
 		FirstName:   GenerateName(),
 		LastName:    GenerateName(),
 		PhoneNumber: &phoneNumber,
@@ -208,12 +221,27 @@ func GenerateMovies(count int) []*models.Movie {
 	return movies
 }
 
-func GenerateCreateMovieRequest() *payloads.CreateMovieRequest {
+func GenerateCreateMovieRequest() payloads.CreateMovieRequest {
 	description := generateString(allChars, 100)
 	language := generateString(lowercaseChars, 10)
 	rating := generateFloat(0, 5)
 
-	return &payloads.CreateMovieRequest{
+	return payloads.CreateMovieRequest{
+		Title:           generateString(allChars, 10),
+		Description:     &description,
+		ReleaseDate:     GenerateDate(),
+		DurationMinutes: generateInt(100, 200),
+		Language:        &language,
+		Rating:          &rating,
+	}
+}
+
+func GenerateUpdateMovieRequest() payloads.UpdateMovieRequest {
+	description := generateString(allChars, 100)
+	language := generateString(lowercaseChars, 10)
+	rating := generateFloat(0, 5)
+
+	return payloads.UpdateMovieRequest{
 		Title:           generateString(allChars, 10),
 		Description:     &description,
 		ReleaseDate:     GenerateDate(),
@@ -246,14 +274,14 @@ func GenerateGenres(count int) []*models.Genre {
 	return genres
 }
 
-func GenerateCreateGenreRequest() *payloads.CreateGenreRequest {
-	return &payloads.CreateGenreRequest{
+func GenerateCreateGenreRequest() payloads.CreateGenreRequest {
+	return payloads.CreateGenreRequest{
 		Name: generateString(letterChars, 10),
 	}
 }
 
-func GenerateUpdateGenreRequest() *payloads.UpdateGenreRequest {
-	return &payloads.UpdateGenreRequest{
+func GenerateUpdateGenreRequest() payloads.UpdateGenreRequest {
+	return payloads.UpdateGenreRequest{
 		Name: generateString(letterChars, 10),
 	}
 }
@@ -279,8 +307,8 @@ func GeneratePasswordResetTokens(count int) []*models.PasswordResetToken {
 	return tokens
 }
 
-func GenerateCreatePasswordResetTokenRequest() *payloads.CreatePasswordResetTokenRequest {
-	return &payloads.CreatePasswordResetTokenRequest{
+func GenerateCreatePasswordResetTokenRequest() payloads.CreatePasswordResetTokenRequest {
+	return payloads.CreatePasswordResetTokenRequest{
 		Email: GenerateEmail(),
 	}
 }
@@ -303,8 +331,8 @@ func GenerateCountries(count int) []*models.Country {
 	return countries
 }
 
-func GenerateCreateCountryRequest() *payloads.CreateCountryRequest {
-	return &payloads.CreateCountryRequest{
+func GenerateCreateCountryRequest() payloads.CreateCountryRequest {
+	return payloads.CreateCountryRequest{
 		Name: generateString(lowercaseChars, 10),
 		Code: generateString(uppercaseChars, 2),
 	}
@@ -331,10 +359,10 @@ func GenerateStates(count int) []*models.State {
 	return states
 }
 
-func GenerateCreateStateRequest() *payloads.CreateStateRequest {
+func GenerateCreateStateRequest() payloads.CreateStateRequest {
 	code := generateString(uppercaseChars, 2)
 
-	return &payloads.CreateStateRequest{
+	return payloads.CreateStateRequest{
 		Name: generateString(lowercaseChars, 10),
 		Code: &code,
 	}
@@ -349,8 +377,8 @@ func GenerateCity() *models.City {
 	}
 }
 
-func GenerateCreateCityRequest() *payloads.CreateCityRequest {
-	return &payloads.CreateCityRequest{
+func GenerateCreateCityRequest() payloads.CreateCityRequest {
+	return payloads.CreateCityRequest{
 		Name: generateString(lowercaseChars, 10),
 	}
 }
@@ -363,8 +391,8 @@ func GenerateTheater() *models.Theater {
 	}
 }
 
-func GenerateCreateTheaterRequest() *payloads.CreateTheaterRequest {
-	return &payloads.CreateTheaterRequest{
+func GenerateCreateTheaterRequest() payloads.CreateTheaterRequest {
+	return payloads.CreateTheaterRequest{
 		Name: generateString(letterChars, 10),
 	}
 }

@@ -33,7 +33,7 @@ func TestTheaterController_CreateTheater(t *testing.T) {
 		router := gin.Default()
 		router.POST("/theaters", controller.CreateTheater)
 
-		service.EXPECT().CreateTheater(payload.Name).Return(theater, nil).Times(1)
+		service.EXPECT().CreateTheater(payload).Return(theater, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 
@@ -65,7 +65,7 @@ func TestTheaterController_CreateTheater(t *testing.T) {
 		router := gin.Default()
 		router.POST("/theaters", controller.CreateTheater)
 
-		service.EXPECT().CreateTheater(payload.Name).Return(nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().CreateTheater(payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 

@@ -42,7 +42,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	u, err := c.UserService.CreateUser(req.Email, req.Password)
+	u, err := c.UserService.CreateUser(req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -58,7 +58,7 @@ func (c *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	token, err := c.UserService.LoginUser(req.Email, req.Password)
+	token, err := c.UserService.LoginUser(req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -90,7 +90,7 @@ func (c *UserController) UpdateUserPassword(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.UserService.UpdateUserPassword(s.UserID, req.Password); err != nil {
+	if err := c.UserService.UpdateUserPassword(s.UserID, req); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
@@ -105,7 +105,7 @@ func (c *UserController) CreatePasswordResetToken(ctx *gin.Context) {
 		return
 	}
 
-	t, err := c.UserService.CreatePasswordResetToken(req.Email)
+	t, err := c.UserService.CreatePasswordResetToken(req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -121,7 +121,8 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.UserService.ResetUserPassword(ctx.Query("token"), req.Password); err != nil {
+	// TODO: extract token from headers instead of query params
+	if err := c.UserService.ResetUserPassword(ctx.Query("token"), req); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}

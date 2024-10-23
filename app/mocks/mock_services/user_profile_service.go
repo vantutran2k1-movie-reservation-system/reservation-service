@@ -16,6 +16,7 @@ import (
 	uuid "github.com/google/uuid"
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -43,18 +44,18 @@ func (m *MockUserProfileService) EXPECT() *MockUserProfileServiceMockRecorder {
 }
 
 // CreateUserProfile mocks base method.
-func (m *MockUserProfileService) CreateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
+func (m *MockUserProfileService) CreateUserProfile(userID uuid.UUID, req payloads.CreateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUserProfile", userID, firstName, lastName, phoneNumber, dateOfBirth)
+	ret := m.ctrl.Call(m, "CreateUserProfile", userID, req)
 	ret0, _ := ret[0].(*models.UserProfile)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateUserProfile indicates an expected call of CreateUserProfile.
-func (mr *MockUserProfileServiceMockRecorder) CreateUserProfile(userID, firstName, lastName, phoneNumber, dateOfBirth any) *gomock.Call {
+func (mr *MockUserProfileServiceMockRecorder) CreateUserProfile(userID, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserProfile", reflect.TypeOf((*MockUserProfileService)(nil).CreateUserProfile), userID, firstName, lastName, phoneNumber, dateOfBirth)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserProfile", reflect.TypeOf((*MockUserProfileService)(nil).CreateUserProfile), userID, req)
 }
 
 // DeleteProfilePicture mocks base method.
@@ -102,16 +103,16 @@ func (mr *MockUserProfileServiceMockRecorder) UpdateProfilePicture(userID, file 
 }
 
 // UpdateUserProfile mocks base method.
-func (m *MockUserProfileService) UpdateUserProfile(userID uuid.UUID, firstName, lastName string, phoneNumber, dateOfBirth *string) (*models.UserProfile, *errors.ApiError) {
+func (m *MockUserProfileService) UpdateUserProfile(userID uuid.UUID, req payloads.UpdateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserProfile", userID, firstName, lastName, phoneNumber, dateOfBirth)
+	ret := m.ctrl.Call(m, "UpdateUserProfile", userID, req)
 	ret0, _ := ret[0].(*models.UserProfile)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // UpdateUserProfile indicates an expected call of UpdateUserProfile.
-func (mr *MockUserProfileServiceMockRecorder) UpdateUserProfile(userID, firstName, lastName, phoneNumber, dateOfBirth any) *gomock.Call {
+func (mr *MockUserProfileServiceMockRecorder) UpdateUserProfile(userID, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserProfile", reflect.TypeOf((*MockUserProfileService)(nil).UpdateUserProfile), userID, firstName, lastName, phoneNumber, dateOfBirth)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserProfile", reflect.TypeOf((*MockUserProfileService)(nil).UpdateUserProfile), userID, req)
 }

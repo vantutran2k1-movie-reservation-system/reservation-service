@@ -21,9 +21,10 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 	service := NewTheaterService(nil, transaction, repo)
 
 	theater := utils.GenerateTheater()
+	req := utils.GenerateCreateTheaterRequest()
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetTheaterByName(theater.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetTheaterByName(req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -31,17 +32,17 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 		).Times(1)
 		repo.EXPECT().CreateTheater(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.CreateTheater(theater.Name)
+		result, err := service.CreateTheater(req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, theater.Name, result.Name)
+		assert.Equal(t, req.Name, result.Name)
 	})
 
 	t.Run("duplicate theater name", func(t *testing.T) {
-		repo.EXPECT().GetTheaterByName(theater.Name).Return(theater, nil).Times(1)
+		repo.EXPECT().GetTheaterByName(req.Name).Return(theater, nil).Times(1)
 
-		result, err := service.CreateTheater(theater.Name)
+		result, err := service.CreateTheater(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -50,9 +51,9 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 	})
 
 	t.Run("error getting theater", func(t *testing.T) {
-		repo.EXPECT().GetTheaterByName(theater.Name).Return(nil, errors.New("error getting theater")).Times(1)
+		repo.EXPECT().GetTheaterByName(req.Name).Return(nil, errors.New("error getting theater")).Times(1)
 
-		result, err := service.CreateTheater(theater.Name)
+		result, err := service.CreateTheater(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -61,7 +62,7 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 	})
 
 	t.Run("error creating theater", func(t *testing.T) {
-		repo.EXPECT().GetTheaterByName(theater.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetTheaterByName(req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -69,7 +70,7 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 		).Times(1)
 		repo.EXPECT().CreateTheater(gomock.Any(), gomock.Any()).Return(errors.New("error creating theater")).Times(1)
 
-		result, err := service.CreateTheater(theater.Name)
+		result, err := service.CreateTheater(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

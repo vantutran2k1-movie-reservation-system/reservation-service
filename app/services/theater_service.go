@@ -4,13 +4,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"gorm.io/gorm"
 )
 
 type TheaterService interface {
-	CreateTheater(name string) (*models.Theater, *errors.ApiError)
+	CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError)
 }
 
 func NewTheaterService(
@@ -31,8 +32,8 @@ type theaterService struct {
 	theaterRepo        repositories.TheaterRepository
 }
 
-func (s *theaterService) CreateTheater(name string) (*models.Theater, *errors.ApiError) {
-	t, err := s.theaterRepo.GetTheaterByName(name)
+func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError) {
+	t, err := s.theaterRepo.GetTheaterByName(req.Name)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -42,7 +43,7 @@ func (s *theaterService) CreateTheater(name string) (*models.Theater, *errors.Ap
 
 	t = &models.Theater{
 		ID:   uuid.New(),
-		Name: name,
+		Name: req.Name,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.theaterRepo.CreateTheater(tx, t)

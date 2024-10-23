@@ -108,7 +108,7 @@ func TestUserProfileController_CreateUserProfile(t *testing.T) {
 		router.POST("/profiles", controller.CreateUserProfile)
 
 		service.EXPECT().
-			CreateUserProfile(session.UserID, payload.FirstName, payload.LastName, payload.PhoneNumber, gomock.Any()).
+			CreateUserProfile(session.UserID, payload).
 			Return(profile, nil)
 
 		reqBody := fmt.Sprintf(`{"first_name": "%s", "last_name": "%s", "phone_number": "%s","date_of_birth": "%s"}`,
@@ -182,7 +182,7 @@ func TestUserProfileController_CreateUserProfile(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "/profiles", bytes.NewBufferString(reqBody))
 		req.Header.Set("Content-Type", "application/json")
 		service.EXPECT().
-			CreateUserProfile(session.UserID, payload.FirstName, payload.LastName, payload.PhoneNumber, payload.DateOfBirth).
+			CreateUserProfile(session.UserID, payload).
 			Return(nil, errors.InternalServerError("Failed to create profile"))
 
 		router.ServeHTTP(w, req)
@@ -218,7 +218,7 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 		router.PUT("/profiles", controller.UpdateUserProfile)
 
 		service.EXPECT().
-			UpdateUserProfile(session.UserID, payload.FirstName, payload.LastName, payload.PhoneNumber, payload.DateOfBirth).
+			UpdateUserProfile(session.UserID, payload).
 			Return(profile, nil)
 
 		reqBody := fmt.Sprintf(`{"first_name": "%s", "last_name": "%s", "phone_number": "%s","date_of_birth": "%s"}`,
@@ -286,7 +286,7 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 		router.PUT("/profiles", controller.UpdateUserProfile)
 
 		service.EXPECT().
-			UpdateUserProfile(session.UserID, payload.FirstName, payload.LastName, payload.PhoneNumber, payload.DateOfBirth).
+			UpdateUserProfile(session.UserID, payload).
 			Return(nil, errors.InternalServerError("Failed to update profile"))
 
 		reqBody := fmt.Sprintf(`{"first_name": "%s", "last_name": "%s", "phone_number": "%s","date_of_birth": "%s"}`,

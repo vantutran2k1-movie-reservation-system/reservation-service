@@ -52,7 +52,7 @@ func (c *GenreController) CreateGenre(ctx *gin.Context) {
 		return
 	}
 
-	g, err := c.GenreService.CreateGenre(req.Name)
+	g, err := c.GenreService.CreateGenre(req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -74,7 +74,7 @@ func (c *GenreController) UpdateGenre(ctx *gin.Context) {
 		return
 	}
 
-	g, err := c.GenreService.UpdateGenre(id, req.Name)
+	g, err := c.GenreService.UpdateGenre(id, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

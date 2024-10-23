@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"gorm.io/gorm"
@@ -12,8 +13,8 @@ import (
 type GenreService interface {
 	GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError)
 	GetGenres() ([]*models.Genre, *errors.ApiError)
-	CreateGenre(name string) (*models.Genre, *errors.ApiError)
-	UpdateGenre(id uuid.UUID, name string) (*models.Genre, *errors.ApiError)
+	CreateGenre(req payloads.CreateGenreRequest) (*models.Genre, *errors.ApiError)
+	UpdateGenre(id uuid.UUID, req payloads.UpdateGenreRequest) (*models.Genre, *errors.ApiError)
 }
 
 func NewGenreService(db *gorm.DB, transactionManager transaction.TransactionManager, genreRepo repositories.GenreRepository) GenreService {
@@ -47,8 +48,8 @@ func (s *genreService) GetGenres() ([]*models.Genre, *errors.ApiError) {
 	return genres, nil
 }
 
-func (s *genreService) CreateGenre(name string) (*models.Genre, *errors.ApiError) {
-	g, err := s.genreRepo.GetGenreByName(name)
+func (s *genreService) CreateGenre(req payloads.CreateGenreRequest) (*models.Genre, *errors.ApiError) {
+	g, err := s.genreRepo.GetGenreByName(req.Name)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -58,7 +59,7 @@ func (s *genreService) CreateGenre(name string) (*models.Genre, *errors.ApiError
 
 	g = &models.Genre{
 		ID:   uuid.New(),
-		Name: name,
+		Name: req.Name,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.genreRepo.CreateGenre(tx, g)
@@ -69,7 +70,7 @@ func (s *genreService) CreateGenre(name string) (*models.Genre, *errors.ApiError
 	return g, nil
 }
 
-func (s *genreService) UpdateGenre(id uuid.UUID, name string) (*models.Genre, *errors.ApiError) {
+func (s *genreService) UpdateGenre(id uuid.UUID, req payloads.UpdateGenreRequest) (*models.Genre, *errors.ApiError) {
 	g, err := s.genreRepo.GetGenre(id)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -78,7 +79,7 @@ func (s *genreService) UpdateGenre(id uuid.UUID, name string) (*models.Genre, *e
 		return nil, errors.NotFoundError("genre not found")
 	}
 
-	g, err = s.genreRepo.GetGenreByName(name)
+	g, err = s.genreRepo.GetGenreByName(req.Name)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -88,7 +89,7 @@ func (s *genreService) UpdateGenre(id uuid.UUID, name string) (*models.Genre, *e
 
 	g = &models.Genre{
 		ID:   id,
-		Name: name,
+		Name: req.Name,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.genreRepo.UpdateGenre(tx, g)

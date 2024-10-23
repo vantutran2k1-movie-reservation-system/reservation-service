@@ -15,6 +15,7 @@ import (
 	uuid "github.com/google/uuid"
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,48 +43,48 @@ func (m *MockLocationService) EXPECT() *MockLocationServiceMockRecorder {
 }
 
 // CreateCity mocks base method.
-func (m *MockLocationService) CreateCity(countryID, stateID uuid.UUID, name string) (*models.City, *errors.ApiError) {
+func (m *MockLocationService) CreateCity(countryID, stateID uuid.UUID, req payloads.CreateCityRequest) (*models.City, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCity", countryID, stateID, name)
+	ret := m.ctrl.Call(m, "CreateCity", countryID, stateID, req)
 	ret0, _ := ret[0].(*models.City)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateCity indicates an expected call of CreateCity.
-func (mr *MockLocationServiceMockRecorder) CreateCity(countryID, stateID, name any) *gomock.Call {
+func (mr *MockLocationServiceMockRecorder) CreateCity(countryID, stateID, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCity", reflect.TypeOf((*MockLocationService)(nil).CreateCity), countryID, stateID, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCity", reflect.TypeOf((*MockLocationService)(nil).CreateCity), countryID, stateID, req)
 }
 
 // CreateCountry mocks base method.
-func (m *MockLocationService) CreateCountry(name, code string) (*models.Country, *errors.ApiError) {
+func (m *MockLocationService) CreateCountry(req payloads.CreateCountryRequest) (*models.Country, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCountry", name, code)
+	ret := m.ctrl.Call(m, "CreateCountry", req)
 	ret0, _ := ret[0].(*models.Country)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateCountry indicates an expected call of CreateCountry.
-func (mr *MockLocationServiceMockRecorder) CreateCountry(name, code any) *gomock.Call {
+func (mr *MockLocationServiceMockRecorder) CreateCountry(req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCountry", reflect.TypeOf((*MockLocationService)(nil).CreateCountry), name, code)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCountry", reflect.TypeOf((*MockLocationService)(nil).CreateCountry), req)
 }
 
 // CreateState mocks base method.
-func (m *MockLocationService) CreateState(countryID uuid.UUID, name string, code *string) (*models.State, *errors.ApiError) {
+func (m *MockLocationService) CreateState(countryID uuid.UUID, req payloads.CreateStateRequest) (*models.State, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateState", countryID, name, code)
+	ret := m.ctrl.Call(m, "CreateState", countryID, req)
 	ret0, _ := ret[0].(*models.State)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // CreateState indicates an expected call of CreateState.
-func (mr *MockLocationServiceMockRecorder) CreateState(countryID, name, code any) *gomock.Call {
+func (mr *MockLocationServiceMockRecorder) CreateState(countryID, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateState", reflect.TypeOf((*MockLocationService)(nil).CreateState), countryID, name, code)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateState", reflect.TypeOf((*MockLocationService)(nil).CreateState), countryID, req)
 }
 
 // GetCountries mocks base method.

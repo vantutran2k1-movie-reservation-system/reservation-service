@@ -95,9 +95,10 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	service := NewGenreService(nil, transaction, repo)
 
 	genre := utils.GenerateGenre()
+	req := utils.GenerateCreateGenreRequest()
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenreByName(req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -105,17 +106,17 @@ func TestGenreService_CreateGenre(t *testing.T) {
 		).Times(1)
 		repo.EXPECT().CreateGenre(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.CreateGenre(genre.Name)
+		result, err := service.CreateGenre(req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, genre.Name, result.Name)
+		assert.Equal(t, req.Name, result.Name)
 	})
 
 	t.Run("duplicate genre name", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(genre.Name).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenreByName(req.Name).Return(genre, nil).Times(1)
 
-		result, err := service.CreateGenre(genre.Name)
+		result, err := service.CreateGenre(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -124,9 +125,9 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	})
 
 	t.Run("error getting genre", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, errors.New("error getting genre")).Times(1)
+		repo.EXPECT().GetGenreByName(req.Name).Return(nil, errors.New("error getting genre")).Times(1)
 
-		result, err := service.CreateGenre(genre.Name)
+		result, err := service.CreateGenre(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -135,7 +136,7 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	})
 
 	t.Run("error creating genre", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenreByName(req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -143,7 +144,7 @@ func TestGenreService_CreateGenre(t *testing.T) {
 		).Times(1)
 		repo.EXPECT().CreateGenre(gomock.Any(), gomock.Any()).Return(errors.New("error creating genre")).Times(1)
 
-		result, err := service.CreateGenre(genre.Name)
+		result, err := service.CreateGenre(req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -161,10 +162,11 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	service := NewGenreService(nil, transaction, repo)
 
 	genre := utils.GenerateGenre()
+	req := utils.GenerateUpdateGenreRequest()
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenreByName(req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -172,18 +174,18 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 		).Times(1)
 		repo.EXPECT().UpdateGenre(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-		result, err := service.UpdateGenre(genre.ID, genre.Name)
+		result, err := service.UpdateGenre(genre.ID, req)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, genre.ID, result.ID)
-		assert.Equal(t, genre.Name, result.Name)
+		assert.Equal(t, req.Name, result.Name)
 	})
 
 	t.Run("genre not found", func(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(nil, nil).Times(1)
 
-		result, err := service.UpdateGenre(genre.ID, genre.Name)
+		result, err := service.UpdateGenre(genre.ID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -194,7 +196,7 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	t.Run("error getting genre", func(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(nil, errors.New("error getting genre")).Times(1)
 
-		result, err := service.UpdateGenre(genre.ID, genre.Name)
+		result, err := service.UpdateGenre(genre.ID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -204,9 +206,9 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 
 	t.Run("duplicate genre name", func(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
-		repo.EXPECT().GetGenreByName(genre.Name).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenreByName(req.Name).Return(genre, nil).Times(1)
 
-		result, err := service.UpdateGenre(genre.ID, genre.Name)
+		result, err := service.UpdateGenre(genre.ID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -216,9 +218,9 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 
 	t.Run("error getting genre by name", func(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, errors.New("error getting genre")).Times(1)
+		repo.EXPECT().GetGenreByName(req.Name).Return(nil, errors.New("error getting genre")).Times(1)
 
-		result, err := service.UpdateGenre(genre.ID, genre.Name)
+		result, err := service.UpdateGenre(genre.ID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -228,7 +230,7 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 
 	t.Run("error updating genre", func(t *testing.T) {
 		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
-		repo.EXPECT().GetGenreByName(genre.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenreByName(req.Name).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -236,7 +238,7 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 		).Times(1)
 		repo.EXPECT().UpdateGenre(gomock.Any(), gomock.Any()).Return(errors.New("error updating genre")).Times(1)
 
-		result, err := service.UpdateGenre(genre.ID, genre.Name)
+		result, err := service.UpdateGenre(genre.ID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

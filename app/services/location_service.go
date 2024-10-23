@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"gorm.io/gorm"
@@ -11,10 +12,10 @@ import (
 
 type LocationService interface {
 	GetCountries() ([]*models.Country, *errors.ApiError)
-	CreateCountry(name string, code string) (*models.Country, *errors.ApiError)
+	CreateCountry(req payloads.CreateCountryRequest) (*models.Country, *errors.ApiError)
 	GetStatesByCountry(countryID uuid.UUID) ([]*models.State, *errors.ApiError)
-	CreateState(countryID uuid.UUID, name string, code *string) (*models.State, *errors.ApiError)
-	CreateCity(countryID, stateID uuid.UUID, name string) (*models.City, *errors.ApiError)
+	CreateState(countryID uuid.UUID, req payloads.CreateStateRequest) (*models.State, *errors.ApiError)
+	CreateCity(countryID, stateID uuid.UUID, req payloads.CreateCityRequest) (*models.City, *errors.ApiError)
 }
 
 func NewLocationService(
@@ -50,8 +51,8 @@ func (s *locationService) GetCountries() ([]*models.Country, *errors.ApiError) {
 	return countries, nil
 }
 
-func (s *locationService) CreateCountry(name string, code string) (*models.Country, *errors.ApiError) {
-	c, err := s.countryRepo.GetCountryByName(name)
+func (s *locationService) CreateCountry(req payloads.CreateCountryRequest) (*models.Country, *errors.ApiError) {
+	c, err := s.countryRepo.GetCountryByName(req.Name)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -59,7 +60,7 @@ func (s *locationService) CreateCountry(name string, code string) (*models.Count
 		return nil, errors.BadRequestError("duplicate country name")
 	}
 
-	c, err = s.countryRepo.GetCountryByCode(code)
+	c, err = s.countryRepo.GetCountryByCode(req.Code)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -69,8 +70,8 @@ func (s *locationService) CreateCountry(name string, code string) (*models.Count
 
 	c = &models.Country{
 		ID:   uuid.New(),
-		Name: name,
-		Code: code,
+		Name: req.Name,
+		Code: req.Code,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.countryRepo.CreateCountry(tx, c)
@@ -98,7 +99,7 @@ func (s *locationService) GetStatesByCountry(countryID uuid.UUID) ([]*models.Sta
 	return states, nil
 }
 
-func (s *locationService) CreateState(countryID uuid.UUID, name string, code *string) (*models.State, *errors.ApiError) {
+func (s *locationService) CreateState(countryID uuid.UUID, req payloads.CreateStateRequest) (*models.State, *errors.ApiError) {
 	country, err := s.countryRepo.GetCountry(countryID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -107,7 +108,7 @@ func (s *locationService) CreateState(countryID uuid.UUID, name string, code *st
 		return nil, errors.NotFoundError("country does not exist")
 	}
 
-	state, err := s.stateRepo.GetStateByName(countryID, name)
+	state, err := s.stateRepo.GetStateByName(countryID, req.Name)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -117,8 +118,8 @@ func (s *locationService) CreateState(countryID uuid.UUID, name string, code *st
 
 	state = &models.State{
 		ID:        uuid.New(),
-		Name:      name,
-		Code:      code,
+		Name:      req.Name,
+		Code:      req.Code,
 		CountryID: countryID,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
@@ -130,7 +131,7 @@ func (s *locationService) CreateState(countryID uuid.UUID, name string, code *st
 	return state, nil
 }
 
-func (s *locationService) CreateCity(countryID, stateID uuid.UUID, name string) (*models.City, *errors.ApiError) {
+func (s *locationService) CreateCity(countryID, stateID uuid.UUID, req payloads.CreateCityRequest) (*models.City, *errors.ApiError) {
 	country, err := s.countryRepo.GetCountry(countryID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
@@ -147,7 +148,7 @@ func (s *locationService) CreateCity(countryID, stateID uuid.UUID, name string) 
 		return nil, errors.NotFoundError("state does not exist")
 	}
 
-	city, err := s.cityRepo.GetCityByName(stateID, name)
+	city, err := s.cityRepo.GetCityByName(stateID, req.Name)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -157,7 +158,7 @@ func (s *locationService) CreateCity(countryID, stateID uuid.UUID, name string) 
 
 	city = &models.City{
 		ID:      uuid.New(),
-		Name:    name,
+		Name:    req.Name,
 		StateID: stateID,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {

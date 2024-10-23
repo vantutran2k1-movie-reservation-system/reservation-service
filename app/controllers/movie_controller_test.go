@@ -191,7 +191,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		})
 		router.POST("/movies", controller.CreateMovie)
 
-		service.EXPECT().CreateMovie(payload.Title, payload.Description, payload.ReleaseDate, payload.DurationMinutes, payload.Language, payload.Rating, session.UserID).
+		service.EXPECT().CreateMovie(payload, session.UserID).
 			Return(movie, nil)
 
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
@@ -254,7 +254,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		})
 		router.POST("/movies", controller.CreateMovie)
 
-		service.EXPECT().CreateMovie(payload.Title, payload.Description, payload.ReleaseDate, payload.DurationMinutes, payload.Language, payload.Rating, session.UserID).
+		service.EXPECT().CreateMovie(payload, session.UserID).
 			Return(nil, errors.InternalServerError("Service error"))
 
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
@@ -283,7 +283,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 
 	session := utils.GenerateUserSession()
 	movie := utils.GenerateMovie()
-	payload := utils.GenerateCreateMovieRequest()
+	payload := utils.GenerateUpdateMovieRequest()
 
 	errors.RegisterCustomValidators()
 
@@ -295,7 +295,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 		})
 		router.PUT("/movies/:id", controller.UpdateMovie)
 
-		service.EXPECT().UpdateMovie(movie.ID, session.UserID, payload.Title, payload.Description, payload.ReleaseDate, payload.DurationMinutes, payload.Language, payload.Rating).
+		service.EXPECT().UpdateMovie(movie.ID, session.UserID, payload).
 			Return(movie, nil)
 
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
@@ -341,7 +341,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 		})
 		router.PUT("/movies/:id", controller.UpdateMovie)
 
-		service.EXPECT().UpdateMovie(movie.ID, session.UserID, payload.Title, payload.Description, payload.ReleaseDate, payload.DurationMinutes, payload.Language, payload.Rating).
+		service.EXPECT().UpdateMovie(movie.ID, session.UserID, payload).
 			Return(nil, errors.InternalServerError("Service error"))
 
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
