@@ -12,6 +12,7 @@ package mock_services
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
@@ -54,4 +55,19 @@ func (m *MockTheaterService) CreateTheater(req payloads.CreateTheaterRequest) (*
 func (mr *MockTheaterServiceMockRecorder) CreateTheater(req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheater", reflect.TypeOf((*MockTheaterService)(nil).CreateTheater), req)
+}
+
+// CreateTheaterLocation mocks base method.
+func (m *MockTheaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateTheaterLocation", theaterID, req)
+	ret0, _ := ret[0].(*models.TheaterLocation)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// CreateTheaterLocation indicates an expected call of CreateTheaterLocation.
+func (mr *MockTheaterServiceMockRecorder) CreateTheaterLocation(theaterID, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheaterLocation", reflect.TypeOf((*MockTheaterService)(nil).CreateTheaterLocation), theaterID, req)
 }

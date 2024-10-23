@@ -10,6 +10,52 @@ import (
 	"testing"
 )
 
+func TestCityRepository_GetCity(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewCityRepository(db)
+
+	city := utils.GenerateCity()
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 ORDER BY "cities"."id" LIMIT $2`)).
+			WithArgs(city.ID, 1).
+			WillReturnRows(utils.GenerateSqlMockRow(city))
+
+		result, err := repo.GetCity(city.ID)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, city, result)
+	})
+
+	t.Run("city not found", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 ORDER BY "cities"."id" LIMIT $2`)).
+			WithArgs(city.ID, 1).
+			WillReturnRows(sqlmock.NewRows(nil))
+
+		result, err := repo.GetCity(city.ID)
+
+		assert.Nil(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("error getting city", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 ORDER BY "cities"."id" LIMIT $2`)).
+			WithArgs(city.ID, 1).
+			WillReturnError(errors.New("error getting city"))
+
+		result, err := repo.GetCity(city.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting city", err.Error())
+	})
+}
+
 func TestCityRepository_GetCityByName(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {

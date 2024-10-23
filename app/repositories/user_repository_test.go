@@ -149,23 +149,22 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 	}()
 
 	user := utils.GenerateUser()
-	hashedPassword := utils.GenerateHashedPassword()
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "password_hash"=$1,"updated_at"=$2 WHERE "id" = $3`)).
-			WithArgs(hashedPassword, sqlmock.AnyArg(), user.ID).
+			WithArgs(user.PasswordHash, sqlmock.AnyArg(), user.ID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
 		tx := db.Begin()
-		result, err := NewUserRepository(db).UpdatePassword(tx, user, hashedPassword)
+		result, err := NewUserRepository(db).UpdatePassword(tx, user, user.PasswordHash)
 		tx.Commit()
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, user.ID, result.ID)
-		assert.Equal(t, hashedPassword, result.PasswordHash)
+		assert.Equal(t, user.PasswordHash, result.PasswordHash)
 	})
 
 	t.Run("db error", func(t *testing.T) {

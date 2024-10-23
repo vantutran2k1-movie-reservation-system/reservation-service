@@ -1,12 +1,14 @@
 package repositories
 
 import (
+	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type TheaterRepository interface {
+	GetTheater(id uuid.UUID) (*models.Theater, error)
 	GetTheaterByName(name string) (*models.Theater, error)
 	CreateTheater(tx *gorm.DB, theater *models.Theater) error
 }
@@ -19,6 +21,19 @@ func NewTheaterRepository(db *gorm.DB) TheaterRepository {
 
 type theaterRepository struct {
 	db *gorm.DB
+}
+
+func (r *theaterRepository) GetTheater(id uuid.UUID) (*models.Theater, error) {
+	var theater models.Theater
+	if err := r.db.Where("id = ?", id).First(&theater).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &theater, nil
 }
 
 func (r *theaterRepository) GetTheaterByName(name string) (*models.Theater, error) {

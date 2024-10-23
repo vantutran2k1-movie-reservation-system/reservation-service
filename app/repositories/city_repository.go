@@ -8,6 +8,7 @@ import (
 )
 
 type CityRepository interface {
+	GetCity(id uuid.UUID) (*models.City, error)
 	GetCityByName(stateID uuid.UUID, name string) (*models.City, error)
 	CreateCity(tx *gorm.DB, city *models.City) error
 }
@@ -18,6 +19,19 @@ func NewCityRepository(db *gorm.DB) CityRepository {
 
 type cityRepository struct {
 	db *gorm.DB
+}
+
+func (r *cityRepository) GetCity(id uuid.UUID) (*models.City, error) {
+	var city models.City
+	if err := r.db.Where("id = ?", id).First(&city).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &city, nil
 }
 
 func (r *cityRepository) GetCityByName(stateID uuid.UUID, name string) (*models.City, error) {

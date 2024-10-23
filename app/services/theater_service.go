@@ -12,24 +12,31 @@ import (
 
 type TheaterService interface {
 	CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError)
+	CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
 }
 
 func NewTheaterService(
 	db *gorm.DB,
 	transactionManager transaction.TransactionManager,
 	theaterRepo repositories.TheaterRepository,
+	theaterLocationRepo repositories.TheaterLocationRepository,
+	cityRepo repositories.CityRepository,
 ) TheaterService {
 	return &theaterService{
-		db:                 db,
-		transactionManager: transactionManager,
-		theaterRepo:        theaterRepo,
+		db:                  db,
+		transactionManager:  transactionManager,
+		theaterRepo:         theaterRepo,
+		theaterLocationRepo: theaterLocationRepo,
+		cityRepo:            cityRepo,
 	}
 }
 
 type theaterService struct {
-	db                 *gorm.DB
-	transactionManager transaction.TransactionManager
-	theaterRepo        repositories.TheaterRepository
+	db                  *gorm.DB
+	transactionManager  transaction.TransactionManager
+	theaterRepo         repositories.TheaterRepository
+	theaterLocationRepo repositories.TheaterLocationRepository
+	cityRepo            repositories.CityRepository
 }
 
 func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError) {
@@ -52,4 +59,47 @@ func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*mode
 	}
 
 	return t, nil
+}
+
+func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError) {
+	t, err := s.theaterRepo.GetTheater(theaterID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if t == nil {
+		return nil, errors.NotFoundError("theater not found")
+	}
+
+	l, err := s.theaterLocationRepo.GetLocationByTheaterID(theaterID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if l != nil {
+		return nil, errors.BadRequestError("duplicate location for this theater")
+	}
+
+	c, err := s.cityRepo.GetCity(req.CityID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if c == nil {
+		return nil, errors.BadRequestError("invalid city id")
+	}
+
+	l = &models.TheaterLocation{
+		ID:         uuid.New(),
+		TheaterID:  theaterID,
+		CityID:     req.CityID,
+		Address:    req.Address,
+		PostalCode: req.PostalCode,
+		Latitude:   req.Latitude,
+		Longitude:  req.Longitude,
+	}
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.theaterLocationRepo.CreateTheaterLocation(tx, l)
+	}); err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return l, nil
 }

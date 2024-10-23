@@ -28,28 +28,6 @@ func GenerateResponseMeta() *models.ResponseMeta {
 	}
 }
 
-func GenerateEmail() string {
-	nameLength := rand.Intn(6) + 5
-	domain := emailDomains[rand.Intn(len(emailDomains))]
-
-	return fmt.Sprintf("%s@%s", generateString(lowercaseChars, nameLength), domain)
-}
-
-func GeneratePassword() string {
-	return generateString(letterChars, 12)
-}
-
-func GenerateHashedPassword() string {
-	password := GeneratePassword()
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
-	return string(hashedPassword)
-}
-
-func GeneratePhoneNumber() string {
-	return generateString(numberChars, 10)
-}
-
 func GenerateURL() string {
 	protocol := urlProtocols[rand.Intn(len(urlProtocols))]
 	subdomain := generateString(lowercaseChars, rand.Intn(5)+3)
@@ -60,29 +38,14 @@ func GenerateURL() string {
 	return fmt.Sprintf("%s://%s.%s/%s?%s", protocol, subdomain, domain, path, queryParams)
 }
 
-func GenerateName() string {
-	return generateString(lowercaseChars, 5)
-}
-
-func GenerateDate() string {
-	start := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
-	end := generateCurrentTime()
-
-	days := rand.Int63n(int64(end.Sub(start).Hours() / 24))
-
-	date := start.AddDate(0, 0, int(days)-1)
-
-	return date.Format("2006-01-02")
-}
-
 // Models and payloads
 //
 // User
 func GenerateUser() *models.User {
 	return &models.User{
 		ID:           generateUUID(),
-		Email:        GenerateEmail(),
-		PasswordHash: GenerateHashedPassword(),
+		Email:        generateEmail(),
+		PasswordHash: generateHashedPassword(),
 		CreatedAt:    generateCurrentTime(),
 		UpdatedAt:    generateCurrentTime(),
 	}
@@ -90,42 +53,42 @@ func GenerateUser() *models.User {
 
 func GenerateCreateUserRequest() payloads.CreateUserRequest {
 	return payloads.CreateUserRequest{
-		Email:    GenerateEmail(),
-		Password: GeneratePassword(),
+		Email:    generateEmail(),
+		Password: generatePassword(),
 	}
 }
 
 func GenerateUpdatePasswordRequest() payloads.UpdatePasswordRequest {
 	return payloads.UpdatePasswordRequest{
-		Password: GeneratePassword(),
+		Password: generatePassword(),
 	}
 }
 
 func GenerateLoginUserRequest() payloads.LoginUserRequest {
 	return payloads.LoginUserRequest{
-		Email:    GenerateEmail(),
-		Password: GeneratePassword(),
+		Email:    generateEmail(),
+		Password: generatePassword(),
 	}
 }
 
 func GenerateResetUserPasswordRequest() payloads.ResetPasswordRequest {
 	return payloads.ResetPasswordRequest{
-		Password: GeneratePassword(),
+		Password: generatePassword(),
 	}
 }
 
 // User profile
 func GenerateUserProfile() *models.UserProfile {
-	phoneNumber := GeneratePhoneNumber()
-	dateOfBirth := GenerateDate()
+	phoneNumber := generatePhoneNumber()
+	dateOfBirth := generateDate()
 	profilePictureUrl := GenerateURL()
 	bio := generateString(allChars, 50)
 
 	return &models.UserProfile{
 		ID:                generateUUID(),
 		UserID:            generateUUID(),
-		FirstName:         GenerateName(),
-		LastName:          GenerateName(),
+		FirstName:         generateName(),
+		LastName:          generateName(),
 		PhoneNumber:       &phoneNumber,
 		DateOfBirth:       &dateOfBirth,
 		ProfilePictureUrl: &profilePictureUrl,
@@ -136,24 +99,24 @@ func GenerateUserProfile() *models.UserProfile {
 }
 
 func GenerateCreateUserProfileRequest() payloads.CreateUserProfileRequest {
-	phoneNumber := GeneratePhoneNumber()
-	dateOfBirth := GenerateDate()
+	phoneNumber := generatePhoneNumber()
+	dateOfBirth := generateDate()
 
 	return payloads.CreateUserProfileRequest{
-		FirstName:   GenerateName(),
-		LastName:    GenerateName(),
+		FirstName:   generateName(),
+		LastName:    generateName(),
 		PhoneNumber: &phoneNumber,
 		DateOfBirth: &dateOfBirth,
 	}
 }
 
 func GenerateUpdateUserProfileRequest() payloads.UpdateUserProfileRequest {
-	phoneNumber := GeneratePhoneNumber()
-	dateOfBirth := GenerateDate()
+	phoneNumber := generatePhoneNumber()
+	dateOfBirth := generateDate()
 
 	return payloads.UpdateUserProfileRequest{
-		FirstName:   GenerateName(),
-		LastName:    GenerateName(),
+		FirstName:   generateName(),
+		LastName:    generateName(),
 		PhoneNumber: &phoneNumber,
 		DateOfBirth: &dateOfBirth,
 	}
@@ -174,7 +137,7 @@ func GenerateLoginToken() *models.LoginToken {
 func GenerateUserSession() *models.UserSession {
 	return &models.UserSession{
 		UserID: generateUUID(),
-		Email:  GenerateEmail(),
+		Email:  generateEmail(),
 	}
 }
 
@@ -185,7 +148,7 @@ func GenerateSessionID() string {
 // File
 func GenerateFileHeader() *multipart.FileHeader {
 	return &multipart.FileHeader{
-		Filename: GenerateName(),
+		Filename: generateName(),
 		Size:     100,
 		Header:   map[string][]string{constants.ContentType: {constants.ImagePng}},
 	}
@@ -201,7 +164,7 @@ func GenerateMovie() *models.Movie {
 		ID:              generateUUID(),
 		Title:           generateString(letterChars, 10),
 		Description:     &description,
-		ReleaseDate:     GenerateDate(),
+		ReleaseDate:     generateDate(),
 		DurationMinutes: generateInt(100, 200),
 		Language:        &language,
 		Rating:          &rating,
@@ -229,7 +192,7 @@ func GenerateCreateMovieRequest() payloads.CreateMovieRequest {
 	return payloads.CreateMovieRequest{
 		Title:           generateString(allChars, 10),
 		Description:     &description,
-		ReleaseDate:     GenerateDate(),
+		ReleaseDate:     generateDate(),
 		DurationMinutes: generateInt(100, 200),
 		Language:        &language,
 		Rating:          &rating,
@@ -244,7 +207,7 @@ func GenerateUpdateMovieRequest() payloads.UpdateMovieRequest {
 	return payloads.UpdateMovieRequest{
 		Title:           generateString(allChars, 10),
 		Description:     &description,
-		ReleaseDate:     GenerateDate(),
+		ReleaseDate:     generateDate(),
 		DurationMinutes: generateInt(100, 200),
 		Language:        &language,
 		Rating:          &rating,
@@ -309,7 +272,7 @@ func GeneratePasswordResetTokens(count int) []*models.PasswordResetToken {
 
 func GenerateCreatePasswordResetTokenRequest() payloads.CreatePasswordResetTokenRequest {
 	return payloads.CreatePasswordResetTokenRequest{
-		Email: GenerateEmail(),
+		Email: generateEmail(),
 	}
 }
 
@@ -391,9 +354,31 @@ func GenerateTheater() *models.Theater {
 	}
 }
 
+func GenerateTheaterLocation() *models.TheaterLocation {
+	return &models.TheaterLocation{
+		ID:         generateUUID(),
+		TheaterID:  generateUUID(),
+		CityID:     generateUUID(),
+		Address:    generateString(lowercaseChars, 50),
+		PostalCode: generateString(numberChars, 6),
+		Latitude:   generateFloat(1, 100),
+		Longitude:  generateFloat(1, 100),
+	}
+}
+
 func GenerateCreateTheaterRequest() payloads.CreateTheaterRequest {
 	return payloads.CreateTheaterRequest{
 		Name: generateString(letterChars, 10),
+	}
+}
+
+func GenerateCreateTheaterLocationRequest() payloads.CreateTheaterLocationRequest {
+	return payloads.CreateTheaterLocationRequest{
+		CityID:     generateUUID(),
+		Address:    generateString(lowercaseChars, 50),
+		PostalCode: generateString(numberChars, 6),
+		Latitude:   generateFloat(1.0, 100.0),
+		Longitude:  generateFloat(1.0, 100.0),
 	}
 }
 
@@ -434,4 +419,41 @@ func generateCurrentTime() time.Time {
 
 func generateUUID() uuid.UUID {
 	return uuid.New()
+}
+
+func generateEmail() string {
+	nameLength := rand.Intn(6) + 5
+	domain := emailDomains[rand.Intn(len(emailDomains))]
+
+	return fmt.Sprintf("%s@%s", generateString(lowercaseChars, nameLength), domain)
+}
+
+func generatePassword() string {
+	return generateString(letterChars, 12)
+}
+
+func generateHashedPassword() string {
+	password := generatePassword()
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	return string(hashedPassword)
+}
+
+func generatePhoneNumber() string {
+	return generateString(numberChars, 10)
+}
+
+func generateName() string {
+	return generateString(lowercaseChars, 5)
+}
+
+func generateDate() string {
+	start := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	end := generateCurrentTime()
+
+	days := rand.Int63n(int64(end.Sub(start).Hours() / 24))
+
+	date := start.AddDate(0, 0, int(days)-1)
+
+	return date.Format("2006-01-02")
 }

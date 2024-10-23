@@ -676,7 +676,6 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	resetToken := utils.GeneratePasswordResetToken()
 	user := utils.GenerateUser()
-	hashedPassword := utils.GenerateHashedPassword()
 	allResetTokens := utils.GeneratePasswordResetTokens(3)
 	allResetTokens[len(allResetTokens)-1] = resetToken
 	req := utils.GenerateResetUserPasswordRequest()
@@ -684,13 +683,13 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetActivePasswordResetToken(resetToken.TokenValue).Return(resetToken, nil).Times(1)
 		userRepo.EXPECT().GetUser(resetToken.UserID).Return(user, nil).Times(1)
-		auth.EXPECT().GenerateHashedPassword(req.Password).Return(hashedPassword, nil).Times(1)
+		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, hashedPassword).Return(user, nil).Times(1)
+		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, user.PasswordHash).Return(user, nil).Times(1)
 		loginTokenRepo.EXPECT().RevokeUserLoginTokens(gomock.Any(), user.ID).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().UseToken(gomock.Any(), resetToken).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().GetUserActivePasswordResetTokens(resetToken.UserID).Return(allResetTokens, nil).Times(1)
@@ -764,13 +763,13 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	t.Run("error updating password", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetActivePasswordResetToken(resetToken.TokenValue).Return(resetToken, nil).Times(1)
 		userRepo.EXPECT().GetUser(resetToken.UserID).Return(user, nil).Times(1)
-		auth.EXPECT().GenerateHashedPassword(req.Password).Return(hashedPassword, nil).Times(1)
+		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, hashedPassword).Return(nil, errors.New("error updating password")).Times(1)
+		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, user.PasswordHash).Return(nil, errors.New("error updating password")).Times(1)
 
 		err := service.ResetUserPassword(resetToken.TokenValue, req)
 
@@ -782,13 +781,13 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	t.Run("error revoking user login tokens", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetActivePasswordResetToken(resetToken.TokenValue).Return(resetToken, nil).Times(1)
 		userRepo.EXPECT().GetUser(resetToken.UserID).Return(user, nil).Times(1)
-		auth.EXPECT().GenerateHashedPassword(req.Password).Return(hashedPassword, nil).Times(1)
+		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, hashedPassword).Return(user, nil).Times(1)
+		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, user.PasswordHash).Return(user, nil).Times(1)
 		loginTokenRepo.EXPECT().RevokeUserLoginTokens(gomock.Any(), user.ID).Return(errors.New("error revoking tokens")).Times(1)
 
 		err := service.ResetUserPassword(resetToken.TokenValue, req)
@@ -801,13 +800,13 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	t.Run("error using reset token", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetActivePasswordResetToken(resetToken.TokenValue).Return(resetToken, nil).Times(1)
 		userRepo.EXPECT().GetUser(resetToken.UserID).Return(user, nil).Times(1)
-		auth.EXPECT().GenerateHashedPassword(req.Password).Return(hashedPassword, nil).Times(1)
+		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, hashedPassword).Return(user, nil).Times(1)
+		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, user.PasswordHash).Return(user, nil).Times(1)
 		loginTokenRepo.EXPECT().RevokeUserLoginTokens(gomock.Any(), user.ID).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().UseToken(gomock.Any(), resetToken).Return(errors.New("error using token")).Times(1)
 
@@ -821,13 +820,13 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	t.Run("error getting password reset tokens", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetActivePasswordResetToken(resetToken.TokenValue).Return(resetToken, nil).Times(1)
 		userRepo.EXPECT().GetUser(resetToken.UserID).Return(user, nil).Times(1)
-		auth.EXPECT().GenerateHashedPassword(req.Password).Return(hashedPassword, nil).Times(1)
+		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, hashedPassword).Return(user, nil).Times(1)
+		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, user.PasswordHash).Return(user, nil).Times(1)
 		loginTokenRepo.EXPECT().RevokeUserLoginTokens(gomock.Any(), user.ID).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().UseToken(gomock.Any(), resetToken).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().GetUserActivePasswordResetTokens(resetToken.UserID).Return(nil, errors.New("error getting tokens")).Times(1)
@@ -842,13 +841,13 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	t.Run("error revoking reset tokens", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetActivePasswordResetToken(resetToken.TokenValue).Return(resetToken, nil).Times(1)
 		userRepo.EXPECT().GetUser(resetToken.UserID).Return(user, nil).Times(1)
-		auth.EXPECT().GenerateHashedPassword(req.Password).Return(hashedPassword, nil).Times(1)
+		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, hashedPassword).Return(user, nil).Times(1)
+		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, user.PasswordHash).Return(user, nil).Times(1)
 		loginTokenRepo.EXPECT().RevokeUserLoginTokens(gomock.Any(), user.ID).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().UseToken(gomock.Any(), resetToken).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().GetUserActivePasswordResetTokens(resetToken.UserID).Return(allResetTokens, nil).Times(1)
@@ -864,13 +863,13 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	t.Run("error deleting user sessions", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetActivePasswordResetToken(resetToken.TokenValue).Return(resetToken, nil).Times(1)
 		userRepo.EXPECT().GetUser(resetToken.UserID).Return(user, nil).Times(1)
-		auth.EXPECT().GenerateHashedPassword(req.Password).Return(hashedPassword, nil).Times(1)
+		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, hashedPassword).Return(user, nil).Times(1)
+		userRepo.EXPECT().UpdatePassword(gomock.Any(), user, user.PasswordHash).Return(user, nil).Times(1)
 		loginTokenRepo.EXPECT().RevokeUserLoginTokens(gomock.Any(), user.ID).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().UseToken(gomock.Any(), resetToken).Return(nil).Times(1)
 		resetTokenRepo.EXPECT().GetUserActivePasswordResetTokens(resetToken.UserID).Return(allResetTokens, nil).Times(1)

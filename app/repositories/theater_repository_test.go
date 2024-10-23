@@ -10,6 +10,52 @@ import (
 	"testing"
 )
 
+func TestTheaterRepository_GetTheater(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewTheaterRepository(db)
+
+	theater := utils.GenerateTheater()
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" WHERE id = $1 ORDER BY "theaters"."id" LIMIT $2`)).
+			WithArgs(theater.ID, 1).
+			WillReturnRows(utils.GenerateSqlMockRow(theater))
+
+		result, err := repo.GetTheater(theater.ID)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, theater, result)
+	})
+
+	t.Run("theater not found", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" WHERE id = $1 ORDER BY "theaters"."id" LIMIT $2`)).
+			WithArgs(theater.ID, 1).
+			WillReturnRows(sqlmock.NewRows(nil))
+
+		result, err := repo.GetTheater(theater.ID)
+
+		assert.Nil(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("error getting theater", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" WHERE id = $1 ORDER BY "theaters"."id" LIMIT $2`)).
+			WithArgs(theater.ID, 1).
+			WillReturnError(errors.New("error getting theater"))
+
+		result, err := repo.GetTheater(theater.ID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting theater", err.Error())
+	})
+}
+
 func TestTheaterRepository_GetTheaterByName(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {

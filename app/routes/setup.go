@@ -28,6 +28,7 @@ type Repositories struct {
 	StateRepository              repositories.StateRepository
 	CityRepository               repositories.CityRepository
 	TheaterRepository            repositories.TheaterRepository
+	TheaterLocationRepository    repositories.TheaterLocationRepository
 }
 
 type Services struct {
@@ -69,6 +70,7 @@ func setupRepositories() *Repositories {
 		StateRepository:              repositories.NewStateRepository(config.DB),
 		CityRepository:               repositories.NewCityRepository(config.DB),
 		TheaterRepository:            repositories.NewTheaterRepository(config.DB),
+		TheaterLocationRepository:    repositories.NewTheaterLocationRepository(config.DB),
 	}
 }
 
@@ -113,6 +115,8 @@ func setupServices(repositories *Repositories) *Services {
 			config.DB,
 			transactionManager,
 			repositories.TheaterRepository,
+			repositories.TheaterLocationRepository,
+			repositories.CityRepository,
 		),
 	}
 }

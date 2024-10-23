@@ -12,6 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -52,6 +53,21 @@ func (m *MockTheaterRepository) CreateTheater(tx *gorm.DB, theater *models.Theat
 func (mr *MockTheaterRepositoryMockRecorder) CreateTheater(tx, theater any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheater", reflect.TypeOf((*MockTheaterRepository)(nil).CreateTheater), tx, theater)
+}
+
+// GetTheater mocks base method.
+func (m *MockTheaterRepository) GetTheater(id uuid.UUID) (*models.Theater, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTheater", id)
+	ret0, _ := ret[0].(*models.Theater)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTheater indicates an expected call of GetTheater.
+func (mr *MockTheaterRepositoryMockRecorder) GetTheater(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheater", reflect.TypeOf((*MockTheaterRepository)(nil).GetTheater), id)
 }
 
 // GetTheaterByName mocks base method.
