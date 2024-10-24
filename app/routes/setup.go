@@ -1,14 +1,23 @@
 package routes
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/controllers"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
+	"os"
 )
+
+var r *Repositories
+var s *Services
+var c *Controllers
+var m *Middlewares
+var router *gin.Engine
 
 var authenticator = auth.NewAuthenticator()
 var transactionManager = transaction.NewTransactionManager()
@@ -54,8 +63,8 @@ type Middlewares struct {
 	FilesUploadMiddleware middlewares.FilesUploadMiddleware
 }
 
-func setupRepositories() *Repositories {
-	return &Repositories{
+func setupRepositories() {
+	r = &Repositories{
 		UserRepository:               repositories.NewUserRepository(config.DB),
 		LoginTokenRepository:         repositories.NewLoginTokenRepository(config.DB),
 		UserSessionRepository:        repositories.NewUserSessionRepository(config.RedisClient),
@@ -74,8 +83,8 @@ func setupRepositories() *Repositories {
 	}
 }
 
-func setupServices(repositories *Repositories) *Services {
-	return &Services{
+func setupServices(repositories *Repositories) {
+	s = &Services{
 		UserService: services.NewUserService(
 			config.DB,
 			config.RedisClient,
@@ -121,8 +130,8 @@ func setupServices(repositories *Repositories) *Services {
 	}
 }
 
-func setupControllers(services *Services) *Controllers {
-	return &Controllers{
+func setupControllers(services *Services) {
+	c = &Controllers{
 		UserController:        *controllers.NewUserController(&services.UserService),
 		UserProfileController: *controllers.NewUserProfileController(&services.UserProfileService),
 		MovieController:       *controllers.NewMovieController(&services.MovieService),
@@ -132,9 +141,26 @@ func setupControllers(services *Services) *Controllers {
 	}
 }
 
-func setupMiddlewares(repositories *Repositories) *Middlewares {
-	return &Middlewares{
+func setupMiddlewares(repositories *Repositories) {
+	m = &Middlewares{
 		AuthMiddleware:        *middlewares.NewAuthMiddleware(repositories.UserSessionRepository, repositories.FeatureFlagRepository),
 		FilesUploadMiddleware: *middlewares.NewFilesUploadMiddleware(),
 	}
+}
+
+func setupRouter() {
+	ginMode := os.Getenv("GIN_MODE")
+	if ginMode == constants.GinReleaseMode {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	router = gin.Default()
+}
+
+func setupRoutes() {
+	setupRepositories()
+	setupServices(r)
+	setupControllers(s)
+	setupMiddlewares(r)
+	setupRouter()
 }

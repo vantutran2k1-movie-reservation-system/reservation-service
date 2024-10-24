@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"gorm.io/gorm/logger"
 	"log"
 	"os"
@@ -23,7 +24,7 @@ var ConfigcatClient *configcat.Client
 
 func InitDB() {
 	l := logger.Default.LogMode(logger.Silent)
-	if os.Getenv("SHOULD_LOG_QUERY") == "true" {
+	if os.Getenv("GIN_MODE") == constants.GinDebugMode {
 		l = logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags),
 			logger.Config{

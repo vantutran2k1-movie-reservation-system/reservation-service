@@ -3,6 +3,10 @@ package constants
 const (
 	UserSession = "user_session"
 
+	// Gin mode
+	GinReleaseMode = "release"
+	GinDebugMode   = "debug"
+
 	// Request headers
 	ProfilePictureRequestFormKey = "profile_picture"
 	ResetToken                   = "Reset-Token"

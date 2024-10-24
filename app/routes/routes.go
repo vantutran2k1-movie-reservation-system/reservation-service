@@ -7,12 +7,7 @@ import (
 )
 
 func RegisterRoutes() *gin.Engine {
-	r := setupRepositories()
-	s := setupServices(r)
-	c := setupControllers(s)
-	m := setupMiddlewares(r)
-
-	router := gin.Default()
+	setupRoutes()
 
 	apiV1 := router.Group("/api/v1")
 	{
