@@ -29,31 +29,29 @@ func TestMovieController_GetMovie(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	movie := utils.GenerateMovie()
+	genre := utils.GenerateGenre()
+	movie.Genres = []models.Genre{*genre}
 
 	t.Run("success with genres", func(t *testing.T) {
-		m := utils.GenerateMovie()
-		g := utils.GenerateGenre()
-		m.Genres = []models.Genre{*g}
 
 		router := gin.Default()
 		router.GET("/movies/:id", controller.GetMovie)
 
-		service.EXPECT().GetMovie(m.ID, true).Return(m, nil).Times(1)
+		service.EXPECT().GetMovie(movie.ID, true).Return(movie, nil).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s", m.ID), nil)
-		req.Header.Set(constants.IncludeGenres, "true")
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s?%s=true", movie.ID, constants.IncludeGenres), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), m.Title)
-		assert.Contains(t, w.Body.String(), *m.Description)
-		assert.Contains(t, w.Body.String(), m.ReleaseDate)
-		assert.Contains(t, w.Body.String(), fmt.Sprint(m.DurationMinutes))
-		assert.Contains(t, w.Body.String(), *m.Language)
-		assert.Contains(t, w.Body.String(), fmt.Sprint(*m.Rating))
-		assert.Contains(t, w.Body.String(), m.CreatedBy.String())
-		assert.Contains(t, w.Body.String(), g.ID.String())
+		assert.Contains(t, w.Body.String(), movie.Title)
+		assert.Contains(t, w.Body.String(), *movie.Description)
+		assert.Contains(t, w.Body.String(), movie.ReleaseDate)
+		assert.Contains(t, w.Body.String(), fmt.Sprint(movie.DurationMinutes))
+		assert.Contains(t, w.Body.String(), *movie.Language)
+		assert.Contains(t, w.Body.String(), fmt.Sprint(*movie.Rating))
+		assert.Contains(t, w.Body.String(), movie.CreatedBy.String())
+		assert.Contains(t, w.Body.String(), genre.ID.String())
 	})
 
 	t.Run("success without genres", func(t *testing.T) {
@@ -63,7 +61,7 @@ func TestMovieController_GetMovie(t *testing.T) {
 		service.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s", movie.ID), nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s?%s=false", movie.ID, constants.IncludeGenres), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -83,7 +81,7 @@ func TestMovieController_GetMovie(t *testing.T) {
 		service.EXPECT().GetMovie(movie.ID, false).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s", movie.ID), nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies/%s?%s=false", movie.ID, constants.IncludeGenres), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)

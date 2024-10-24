@@ -1,18 +1,16 @@
 package controllers
 
 import (
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
+	"net/http"
+	"strconv"
 )
 
 type MovieController struct {
@@ -30,9 +28,8 @@ func (c *MovieController) GetMovie(ctx *gin.Context) {
 		return
 	}
 
-	includeGenresHeader := ctx.GetHeader(constants.IncludeGenres)
-	includeHeader := strings.ToLower(includeGenresHeader) == "true"
-	m, err := c.MovieService.GetMovie(id, includeHeader)
+	includeGenre := ctx.Query(constants.IncludeGenres) == "true"
+	m, err := c.MovieService.GetMovie(id, includeGenre)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
