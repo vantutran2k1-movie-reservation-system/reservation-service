@@ -364,3 +364,69 @@ func TestUserController_CreatePasswordResetToken(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "service error")
 	})
 }
+
+func TestUserController_ResetPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockUserService(ctrl)
+	controller := UserController{
+		UserService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	token := utils.GeneratePasswordResetToken()
+	payload := utils.GenerateResetUserPasswordRequest()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.POST("/users/password-reset", controller.ResetPassword)
+
+		service.EXPECT().ResetUserPassword(token.TokenValue, payload).Return(nil).Times(1)
+
+		reqBody := fmt.Sprintf(`{"password": "%s"}`, payload.Password)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset", bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
+		req.Header.Set(constants.ResetToken, token.TokenValue)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("validation error", func(t *testing.T) {
+		router := gin.Default()
+		router.POST("/users/password-reset", controller.ResetPassword)
+
+		reqBody := fmt.Sprintf(`{"password": "%s"}`, "A")
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset", bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
+		req.Header.Set(constants.ResetToken, token.TokenValue)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "Should be greater than or equal to 8")
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.POST("/users/password-reset", controller.ResetPassword)
+
+		service.EXPECT().ResetUserPassword(token.TokenValue, payload).Return(errors.InternalServerError("service error")).Times(1)
+
+		reqBody := fmt.Sprintf(`{"password": "%s"}`, payload.Password)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset", bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
+		req.Header.Set(constants.ResetToken, token.TokenValue)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}

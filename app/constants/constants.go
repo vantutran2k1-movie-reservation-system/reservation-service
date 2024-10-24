@@ -6,6 +6,7 @@ const (
 	// Request headers
 	ProfilePictureRequestFormKey = "profile_picture"
 	IncludeGenres                = "include_genres"
+	ResetToken                   = "Reset-Token"
 
 	// Content types
 	ContentType     = "Content-Type"

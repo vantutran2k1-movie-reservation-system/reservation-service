@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -121,8 +122,7 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: extract token from headers instead of query params
-	if err := c.UserService.ResetUserPassword(ctx.Query("token"), req); err != nil {
+	if err := c.UserService.ResetUserPassword(ctx.GetHeader(constants.ResetToken), req); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
