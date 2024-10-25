@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Check if the user provided a name for the migration
 if [ "$#" -ne 1 ]; then
   echo "Usage: $0 <migration_name>"
   exit 1
@@ -12,14 +11,11 @@ MIGRATION_DIR="./migrations"
 UP_FILE="${MIGRATION_DIR}/${TIMESTAMP}_${MIGRATION_NAME}.up.sql"
 DOWN_FILE="${MIGRATION_DIR}/${TIMESTAMP}_${MIGRATION_NAME}.down.sql"
 
-# Create the migrations directory if it doesn't exist
 mkdir -p $MIGRATION_DIR
 
-# Create the migration files
 touch $UP_FILE
 touch $DOWN_FILE
 
-# Print success message
 echo "Migration files created:"
 echo " - $UP_FILE"
 echo " - $DOWN_FILE"

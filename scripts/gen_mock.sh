@@ -1,28 +1,60 @@
 #!/bin/bash
 
-# Check if the number of arguments is less than 1
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <source>"
     exit 1
 fi
 
-# Assign the source argument to a variable
 SOURCE=$1
+EXCLUDE_SUFFIXES="_test,_mock"
+IFS=',' read -ra SUFFIXES <<< "$EXCLUDE_SUFFIXES"
 
-# Extract folder name and file name from source path
-FOLDER_NAME=$(basename "$(dirname "$SOURCE")")
-FILE_NAME=$(basename "$SOURCE")
+generate_mock() {
+    local src_file
+    local folder_name
+    local file_name
+    local mock_destination
+    local package_name
 
-# Construct the destination path
-MOCK_DESTINATION="app/mocks/mock_${FOLDER_NAME}/${FILE_NAME}"
+    src_file=$1
+    folder_name=$(basename "$(dirname "$src_file")")
+    file_name=$(basename "$src_file")
+    mock_destination="app/mocks/mock_${folder_name}/${file_name}"
+    package_name=$(basename "$(dirname "$mock_destination")")
 
-# Create the destination directory if it doesn't exist
-mkdir -p "$(dirname "$MOCK_DESTINATION")"
+    mkdir -p "$(dirname "$mock_destination")"
 
-# Extract package name from the destination folder
-PACKAGE_NAME=$(basename "$(dirname "$MOCK_DESTINATION")")
+    mockgen -source="$src_file" -destination="$mock_destination" -package="$package_name"
+    echo "Mock generated at $mock_destination"
+}
 
-# Run mockgen command with dynamic destination and package name
-mockgen -source="$SOURCE" -destination="$MOCK_DESTINATION" -package="$PACKAGE_NAME"
+should_exclude_file() {
+    local file suffix
+    file="$1"
 
-echo "Mock generated at $MOCK_DESTINATION"
+    for suffix in "${SUFFIXES[@]}"; do
+        if [[ "$file" == *"$suffix.go" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+if [ -f "$SOURCE" ]; then
+    if ! should_exclude_file "$SOURCE"; then
+        generate_mock "$SOURCE"
+    else
+        echo "Skipping excluded file: $SOURCE"
+    fi
+elif [ -d "$SOURCE" ]; then
+    for file in "$SOURCE"/*.go; do
+        if [ -f "$file" ] && ! should_exclude_file "$file"; then
+            generate_mock "$file"
+        else
+            echo "Skipping excluded file: $file"
+        fi
+    done
+else
+    echo "Invalid source path: $SOURCE"
+    exit 1
+fi
