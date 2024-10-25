@@ -37,7 +37,7 @@ func StructToMap(input any) map[string]any {
 }
 
 func SliceToMaps(slice any) []map[string]any {
-	output := []map[string]any{}
+	var output []map[string]any
 	val := reflect.ValueOf(slice)
 
 	if val.Kind() == reflect.Slice {
@@ -62,6 +62,7 @@ func isNilValue(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Func, reflect.Interface, reflect.Chan:
 		return v.IsNil()
+	default:
+		return false
 	}
-	return false
 }

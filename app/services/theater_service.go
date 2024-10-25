@@ -11,6 +11,7 @@ import (
 )
 
 type TheaterService interface {
+	GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError)
 	CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError)
 	CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
 }
@@ -39,6 +40,18 @@ type theaterService struct {
 	cityRepo            repositories.CityRepository
 }
 
+func (s *theaterService) GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError) {
+	t, err := s.theaterRepo.GetTheater(id, includeLocation)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if t == nil {
+		return nil, errors.NotFoundError("theater not found")
+	}
+
+	return t, nil
+}
+
 func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError) {
 	t, err := s.theaterRepo.GetTheaterByName(req.Name)
 	if err != nil {
@@ -62,7 +75,7 @@ func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*mode
 }
 
 func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError) {
-	t, err := s.theaterRepo.GetTheater(theaterID)
+	t, err := s.theaterRepo.GetTheater(theaterID, false)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}

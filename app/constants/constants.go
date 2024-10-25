@@ -12,7 +12,8 @@ const (
 	ResetToken                   = "Reset-Token"
 
 	// Request query params
-	IncludeGenres = "includeGenres"
+	IncludeGenres          = "includeGenres"
+	IncludeTheaterLocation = "includeLocation"
 
 	// Content types
 	ContentType     = "Content-Type"

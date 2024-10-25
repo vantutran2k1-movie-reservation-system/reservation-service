@@ -15,6 +15,49 @@ import (
 	"testing"
 )
 
+func TestTheaterController_GetTheater(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockTheaterService(ctrl)
+	controller := TheaterController{
+		TheaterService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	theater := utils.GenerateTheater()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/theaters/:theaterId", controller.GetTheater)
+
+		service.EXPECT().GetTheater(theater.ID, gomock.Any()).Return(theater, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters/%s?%s=false", theater.ID, constants.IncludeTheaterLocation), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), theater.Name)
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/theaters/:theaterId", controller.GetTheater)
+
+		service.EXPECT().GetTheater(theater.ID, gomock.Any()).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters/%s?%s=false", theater.ID, constants.IncludeTheaterLocation), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+
+	})
+}
+
 func TestTheaterController_CreateTheater(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

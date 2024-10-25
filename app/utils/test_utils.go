@@ -87,7 +87,7 @@ func shouldSkipField(field reflect.StructField) bool {
 }
 
 var excludeTags = []string{
-	"many2many", "hasMany", "belongsTo", "hasOne",
+	"many2many", "foreignKey", "constraint",
 }
 
 func toSnakeCase(str string) string {

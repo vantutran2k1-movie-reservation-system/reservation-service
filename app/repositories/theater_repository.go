@@ -8,7 +8,7 @@ import (
 )
 
 type TheaterRepository interface {
-	GetTheater(id uuid.UUID) (*models.Theater, error)
+	GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, error)
 	GetTheaterByName(name string) (*models.Theater, error)
 	CreateTheater(tx *gorm.DB, theater *models.Theater) error
 }
@@ -23,9 +23,14 @@ type theaterRepository struct {
 	db *gorm.DB
 }
 
-func (r *theaterRepository) GetTheater(id uuid.UUID) (*models.Theater, error) {
+func (r *theaterRepository) GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, error) {
+	query := r.db.Where("id = ?", id)
+	if includeLocation {
+		query = query.Preload("Location")
+	}
+
 	var theater models.Theater
-	if err := r.db.Where("id = ?", id).First(&theater).Error; err != nil {
+	if err := query.First(&theater).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

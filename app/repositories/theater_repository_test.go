@@ -19,17 +19,35 @@ func TestTheaterRepository_GetTheater(t *testing.T) {
 	repo := NewTheaterRepository(db)
 
 	theater := utils.GenerateTheater()
+	location := utils.GenerateTheaterLocation()
+	location.TheaterID = theater.ID
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("success without location", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" WHERE id = $1 ORDER BY "theaters"."id" LIMIT $2`)).
 			WithArgs(theater.ID, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(theater))
 
-		result, err := repo.GetTheater(theater.ID)
+		result, err := repo.GetTheater(theater.ID, false)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, theater, result)
+	})
+
+	t.Run("success with location", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" WHERE id = $1 ORDER BY "theaters"."id" LIMIT $2`)).
+			WithArgs(theater.ID, 1).
+			WillReturnRows(utils.GenerateSqlMockRow(theater))
+
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theater_locations" WHERE "theater_locations"."theater_id" = $1`)).
+			WithArgs(theater.ID).
+			WillReturnRows(utils.GenerateSqlMockRow(location))
+
+		result, err := repo.GetTheater(theater.ID, true)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, location, result.Location)
 	})
 
 	t.Run("theater not found", func(t *testing.T) {
@@ -37,7 +55,7 @@ func TestTheaterRepository_GetTheater(t *testing.T) {
 			WithArgs(theater.ID, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := repo.GetTheater(theater.ID)
+		result, err := repo.GetTheater(theater.ID, false)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
@@ -48,7 +66,7 @@ func TestTheaterRepository_GetTheater(t *testing.T) {
 			WithArgs(theater.ID, 1).
 			WillReturnError(errors.New("error getting theater"))
 
-		result, err := repo.GetTheater(theater.ID)
+		result, err := repo.GetTheater(theater.ID, false)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
