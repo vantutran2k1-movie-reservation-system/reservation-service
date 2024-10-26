@@ -5,6 +5,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
@@ -19,13 +20,18 @@ func TestCityRepository_GetCity(t *testing.T) {
 	repo := NewCityRepository(db)
 
 	city := utils.GenerateCity()
+	filter := payloads.GetCityFilter{
+		ID:      &city.ID,
+		StateID: &city.StateID,
+		Name:    &city.Name,
+	}
 
 	t.Run("success", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 ORDER BY "cities"."id" LIMIT $2`)).
-			WithArgs(city.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 AND state_id = $2 AND name = $3 ORDER BY "cities"."id" LIMIT $4`)).
+			WithArgs(*filter.ID, *filter.StateID, *filter.Name, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(city))
 
-		result, err := repo.GetCity(city.ID)
+		result, err := repo.GetCity(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -33,68 +39,22 @@ func TestCityRepository_GetCity(t *testing.T) {
 	})
 
 	t.Run("city not found", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 ORDER BY "cities"."id" LIMIT $2`)).
-			WithArgs(city.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 AND state_id = $2 AND name = $3 ORDER BY "cities"."id" LIMIT $4`)).
+			WithArgs(*filter.ID, *filter.StateID, *filter.Name, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := repo.GetCity(city.ID)
+		result, err := repo.GetCity(filter)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
 	})
 
 	t.Run("error getting city", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 ORDER BY "cities"."id" LIMIT $2`)).
-			WithArgs(city.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 AND state_id = $2 AND name = $3 ORDER BY "cities"."id" LIMIT $4`)).
+			WithArgs(*filter.ID, *filter.StateID, *filter.Name, 1).
 			WillReturnError(errors.New("error getting city"))
 
-		result, err := repo.GetCity(city.ID)
-
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.Equal(t, "error getting city", err.Error())
-	})
-}
-
-func TestCityRepository_GetCityByName(t *testing.T) {
-	db, mock := mock_db.SetupTestDB(t)
-	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
-	}()
-
-	repo := NewCityRepository(db)
-
-	city := utils.GenerateCity()
-
-	t.Run("success", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE state_id = $1 AND name = $2 ORDER BY "cities"."id" LIMIT $3`)).
-			WithArgs(city.StateID, city.Name, 1).
-			WillReturnRows(utils.GenerateSqlMockRow(city))
-
-		result, err := repo.GetCityByName(city.StateID, city.Name)
-
-		assert.NotNil(t, result)
-		assert.Nil(t, err)
-		assert.Equal(t, city, result)
-	})
-
-	t.Run("city not found", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE state_id = $1 AND name = $2 ORDER BY "cities"."id" LIMIT $3`)).
-			WithArgs(city.StateID, city.Name, 1).
-			WillReturnRows(sqlmock.NewRows(nil))
-
-		result, err := repo.GetCityByName(city.StateID, city.Name)
-
-		assert.Nil(t, result)
-		assert.Nil(t, err)
-	})
-
-	t.Run("error getting city", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE state_id = $1 AND name = $2 ORDER BY "cities"."id" LIMIT $3`)).
-			WithArgs(city.StateID, city.Name, 1).
-			WillReturnError(errors.New("error getting city"))
-
-		result, err := repo.GetCityByName(city.StateID, city.Name)
+		result, err := repo.GetCity(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

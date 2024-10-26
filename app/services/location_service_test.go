@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -306,11 +307,12 @@ func TestLocationService_CreateCity(t *testing.T) {
 	state := utils.GenerateState()
 	city := utils.GenerateCity()
 	req := utils.GenerateCreateCityRequest()
+	filter := payloads.GetCityFilter{StateID: &city.StateID, Name: &req.Name}
 
 	t.Run("success", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(state, nil).Times(1)
-		cityRepo.EXPECT().GetCityByName(city.StateID, req.Name).Return(nil, nil).Times(1)
+		cityRepo.EXPECT().GetCity(filter).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -374,7 +376,7 @@ func TestLocationService_CreateCity(t *testing.T) {
 	t.Run("duplicate city name", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(state, nil).Times(1)
-		cityRepo.EXPECT().GetCityByName(city.StateID, req.Name).Return(city, nil).Times(1)
+		cityRepo.EXPECT().GetCity(filter).Return(city, nil).Times(1)
 
 		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
@@ -387,7 +389,7 @@ func TestLocationService_CreateCity(t *testing.T) {
 	t.Run("error getting city", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(state, nil).Times(1)
-		cityRepo.EXPECT().GetCityByName(city.StateID, req.Name).Return(nil, errors.New("error getting city")).Times(1)
+		cityRepo.EXPECT().GetCity(filter).Return(nil, errors.New("error getting city")).Times(1)
 
 		result, err := service.CreateCity(state.CountryID, city.StateID, req)
 
@@ -400,7 +402,7 @@ func TestLocationService_CreateCity(t *testing.T) {
 	t.Run("error creating city", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
 		stateRepo.EXPECT().GetState(city.StateID).Return(state, nil).Times(1)
-		cityRepo.EXPECT().GetCityByName(city.StateID, req.Name).Return(nil, nil).Times(1)
+		cityRepo.EXPECT().GetCity(filter).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)

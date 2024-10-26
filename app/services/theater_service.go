@@ -91,7 +91,7 @@ func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads
 		return nil, errors.BadRequestError("duplicate location for this theater")
 	}
 
-	c, err := s.cityRepo.GetCity(req.CityID)
+	c, err := s.cityRepo.GetCity(payloads.GetCityFilter{ID: &req.CityID})
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}

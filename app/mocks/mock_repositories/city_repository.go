@@ -12,8 +12,8 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
 )
@@ -56,31 +56,16 @@ func (mr *MockCityRepositoryMockRecorder) CreateCity(tx, city any) *gomock.Call 
 }
 
 // GetCity mocks base method.
-func (m *MockCityRepository) GetCity(id uuid.UUID) (*models.City, error) {
+func (m *MockCityRepository) GetCity(filter payloads.GetCityFilter) (*models.City, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCity", id)
+	ret := m.ctrl.Call(m, "GetCity", filter)
 	ret0, _ := ret[0].(*models.City)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCity indicates an expected call of GetCity.
-func (mr *MockCityRepositoryMockRecorder) GetCity(id any) *gomock.Call {
+func (mr *MockCityRepositoryMockRecorder) GetCity(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCity", reflect.TypeOf((*MockCityRepository)(nil).GetCity), id)
-}
-
-// GetCityByName mocks base method.
-func (m *MockCityRepository) GetCityByName(stateID uuid.UUID, name string) (*models.City, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCityByName", stateID, name)
-	ret0, _ := ret[0].(*models.City)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCityByName indicates an expected call of GetCityByName.
-func (mr *MockCityRepositoryMockRecorder) GetCityByName(stateID, name any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCityByName", reflect.TypeOf((*MockCityRepository)(nil).GetCityByName), stateID, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCity", reflect.TypeOf((*MockCityRepository)(nil).GetCity), filter)
 }

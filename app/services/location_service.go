@@ -148,7 +148,7 @@ func (s *locationService) CreateCity(countryID, stateID uuid.UUID, req payloads.
 		return nil, errors.NotFoundError("state does not exist")
 	}
 
-	city, err := s.cityRepo.GetCityByName(stateID, req.Name)
+	city, err := s.cityRepo.GetCity(payloads.GetCityFilter{StateID: &stateID, Name: &req.Name})
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
