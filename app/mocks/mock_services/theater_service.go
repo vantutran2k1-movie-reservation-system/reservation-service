@@ -73,16 +73,16 @@ func (mr *MockTheaterServiceMockRecorder) CreateTheaterLocation(theaterID, req a
 }
 
 // GetTheater mocks base method.
-func (m *MockTheaterService) GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError) {
+func (m *MockTheaterService) GetTheater(filter payloads.GetTheaterFilter) (*models.Theater, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTheater", id, includeLocation)
+	ret := m.ctrl.Call(m, "GetTheater", filter)
 	ret0, _ := ret[0].(*models.Theater)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // GetTheater indicates an expected call of GetTheater.
-func (mr *MockTheaterServiceMockRecorder) GetTheater(id, includeLocation any) *gomock.Call {
+func (mr *MockTheaterServiceMockRecorder) GetTheater(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheater", reflect.TypeOf((*MockTheaterService)(nil).GetTheater), id, includeLocation)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheater", reflect.TypeOf((*MockTheaterService)(nil).GetTheater), filter)
 }

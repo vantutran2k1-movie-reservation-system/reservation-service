@@ -12,8 +12,8 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
 )
@@ -56,31 +56,16 @@ func (mr *MockTheaterRepositoryMockRecorder) CreateTheater(tx, theater any) *gom
 }
 
 // GetTheater mocks base method.
-func (m *MockTheaterRepository) GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, error) {
+func (m *MockTheaterRepository) GetTheater(filter payloads.GetTheaterFilter) (*models.Theater, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTheater", id, includeLocation)
+	ret := m.ctrl.Call(m, "GetTheater", filter)
 	ret0, _ := ret[0].(*models.Theater)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTheater indicates an expected call of GetTheater.
-func (mr *MockTheaterRepositoryMockRecorder) GetTheater(id, includeLocation any) *gomock.Call {
+func (mr *MockTheaterRepositoryMockRecorder) GetTheater(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheater", reflect.TypeOf((*MockTheaterRepository)(nil).GetTheater), id, includeLocation)
-}
-
-// GetTheaterByName mocks base method.
-func (m *MockTheaterRepository) GetTheaterByName(name string) (*models.Theater, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTheaterByName", name)
-	ret0, _ := ret[0].(*models.Theater)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTheaterByName indicates an expected call of GetTheaterByName.
-func (mr *MockTheaterRepositoryMockRecorder) GetTheaterByName(name any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheaterByName", reflect.TypeOf((*MockTheaterRepository)(nil).GetTheaterByName), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheater", reflect.TypeOf((*MockTheaterRepository)(nil).GetTheater), filter)
 }

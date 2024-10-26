@@ -6,6 +6,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -21,11 +22,12 @@ func TestTheaterService_GetTheater(t *testing.T) {
 	service := NewTheaterService(nil, nil, repo, nil, nil)
 
 	theater := utils.GenerateTheater()
+	filter := utils.GenerateTheaterFilter()
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetTheater(theater.ID, gomock.Any()).Return(theater, nil).Times(1)
+		repo.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 
-		result, err := service.GetTheater(theater.ID, false)
+		result, err := service.GetTheater(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -33,9 +35,9 @@ func TestTheaterService_GetTheater(t *testing.T) {
 	})
 
 	t.Run("theater not found", func(t *testing.T) {
-		repo.EXPECT().GetTheater(theater.ID, gomock.Any()).Return(nil, nil).Times(1)
+		repo.EXPECT().GetTheater(filter).Return(nil, nil).Times(1)
 
-		result, err := service.GetTheater(theater.ID, false)
+		result, err := service.GetTheater(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -44,9 +46,9 @@ func TestTheaterService_GetTheater(t *testing.T) {
 	})
 
 	t.Run("error getting theater", func(t *testing.T) {
-		repo.EXPECT().GetTheater(theater.ID, gomock.Any()).Return(nil, errors.New("error getting theater")).Times(1)
+		repo.EXPECT().GetTheater(filter).Return(nil, errors.New("error getting theater")).Times(1)
 
-		result, err := service.GetTheater(theater.ID, false)
+		result, err := service.GetTheater(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -65,9 +67,10 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 
 	theater := utils.GenerateTheater()
 	req := utils.GenerateCreateTheaterRequest()
+	filter := payloads.GetTheaterFilter{Name: &req.Name}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetTheaterByName(req.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetTheater(filter).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -83,7 +86,7 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 	})
 
 	t.Run("duplicate theater name", func(t *testing.T) {
-		repo.EXPECT().GetTheaterByName(req.Name).Return(theater, nil).Times(1)
+		repo.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 
 		result, err := service.CreateTheater(req)
 
@@ -94,7 +97,7 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 	})
 
 	t.Run("error getting theater", func(t *testing.T) {
-		repo.EXPECT().GetTheaterByName(req.Name).Return(nil, errors.New("error getting theater")).Times(1)
+		repo.EXPECT().GetTheater(filter).Return(nil, errors.New("error getting theater")).Times(1)
 
 		result, err := service.CreateTheater(req)
 
@@ -105,7 +108,7 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 	})
 
 	t.Run("error creating theater", func(t *testing.T) {
-		repo.EXPECT().GetTheaterByName(req.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetTheater(filter).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -135,9 +138,10 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	theater := utils.GenerateTheater()
 	city := utils.GenerateCity()
 	req := utils.GenerateCreateTheaterLocationRequest()
+	filter := payloads.GetTheaterFilter{ID: &theater.ID}
 
 	t.Run("success", func(t *testing.T) {
-		theaterRepo.EXPECT().GetTheater(theater.ID, false).Return(theater, nil).Times(1)
+		theaterRepo.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 		theaterLocationRepo.EXPECT().GetLocationByTheaterID(theater.ID).Return(nil, nil).Times(1)
 		cityRepo.EXPECT().GetCity(req.CityID).Return(city, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -159,7 +163,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("theater not found", func(t *testing.T) {
-		theaterRepo.EXPECT().GetTheater(theater.ID, false).Return(nil, nil).Times(1)
+		theaterRepo.EXPECT().GetTheater(filter).Return(nil, nil).Times(1)
 
 		result, err := service.CreateTheaterLocation(theater.ID, req)
 
@@ -170,7 +174,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("error getting theater", func(t *testing.T) {
-		theaterRepo.EXPECT().GetTheater(theater.ID, false).Return(nil, errors.New("error getting theater")).Times(1)
+		theaterRepo.EXPECT().GetTheater(filter).Return(nil, errors.New("error getting theater")).Times(1)
 
 		result, err := service.CreateTheaterLocation(theater.ID, req)
 
@@ -181,7 +185,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("duplicate theater location", func(t *testing.T) {
-		theaterRepo.EXPECT().GetTheater(theater.ID, false).Return(theater, nil).Times(1)
+		theaterRepo.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 		theaterLocationRepo.EXPECT().GetLocationByTheaterID(theater.ID).Return(&models.TheaterLocation{}, nil).Times(1)
 
 		result, err := service.CreateTheaterLocation(theater.ID, req)
@@ -193,7 +197,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("error getting location", func(t *testing.T) {
-		theaterRepo.EXPECT().GetTheater(theater.ID, false).Return(theater, nil).Times(1)
+		theaterRepo.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 		theaterLocationRepo.EXPECT().GetLocationByTheaterID(theater.ID).Return(nil, errors.New("error getting location")).Times(1)
 
 		result, err := service.CreateTheaterLocation(theater.ID, req)
@@ -205,7 +209,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("city not found", func(t *testing.T) {
-		theaterRepo.EXPECT().GetTheater(theater.ID, false).Return(theater, nil).Times(1)
+		theaterRepo.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 		theaterLocationRepo.EXPECT().GetLocationByTheaterID(theater.ID).Return(nil, nil).Times(1)
 		cityRepo.EXPECT().GetCity(req.CityID).Return(nil, nil).Times(1)
 
@@ -218,7 +222,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("error getting city", func(t *testing.T) {
-		theaterRepo.EXPECT().GetTheater(theater.ID, false).Return(theater, nil).Times(1)
+		theaterRepo.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 		theaterLocationRepo.EXPECT().GetLocationByTheaterID(theater.ID).Return(nil, nil).Times(1)
 		cityRepo.EXPECT().GetCity(req.CityID).Return(nil, errors.New("error getting city")).Times(1)
 
@@ -231,7 +235,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("error creating location", func(t *testing.T) {
-		theaterRepo.EXPECT().GetTheater(theater.ID, false).Return(theater, nil).Times(1)
+		theaterRepo.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 		theaterLocationRepo.EXPECT().GetLocationByTheaterID(theater.ID).Return(nil, nil).Times(1)
 		cityRepo.EXPECT().GetCity(req.CityID).Return(city, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(

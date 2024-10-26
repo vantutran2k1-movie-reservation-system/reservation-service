@@ -29,7 +29,8 @@ func (c *TheaterController) GetTheater(ctx *gin.Context) {
 	}
 
 	includeLocation := ctx.Query(constants.IncludeTheaterLocation) == "true"
-	theater, err := c.TheaterService.GetTheater(theaterID, includeLocation)
+	filter := payloads.GetTheaterFilter{ID: &theaterID, IncludeLocation: &includeLocation}
+	theater, err := c.TheaterService.GetTheater(filter)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

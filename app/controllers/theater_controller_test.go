@@ -8,6 +8,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"net/http"
@@ -27,15 +28,17 @@ func TestTheaterController_GetTheater(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	theater := utils.GenerateTheater()
+	includeLocation := true
+	filter := payloads.GetTheaterFilter{ID: &theater.ID, IncludeLocation: &includeLocation}
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.GET("/theaters/:theaterId", controller.GetTheater)
 
-		service.EXPECT().GetTheater(theater.ID, gomock.Any()).Return(theater, nil).Times(1)
+		service.EXPECT().GetTheater(filter).Return(theater, nil).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters/%s?%s=false", theater.ID, constants.IncludeTheaterLocation), nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters/%s?%s=%v", filter.ID, constants.IncludeTheaterLocation, *filter.IncludeLocation), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -46,10 +49,10 @@ func TestTheaterController_GetTheater(t *testing.T) {
 		router := gin.Default()
 		router.GET("/theaters/:theaterId", controller.GetTheater)
 
-		service.EXPECT().GetTheater(theater.ID, gomock.Any()).Return(nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().GetTheater(filter).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters/%s?%s=false", theater.ID, constants.IncludeTheaterLocation), nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters/%s?%s=%v", filter.ID, constants.IncludeTheaterLocation, *filter.IncludeLocation), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)

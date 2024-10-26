@@ -2,6 +2,12 @@ package payloads
 
 import "github.com/google/uuid"
 
+type GetTheaterFilter struct {
+	ID              *uuid.UUID
+	Name            *string
+	IncludeLocation *bool
+}
+
 type CreateTheaterRequest struct {
 	Name string `json:"name" binding:"required,min=2,max=255"`
 }
