@@ -340,6 +340,21 @@ func GenerateCity() *models.City {
 	}
 }
 
+func GenerateCities(count int) []*models.City {
+	cities := make([]*models.City, count)
+	for i := 0; i < count; i++ {
+		cities[i] = GenerateCity()
+	}
+
+	return cities
+}
+
+func GenerateGetCitiesFilter() payloads.GetCitiesFilter {
+	return payloads.GetCitiesFilter{
+		StateID: generateUUID(),
+	}
+}
+
 func GenerateCreateCityRequest() payloads.CreateCityRequest {
 	return payloads.CreateCityRequest{
 		Name: generateString(lowercaseChars, 10),

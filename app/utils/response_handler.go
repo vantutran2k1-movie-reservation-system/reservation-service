@@ -37,7 +37,7 @@ func StructToMap(input any) map[string]any {
 }
 
 func SliceToMaps(slice any) []map[string]any {
-	var output []map[string]any
+	output := make([]map[string]any, 0)
 	val := reflect.ValueOf(slice)
 
 	if val.Kind() == reflect.Slice {

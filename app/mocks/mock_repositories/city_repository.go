@@ -55,6 +55,21 @@ func (mr *MockCityRepositoryMockRecorder) CreateCity(tx, city any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCity", reflect.TypeOf((*MockCityRepository)(nil).CreateCity), tx, city)
 }
 
+// GetCities mocks base method.
+func (m *MockCityRepository) GetCities(filter payloads.GetCitiesFilter) ([]*models.City, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCitiesByState", filter)
+	ret0, _ := ret[0].([]*models.City)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCities indicates an expected call of GetCities.
+func (mr *MockCityRepositoryMockRecorder) GetCities(filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCitiesByState", reflect.TypeOf((*MockCityRepository)(nil).GetCities), filter)
+}
+
 // GetCity mocks base method.
 func (m *MockCityRepository) GetCity(filter payloads.GetCityFilter) (*models.City, error) {
 	m.ctrl.T.Helper()

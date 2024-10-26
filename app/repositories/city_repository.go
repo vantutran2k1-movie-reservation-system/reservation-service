@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
@@ -10,6 +9,7 @@ import (
 
 type CityRepository interface {
 	GetCity(filter payloads.GetCityFilter) (*models.City, error)
+	GetCities(filter payloads.GetCitiesFilter) ([]*models.City, error)
 	CreateCity(tx *gorm.DB, city *models.City) error
 }
 
@@ -34,17 +34,13 @@ func (r *cityRepository) GetCity(filter payloads.GetCityFilter) (*models.City, e
 	return &city, nil
 }
 
-func (r *cityRepository) GetCityByName(stateID uuid.UUID, name string) (*models.City, error) {
-	var city models.City
-	if err := r.db.Where("state_id = ? AND name = ?", stateID, name).First(&city).Error; err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-
+func (r *cityRepository) GetCities(filter payloads.GetCitiesFilter) ([]*models.City, error) {
+	var cities []*models.City
+	if err := r.getCitiesFilterQuery(r.db, filter).Find(&cities).Error; err != nil {
 		return nil, err
 	}
 
-	return &city, nil
+	return cities, nil
 }
 
 func (r *cityRepository) CreateCity(tx *gorm.DB, city *models.City) error {
@@ -63,6 +59,12 @@ func (r *cityRepository) getCityFilterQuery(query *gorm.DB, filter payloads.GetC
 	if filter.Name != nil {
 		query = query.Where("name = ?", filter.Name)
 	}
+
+	return query
+}
+
+func (r *cityRepository) getCitiesFilterQuery(query *gorm.DB, filter payloads.GetCitiesFilter) *gorm.DB {
+	query = query.Where("state_id = ?", filter.StateID)
 
 	return query
 }

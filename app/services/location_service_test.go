@@ -293,6 +293,92 @@ func TestLocationService_CreateState(t *testing.T) {
 	})
 }
 
+func TestLocationService_GetCities(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	countryRepo := mock_repositories.NewMockCountryRepository(ctrl)
+	stateRepo := mock_repositories.NewMockStateRepository(ctrl)
+	cityRepo := mock_repositories.NewMockCityRepository(ctrl)
+	service := NewLocationService(nil, nil, countryRepo, stateRepo, cityRepo)
+
+	country := utils.GenerateCountry()
+	state := utils.GenerateState()
+	cities := utils.GenerateCities(3)
+	filter := utils.GenerateGetCitiesFilter()
+
+	t.Run("success", func(t *testing.T) {
+		stateRepo.EXPECT().GetState(filter.StateID).Return(state, nil).Times(1)
+		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
+		cityRepo.EXPECT().GetCities(filter).Return(cities, nil).Times(1)
+
+		result, err := service.GetCitiesByState(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, cities, result)
+	})
+
+	t.Run("state not found", func(t *testing.T) {
+		stateRepo.EXPECT().GetState(filter.StateID).Return(nil, nil).Times(1)
+
+		result, err := service.GetCitiesByState(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "state does not exist", err.Error())
+	})
+
+	t.Run("error getting state", func(t *testing.T) {
+		stateRepo.EXPECT().GetState(filter.StateID).Return(nil, errors.New("error getting state")).Times(1)
+
+		result, err := service.GetCitiesByState(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting state", err.Error())
+	})
+
+	t.Run("country not found", func(t *testing.T) {
+		stateRepo.EXPECT().GetState(filter.StateID).Return(state, nil).Times(1)
+		countryRepo.EXPECT().GetCountry(state.CountryID).Return(nil, nil).Times(1)
+
+		result, err := service.GetCitiesByState(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "country does not exist", err.Error())
+	})
+
+	t.Run("error getting country", func(t *testing.T) {
+		stateRepo.EXPECT().GetState(filter.StateID).Return(state, nil).Times(1)
+		countryRepo.EXPECT().GetCountry(state.CountryID).Return(nil, errors.New("error getting country")).Times(1)
+
+		result, err := service.GetCitiesByState(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting country", err.Error())
+	})
+
+	t.Run("error getting cities", func(t *testing.T) {
+		stateRepo.EXPECT().GetState(filter.StateID).Return(state, nil).Times(1)
+		countryRepo.EXPECT().GetCountry(state.CountryID).Return(country, nil).Times(1)
+		cityRepo.EXPECT().GetCities(filter).Return(nil, errors.New("error getting cities")).Times(1)
+
+		result, err := service.GetCitiesByState(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting cities", err.Error())
+	})
+}
+
 func TestLocationService_CreateCity(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

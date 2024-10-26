@@ -15,6 +15,7 @@ type LocationService interface {
 	CreateCountry(req payloads.CreateCountryRequest) (*models.Country, *errors.ApiError)
 	GetStatesByCountry(countryID uuid.UUID) ([]*models.State, *errors.ApiError)
 	CreateState(countryID uuid.UUID, req payloads.CreateStateRequest) (*models.State, *errors.ApiError)
+	GetCitiesByState(filter payloads.GetCitiesFilter) ([]*models.City, *errors.ApiError)
 	CreateCity(countryID, stateID uuid.UUID, req payloads.CreateCityRequest) (*models.City, *errors.ApiError)
 }
 
@@ -129,6 +130,31 @@ func (s *locationService) CreateState(countryID uuid.UUID, req payloads.CreateSt
 	}
 
 	return state, nil
+}
+
+func (s *locationService) GetCitiesByState(filter payloads.GetCitiesFilter) ([]*models.City, *errors.ApiError) {
+	state, err := s.stateRepo.GetState(filter.StateID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if state == nil {
+		return nil, errors.NotFoundError("state does not exist")
+	}
+
+	country, err := s.countryRepo.GetCountry(state.CountryID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if country == nil {
+		return nil, errors.NotFoundError("country does not exist")
+	}
+
+	cities, err := s.cityRepo.GetCities(filter)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return cities, nil
 }
 
 func (s *locationService) CreateCity(countryID, stateID uuid.UUID, req payloads.CreateCityRequest) (*models.City, *errors.ApiError) {

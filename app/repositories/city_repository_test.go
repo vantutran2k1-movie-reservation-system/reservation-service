@@ -3,6 +3,7 @@ package repositories
 import (
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
@@ -59,6 +60,42 @@ func TestCityRepository_GetCity(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error getting city", err.Error())
+	})
+}
+
+func TestCityRepository_GetCities(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewCityRepository(db)
+
+	cities := utils.GenerateCities(3)
+	filter := payloads.GetCitiesFilter{StateID: uuid.New()}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE state_id = $1`)).
+			WithArgs(filter.StateID).
+			WillReturnRows(utils.GenerateSqlMockRows(cities))
+
+		result, err := repo.GetCities(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, cities, result)
+	})
+
+	t.Run("error getting cities", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE state_id = $1`)).
+			WithArgs(filter.StateID).
+			WillReturnError(errors.New("error getting cities"))
+
+		result, err := repo.GetCities(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting cities", err.Error())
 	})
 }
 

@@ -256,6 +256,51 @@ func TestLocationController_CreateState(t *testing.T) {
 	})
 }
 
+func TestLocationController_GetCitiesByState(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockLocationService(ctrl)
+	controller := LocationController{
+		LocationService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	cities := utils.GenerateCities(3)
+	filter := utils.GenerateGetCitiesFilter()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/countries/:countryId/states/:stateId/cities", controller.GetCitiesByState)
+
+		service.EXPECT().GetCitiesByState(filter).Return(cities, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/countries/%s/states/%s/cities", gomock.Any(), filter.StateID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		for _, city := range cities {
+			assert.Contains(t, w.Body.String(), city.ID.String())
+		}
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/countries/:countryId/states/:stateId/cities", controller.GetCitiesByState)
+
+		service.EXPECT().GetCitiesByState(filter).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/countries/%s/states/%s/cities", gomock.Any(), filter.StateID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
+
 func TestLocationController_CreateCity(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

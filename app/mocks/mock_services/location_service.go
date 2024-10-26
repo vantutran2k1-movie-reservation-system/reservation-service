@@ -87,6 +87,21 @@ func (mr *MockLocationServiceMockRecorder) CreateState(countryID, req any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateState", reflect.TypeOf((*MockLocationService)(nil).CreateState), countryID, req)
 }
 
+// GetCitiesByState mocks base method.
+func (m *MockLocationService) GetCitiesByState(filter payloads.GetCitiesFilter) ([]*models.City, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCitiesByState", filter)
+	ret0, _ := ret[0].([]*models.City)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// GetCitiesByState indicates an expected call of GetCitiesByState.
+func (mr *MockLocationServiceMockRecorder) GetCitiesByState(filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCitiesByState", reflect.TypeOf((*MockLocationService)(nil).GetCitiesByState), filter)
+}
+
 // GetCountries mocks base method.
 func (m *MockLocationService) GetCountries() ([]*models.Country, *errors.ApiError) {
 	m.ctrl.T.Helper()
