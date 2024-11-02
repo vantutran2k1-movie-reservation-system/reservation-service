@@ -12,7 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -56,61 +56,31 @@ func (mr *MockCountryRepositoryMockRecorder) CreateCountry(tx, country any) *gom
 }
 
 // GetCountries mocks base method.
-func (m *MockCountryRepository) GetCountries() ([]*models.Country, error) {
+func (m *MockCountryRepository) GetCountries(filter filters.CountryFilter) ([]*models.Country, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCountries")
+	ret := m.ctrl.Call(m, "GetCountries", filter)
 	ret0, _ := ret[0].([]*models.Country)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCountries indicates an expected call of GetCountries.
-func (mr *MockCountryRepositoryMockRecorder) GetCountries() *gomock.Call {
+func (mr *MockCountryRepositoryMockRecorder) GetCountries(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountries", reflect.TypeOf((*MockCountryRepository)(nil).GetCountries))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountries", reflect.TypeOf((*MockCountryRepository)(nil).GetCountries), filter)
 }
 
 // GetCountry mocks base method.
-func (m *MockCountryRepository) GetCountry(id uuid.UUID) (*models.Country, error) {
+func (m *MockCountryRepository) GetCountry(filter filters.CountryFilter) (*models.Country, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCountry", id)
+	ret := m.ctrl.Call(m, "GetCountry", filter)
 	ret0, _ := ret[0].(*models.Country)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCountry indicates an expected call of GetCountry.
-func (mr *MockCountryRepositoryMockRecorder) GetCountry(id any) *gomock.Call {
+func (mr *MockCountryRepositoryMockRecorder) GetCountry(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountry", reflect.TypeOf((*MockCountryRepository)(nil).GetCountry), id)
-}
-
-// GetCountryByCode mocks base method.
-func (m *MockCountryRepository) GetCountryByCode(code string) (*models.Country, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCountryByCode", code)
-	ret0, _ := ret[0].(*models.Country)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCountryByCode indicates an expected call of GetCountryByCode.
-func (mr *MockCountryRepositoryMockRecorder) GetCountryByCode(code any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountryByCode", reflect.TypeOf((*MockCountryRepository)(nil).GetCountryByCode), code)
-}
-
-// GetCountryByName mocks base method.
-func (m *MockCountryRepository) GetCountryByName(name string) (*models.Country, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCountryByName", name)
-	ret0, _ := ret[0].(*models.Country)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCountryByName indicates an expected call of GetCountryByName.
-func (mr *MockCountryRepositoryMockRecorder) GetCountryByName(name any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountryByName", reflect.TypeOf((*MockCountryRepository)(nil).GetCountryByName), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountry", reflect.TypeOf((*MockCountryRepository)(nil).GetCountry), filter)
 }

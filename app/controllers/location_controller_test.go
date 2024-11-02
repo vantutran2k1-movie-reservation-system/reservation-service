@@ -268,16 +268,15 @@ func TestLocationController_GetCitiesByState(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	cities := utils.GenerateCities(3)
-	filter := utils.GenerateGetCitiesFilter()
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.GET("/countries/:countryId/states/:stateId/cities", controller.GetCitiesByState)
 
-		service.EXPECT().GetCitiesByState(filter).Return(cities, nil).Times(1)
+		service.EXPECT().GetCitiesByState(gomock.Any(), gomock.Any()).Return(cities, nil).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/countries/%s/states/%s/cities", gomock.Any(), filter.StateID), nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/countries/%s/states/%s/cities", uuid.NewString(), uuid.NewString()), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -290,10 +289,10 @@ func TestLocationController_GetCitiesByState(t *testing.T) {
 		router := gin.Default()
 		router.GET("/countries/:countryId/states/:stateId/cities", controller.GetCitiesByState)
 
-		service.EXPECT().GetCitiesByState(filter).Return(nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().GetCitiesByState(gomock.Any(), gomock.Any()).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/countries/%s/states/%s/cities", gomock.Any(), filter.StateID), nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/countries/%s/states/%s/cities", uuid.NewString(), uuid.NewString()), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)

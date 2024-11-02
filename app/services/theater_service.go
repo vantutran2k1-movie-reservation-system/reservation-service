@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
@@ -91,7 +92,11 @@ func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads
 		return nil, errors.BadRequestError("duplicate location for this theater")
 	}
 
-	c, err := s.cityRepo.GetCity(payloads.GetCityFilter{ID: &req.CityID})
+	cityFilter := filters.CityFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: req.CityID},
+	}
+	c, err := s.cityRepo.GetCity(cityFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}

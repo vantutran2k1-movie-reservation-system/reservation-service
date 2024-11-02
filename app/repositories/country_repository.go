@@ -1,17 +1,15 @@
 package repositories
 
 import (
-	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type CountryRepository interface {
-	GetCountry(id uuid.UUID) (*models.Country, error)
-	GetCountryByName(name string) (*models.Country, error)
-	GetCountryByCode(code string) (*models.Country, error)
-	GetCountries() ([]*models.Country, error)
+	GetCountry(filter filters.CountryFilter) (*models.Country, error)
+	GetCountries(filter filters.CountryFilter) ([]*models.Country, error)
 	CreateCountry(tx *gorm.DB, country *models.Country) error
 }
 
@@ -25,9 +23,9 @@ type countryRepository struct {
 	db *gorm.DB
 }
 
-func (r *countryRepository) GetCountry(id uuid.UUID) (*models.Country, error) {
+func (r *countryRepository) GetCountry(filter filters.CountryFilter) (*models.Country, error) {
 	var country models.Country
-	if err := r.db.Where("id = ?", id).First(&country).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&country).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -38,35 +36,9 @@ func (r *countryRepository) GetCountry(id uuid.UUID) (*models.Country, error) {
 	return &country, nil
 }
 
-func (r *countryRepository) GetCountryByName(name string) (*models.Country, error) {
-	var country models.Country
-	if err := r.db.Where("name = ?", name).First(&country).Error; err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-
-		return nil, err
-	}
-
-	return &country, nil
-}
-
-func (r *countryRepository) GetCountryByCode(code string) (*models.Country, error) {
-	var country models.Country
-	if err := r.db.Where("code = ?", code).First(&country).Error; err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-
-		return nil, err
-	}
-
-	return &country, nil
-}
-
-func (r *countryRepository) GetCountries() ([]*models.Country, error) {
+func (r *countryRepository) GetCountries(filter filters.CountryFilter) ([]*models.Country, error) {
 	var countries []*models.Country
-	if err := r.db.Find(&countries).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Find(&countries).Error; err != nil {
 		return nil, err
 	}
 

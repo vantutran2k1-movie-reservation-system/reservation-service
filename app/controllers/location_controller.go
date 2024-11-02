@@ -83,14 +83,19 @@ func (c *LocationController) CreateState(ctx *gin.Context) {
 }
 
 func (c *LocationController) GetCitiesByState(ctx *gin.Context) {
+	countryID, e := uuid.Parse(ctx.Param("countryId"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid country id"})
+		return
+	}
+
 	stateID, e := uuid.Parse(ctx.Param("stateId"))
 	if e != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid state id"})
 		return
 	}
 
-	filter := payloads.GetCitiesFilter{StateID: stateID}
-	cities, err := c.LocationService.GetCitiesByState(filter)
+	cities, err := c.LocationService.GetCitiesByState(countryID, stateID)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

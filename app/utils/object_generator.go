@@ -349,12 +349,6 @@ func GenerateCities(count int) []*models.City {
 	return cities
 }
 
-func GenerateGetCitiesFilter() payloads.GetCitiesFilter {
-	return payloads.GetCitiesFilter{
-		StateID: generateUUID(),
-	}
-}
-
 func GenerateCreateCityRequest() payloads.CreateCityRequest {
 	return payloads.CreateCityRequest{
 		Name: generateString(lowercaseChars, 10),

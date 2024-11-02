@@ -2,14 +2,14 @@ package repositories
 
 import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"gorm.io/gorm"
 )
 
 type CityRepository interface {
-	GetCity(filter payloads.GetCityFilter) (*models.City, error)
-	GetCities(filter payloads.GetCitiesFilter) ([]*models.City, error)
+	GetCity(filter filters.CityFilter) (*models.City, error)
+	GetCities(filter filters.CityFilter) ([]*models.City, error)
 	CreateCity(tx *gorm.DB, city *models.City) error
 }
 
@@ -21,9 +21,9 @@ type cityRepository struct {
 	db *gorm.DB
 }
 
-func (r *cityRepository) GetCity(filter payloads.GetCityFilter) (*models.City, error) {
+func (r *cityRepository) GetCity(filter filters.CityFilter) (*models.City, error) {
 	var city models.City
-	if err := r.getCityFilterQuery(r.db, filter).First(&city).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&city).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -34,9 +34,9 @@ func (r *cityRepository) GetCity(filter payloads.GetCityFilter) (*models.City, e
 	return &city, nil
 }
 
-func (r *cityRepository) GetCities(filter payloads.GetCitiesFilter) ([]*models.City, error) {
+func (r *cityRepository) GetCities(filter filters.CityFilter) ([]*models.City, error) {
 	var cities []*models.City
-	if err := r.getCitiesFilterQuery(r.db, filter).Find(&cities).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Find(&cities).Error; err != nil {
 		return nil, err
 	}
 
@@ -45,26 +45,4 @@ func (r *cityRepository) GetCities(filter payloads.GetCitiesFilter) ([]*models.C
 
 func (r *cityRepository) CreateCity(tx *gorm.DB, city *models.City) error {
 	return tx.Create(city).Error
-}
-
-func (r *cityRepository) getCityFilterQuery(query *gorm.DB, filter payloads.GetCityFilter) *gorm.DB {
-	if filter.ID != nil {
-		query = query.Where("id = ?", filter.ID)
-	}
-
-	if filter.StateID != nil {
-		query = query.Where("state_id = ?", filter.StateID)
-	}
-
-	if filter.Name != nil {
-		query = query.Where("name = ?", filter.Name)
-	}
-
-	return query
-}
-
-func (r *cityRepository) getCitiesFilterQuery(query *gorm.DB, filter payloads.GetCitiesFilter) *gorm.DB {
-	query = query.Where("state_id = ?", filter.StateID)
-
-	return query
 }

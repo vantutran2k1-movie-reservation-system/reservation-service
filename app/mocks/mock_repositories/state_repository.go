@@ -12,7 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -56,46 +56,31 @@ func (mr *MockStateRepositoryMockRecorder) CreateState(tx, state any) *gomock.Ca
 }
 
 // GetState mocks base method.
-func (m *MockStateRepository) GetState(id uuid.UUID) (*models.State, error) {
+func (m *MockStateRepository) GetState(filter filters.StateFilter) (*models.State, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetState", id)
+	ret := m.ctrl.Call(m, "GetState", filter)
 	ret0, _ := ret[0].(*models.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetState indicates an expected call of GetState.
-func (mr *MockStateRepositoryMockRecorder) GetState(id any) *gomock.Call {
+func (mr *MockStateRepositoryMockRecorder) GetState(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetState", reflect.TypeOf((*MockStateRepository)(nil).GetState), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetState", reflect.TypeOf((*MockStateRepository)(nil).GetState), filter)
 }
 
-// GetStateByName mocks base method.
-func (m *MockStateRepository) GetStateByName(countryID uuid.UUID, name string) (*models.State, error) {
+// GetStates mocks base method.
+func (m *MockStateRepository) GetStates(filter filters.StateFilter) ([]*models.State, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStateByName", countryID, name)
-	ret0, _ := ret[0].(*models.State)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetStateByName indicates an expected call of GetStateByName.
-func (mr *MockStateRepositoryMockRecorder) GetStateByName(countryID, name any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStateByName", reflect.TypeOf((*MockStateRepository)(nil).GetStateByName), countryID, name)
-}
-
-// GetStatesByCountry mocks base method.
-func (m *MockStateRepository) GetStatesByCountry(countryID uuid.UUID) ([]*models.State, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStatesByCountry", countryID)
+	ret := m.ctrl.Call(m, "GetStates", filter)
 	ret0, _ := ret[0].([]*models.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetStatesByCountry indicates an expected call of GetStatesByCountry.
-func (mr *MockStateRepositoryMockRecorder) GetStatesByCountry(countryID any) *gomock.Call {
+// GetStates indicates an expected call of GetStates.
+func (mr *MockStateRepositoryMockRecorder) GetStates(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatesByCountry", reflect.TypeOf((*MockStateRepository)(nil).GetStatesByCountry), countryID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStates", reflect.TypeOf((*MockStateRepository)(nil).GetStates), filter)
 }

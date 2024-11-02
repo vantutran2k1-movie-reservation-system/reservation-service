@@ -5,8 +5,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
@@ -21,15 +21,16 @@ func TestCityRepository_GetCity(t *testing.T) {
 	repo := NewCityRepository(db)
 
 	city := utils.GenerateCity()
-	filter := payloads.GetCityFilter{
-		ID:      &city.ID,
-		StateID: &city.StateID,
-		Name:    &city.Name,
+	filter := filters.CityFilter{
+		Filter:  &filters.SingleFilter{Logic: filters.And},
+		ID:      &filters.Condition{Operator: filters.OpEqual, Value: city.ID},
+		StateID: &filters.Condition{Operator: filters.OpEqual, Value: city.StateID},
+		Name:    &filters.Condition{Operator: filters.OpEqual, Value: city.Name},
 	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 AND state_id = $2 AND name = $3 ORDER BY "cities"."id" LIMIT $4`)).
-			WithArgs(*filter.ID, *filter.StateID, *filter.Name, 1).
+			WithArgs(filter.ID.Value, filter.StateID.Value, filter.Name.Value, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(city))
 
 		result, err := repo.GetCity(filter)
@@ -41,7 +42,7 @@ func TestCityRepository_GetCity(t *testing.T) {
 
 	t.Run("city not found", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 AND state_id = $2 AND name = $3 ORDER BY "cities"."id" LIMIT $4`)).
-			WithArgs(*filter.ID, *filter.StateID, *filter.Name, 1).
+			WithArgs(filter.ID.Value, filter.StateID.Value, filter.Name.Value, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
 		result, err := repo.GetCity(filter)
@@ -52,7 +53,7 @@ func TestCityRepository_GetCity(t *testing.T) {
 
 	t.Run("error getting city", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE id = $1 AND state_id = $2 AND name = $3 ORDER BY "cities"."id" LIMIT $4`)).
-			WithArgs(*filter.ID, *filter.StateID, *filter.Name, 1).
+			WithArgs(filter.ID.Value, filter.StateID.Value, filter.Name.Value, 1).
 			WillReturnError(errors.New("error getting city"))
 
 		result, err := repo.GetCity(filter)
@@ -72,11 +73,14 @@ func TestCityRepository_GetCities(t *testing.T) {
 	repo := NewCityRepository(db)
 
 	cities := utils.GenerateCities(3)
-	filter := payloads.GetCitiesFilter{StateID: uuid.New()}
+	filter := filters.CityFilter{
+		Filter:  &filters.MultiFilter{Logic: filters.And},
+		StateID: &filters.Condition{Operator: filters.OpEqual, Value: uuid.New()},
+	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE state_id = $1`)).
-			WithArgs(filter.StateID).
+			WithArgs(filter.StateID.Value).
 			WillReturnRows(utils.GenerateSqlMockRows(cities))
 
 		result, err := repo.GetCities(filter)
@@ -88,7 +92,7 @@ func TestCityRepository_GetCities(t *testing.T) {
 
 	t.Run("error getting cities", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cities" WHERE state_id = $1`)).
-			WithArgs(filter.StateID).
+			WithArgs(filter.StateID.Value).
 			WillReturnError(errors.New("error getting cities"))
 
 		result, err := repo.GetCities(filter)

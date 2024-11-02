@@ -1,16 +1,15 @@
 package repositories
 
 import (
-	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type StateRepository interface {
-	GetState(id uuid.UUID) (*models.State, error)
-	GetStateByName(countryID uuid.UUID, name string) (*models.State, error)
-	GetStatesByCountry(countryID uuid.UUID) ([]*models.State, error)
+	GetState(filter filters.StateFilter) (*models.State, error)
+	GetStates(filter filters.StateFilter) ([]*models.State, error)
 	CreateState(tx *gorm.DB, state *models.State) error
 }
 
@@ -22,9 +21,9 @@ type stateRepository struct {
 	db *gorm.DB
 }
 
-func (r *stateRepository) GetState(id uuid.UUID) (*models.State, error) {
+func (r *stateRepository) GetState(filter filters.StateFilter) (*models.State, error) {
 	var state models.State
-	if err := r.db.Where("id = ?", id).First(&state).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&state).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -35,22 +34,9 @@ func (r *stateRepository) GetState(id uuid.UUID) (*models.State, error) {
 	return &state, nil
 }
 
-func (r *stateRepository) GetStateByName(countryID uuid.UUID, name string) (*models.State, error) {
-	var state models.State
-	if err := r.db.Where("country_id = ? AND name = ?", countryID, name).First(&state).Error; err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-
-		return nil, err
-	}
-
-	return &state, nil
-}
-
-func (r *stateRepository) GetStatesByCountry(countryID uuid.UUID) ([]*models.State, error) {
+func (r *stateRepository) GetStates(filter filters.StateFilter) ([]*models.State, error) {
 	var states []*models.State
-	if err := r.db.Where("country_id = ?", countryID).Find(&states).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Find(&states).Error; err != nil {
 		return nil, err
 	}
 

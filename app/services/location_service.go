@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
@@ -15,7 +16,7 @@ type LocationService interface {
 	CreateCountry(req payloads.CreateCountryRequest) (*models.Country, *errors.ApiError)
 	GetStatesByCountry(countryID uuid.UUID) ([]*models.State, *errors.ApiError)
 	CreateState(countryID uuid.UUID, req payloads.CreateStateRequest) (*models.State, *errors.ApiError)
-	GetCitiesByState(filter payloads.GetCitiesFilter) ([]*models.City, *errors.ApiError)
+	GetCitiesByState(countryID, stateID uuid.UUID) ([]*models.City, *errors.ApiError)
 	CreateCity(countryID, stateID uuid.UUID, req payloads.CreateCityRequest) (*models.City, *errors.ApiError)
 }
 
@@ -44,7 +45,10 @@ type locationService struct {
 }
 
 func (s *locationService) GetCountries() ([]*models.Country, *errors.ApiError) {
-	countries, err := s.countryRepo.GetCountries()
+	filter := filters.CountryFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+	}
+	countries, err := s.countryRepo.GetCountries(filter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -53,20 +57,17 @@ func (s *locationService) GetCountries() ([]*models.Country, *errors.ApiError) {
 }
 
 func (s *locationService) CreateCountry(req payloads.CreateCountryRequest) (*models.Country, *errors.ApiError) {
-	c, err := s.countryRepo.GetCountryByName(req.Name)
+	filter := filters.CountryFilter{
+		Filter: &filters.SingleFilter{Logic: filters.Or},
+		Name:   &filters.Condition{Operator: filters.OpEqual, Value: req.Name},
+		Code:   &filters.Condition{Operator: filters.OpEqual, Value: req.Code},
+	}
+	c, err := s.countryRepo.GetCountry(filter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 	if c != nil {
-		return nil, errors.BadRequestError("duplicate country name")
-	}
-
-	c, err = s.countryRepo.GetCountryByCode(req.Code)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-	if c != nil {
-		return nil, errors.BadRequestError("duplicate country code")
+		return nil, errors.BadRequestError("duplicate country name or code")
 	}
 
 	c = &models.Country{
@@ -84,7 +85,11 @@ func (s *locationService) CreateCountry(req payloads.CreateCountryRequest) (*mod
 }
 
 func (s *locationService) GetStatesByCountry(countryID uuid.UUID) ([]*models.State, *errors.ApiError) {
-	country, err := s.countryRepo.GetCountry(countryID)
+	countryFilter := filters.CountryFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: countryID},
+	}
+	country, err := s.countryRepo.GetCountry(countryFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -92,7 +97,11 @@ func (s *locationService) GetStatesByCountry(countryID uuid.UUID) ([]*models.Sta
 		return nil, errors.NotFoundError("country does not exist")
 	}
 
-	states, err := s.stateRepo.GetStatesByCountry(countryID)
+	statesFilter := filters.StateFilter{
+		Filter:    &filters.MultiFilter{Logic: filters.And},
+		CountryID: &filters.Condition{Operator: filters.OpEqual, Value: countryID},
+	}
+	states, err := s.stateRepo.GetStates(statesFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -101,7 +110,11 @@ func (s *locationService) GetStatesByCountry(countryID uuid.UUID) ([]*models.Sta
 }
 
 func (s *locationService) CreateState(countryID uuid.UUID, req payloads.CreateStateRequest) (*models.State, *errors.ApiError) {
-	country, err := s.countryRepo.GetCountry(countryID)
+	countryFilter := filters.CountryFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: countryID},
+	}
+	country, err := s.countryRepo.GetCountry(countryFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -109,7 +122,12 @@ func (s *locationService) CreateState(countryID uuid.UUID, req payloads.CreateSt
 		return nil, errors.NotFoundError("country does not exist")
 	}
 
-	state, err := s.stateRepo.GetStateByName(countryID, req.Name)
+	stateFilter := filters.StateFilter{
+		Filter:    &filters.SingleFilter{Logic: filters.And},
+		CountryID: &filters.Condition{Operator: filters.OpEqual, Value: countryID},
+		Name:      &filters.Condition{Operator: filters.OpEqual, Value: req.Name},
+	}
+	state, err := s.stateRepo.GetState(stateFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -132,16 +150,12 @@ func (s *locationService) CreateState(countryID uuid.UUID, req payloads.CreateSt
 	return state, nil
 }
 
-func (s *locationService) GetCitiesByState(filter payloads.GetCitiesFilter) ([]*models.City, *errors.ApiError) {
-	state, err := s.stateRepo.GetState(filter.StateID)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
+func (s *locationService) GetCitiesByState(countryID, stateID uuid.UUID) ([]*models.City, *errors.ApiError) {
+	countryFilter := filters.CountryFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: countryID},
 	}
-	if state == nil {
-		return nil, errors.NotFoundError("state does not exist")
-	}
-
-	country, err := s.countryRepo.GetCountry(state.CountryID)
+	country, err := s.countryRepo.GetCountry(countryFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -149,7 +163,23 @@ func (s *locationService) GetCitiesByState(filter payloads.GetCitiesFilter) ([]*
 		return nil, errors.NotFoundError("country does not exist")
 	}
 
-	cities, err := s.cityRepo.GetCities(filter)
+	stateFilter := filters.StateFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: stateID},
+	}
+	state, err := s.stateRepo.GetState(stateFilter)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if state == nil {
+		return nil, errors.NotFoundError("state does not exist")
+	}
+
+	citiesFilter := filters.CityFilter{
+		Filter:  &filters.MultiFilter{Logic: filters.And},
+		StateID: &filters.Condition{Operator: filters.OpEqual, Value: stateID},
+	}
+	cities, err := s.cityRepo.GetCities(citiesFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -158,7 +188,11 @@ func (s *locationService) GetCitiesByState(filter payloads.GetCitiesFilter) ([]*
 }
 
 func (s *locationService) CreateCity(countryID, stateID uuid.UUID, req payloads.CreateCityRequest) (*models.City, *errors.ApiError) {
-	country, err := s.countryRepo.GetCountry(countryID)
+	countryFilter := filters.CountryFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: countryID},
+	}
+	country, err := s.countryRepo.GetCountry(countryFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -166,7 +200,11 @@ func (s *locationService) CreateCity(countryID, stateID uuid.UUID, req payloads.
 		return nil, errors.NotFoundError("country does not exist")
 	}
 
-	state, err := s.stateRepo.GetState(stateID)
+	stateFilter := filters.StateFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: stateID},
+	}
+	state, err := s.stateRepo.GetState(stateFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -174,7 +212,12 @@ func (s *locationService) CreateCity(countryID, stateID uuid.UUID, req payloads.
 		return nil, errors.NotFoundError("state does not exist")
 	}
 
-	city, err := s.cityRepo.GetCity(payloads.GetCityFilter{StateID: &stateID, Name: &req.Name})
+	cityFilter := filters.CityFilter{
+		Filter:  &filters.SingleFilter{Logic: filters.And},
+		StateID: &filters.Condition{Operator: filters.OpEqual, Value: stateID},
+		Name:    &filters.Condition{Operator: filters.OpEqual, Value: req.Name},
+	}
+	city, err := s.cityRepo.GetCity(cityFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}

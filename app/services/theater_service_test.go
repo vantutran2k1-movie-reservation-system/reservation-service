@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
@@ -138,7 +139,10 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	theater := utils.GenerateTheater()
 	city := utils.GenerateCity()
 	req := utils.GenerateCreateTheaterLocationRequest()
-	cityFilter := payloads.GetCityFilter{ID: &req.CityID}
+	cityFilter := filters.CityFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: req.CityID},
+	}
 	theaterFilter := payloads.GetTheaterFilter{ID: &theater.ID}
 
 	t.Run("success", func(t *testing.T) {

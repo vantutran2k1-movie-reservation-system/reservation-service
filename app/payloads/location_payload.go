@@ -1,17 +1,5 @@
 package payloads
 
-import "github.com/google/uuid"
-
-type GetCityFilter struct {
-	ID      *uuid.UUID
-	StateID *uuid.UUID
-	Name    *string
-}
-
-type GetCitiesFilter struct {
-	StateID uuid.UUID
-}
-
 type CreateCountryRequest struct {
 	Name string `json:"name" binding:"required,min=2,max=100"`
 	Code string `json:"code" binding:"required,len=2"`
