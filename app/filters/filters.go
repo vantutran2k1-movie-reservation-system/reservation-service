@@ -60,6 +60,8 @@ type Filter interface {
 	GetFilterQuery(query *gorm.DB, conditions []FilterCondition) *gorm.DB
 }
 
+type CountOnlyFilter struct{}
+
 type SingleFilter struct {
 	Logic LogicOperator
 }
@@ -107,7 +109,7 @@ func applyConditions(query *gorm.DB, conditions []FilterCondition, logic LogicOp
 		if i == 0 {
 			query = query.Where(clause, condition.Value)
 		} else {
-			if logic == And {
+			if logic == And || logic == "" {
 				query = query.Where(clause, condition.Value)
 			} else {
 				query = query.Or(clause, condition.Value)

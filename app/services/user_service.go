@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"os"
 	"strconv"
@@ -116,7 +117,10 @@ func (s *userService) LoginUser(req payloads.LoginUserRequest) (*models.LoginTok
 
 	token := s.authenticator.GenerateLoginToken()
 
-	t, err := s.loginTokenRepo.GetActiveLoginToken(token)
+	t, err := s.loginTokenRepo.GetLoginToken(filters.LoginTokenFilter{
+		Filter:     &filters.SingleFilter{Logic: filters.And},
+		TokenValue: &filters.Condition{Operator: filters.OpEqual, Value: token},
+	})
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -158,7 +162,10 @@ func (s *userService) LoginUser(req payloads.LoginUserRequest) (*models.LoginTok
 }
 
 func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
-	token, err := s.loginTokenRepo.GetActiveLoginToken(tokenValue)
+	token, err := s.loginTokenRepo.GetLoginToken(filters.LoginTokenFilter{
+		Filter:     &filters.SingleFilter{Logic: filters.And},
+		TokenValue: &filters.Condition{Operator: filters.OpEqual, Value: tokenValue},
+	})
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 

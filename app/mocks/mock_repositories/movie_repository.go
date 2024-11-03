@@ -12,7 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -56,48 +56,48 @@ func (mr *MockMovieRepositoryMockRecorder) CreateMovie(tx, movie any) *gomock.Ca
 }
 
 // GetMovie mocks base method.
-func (m *MockMovieRepository) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, error) {
+func (m *MockMovieRepository) GetMovie(filter filters.MovieFilter, includeGenres bool) (*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMovie", id, includeGenres)
+	ret := m.ctrl.Call(m, "GetMovie", filter, includeGenres)
 	ret0, _ := ret[0].(*models.Movie)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMovie indicates an expected call of GetMovie.
-func (mr *MockMovieRepositoryMockRecorder) GetMovie(id, includeGenres any) *gomock.Call {
+func (mr *MockMovieRepositoryMockRecorder) GetMovie(filter, includeGenres any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetMovie), id, includeGenres)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetMovie), filter, includeGenres)
 }
 
 // GetMovies mocks base method.
-func (m *MockMovieRepository) GetMovies(limit, offset int) ([]*models.Movie, error) {
+func (m *MockMovieRepository) GetMovies(filter filters.MovieFilter) ([]*models.Movie, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMovies", limit, offset)
+	ret := m.ctrl.Call(m, "GetMovies", filter)
 	ret0, _ := ret[0].([]*models.Movie)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMovies indicates an expected call of GetMovies.
-func (mr *MockMovieRepositoryMockRecorder) GetMovies(limit, offset any) *gomock.Call {
+func (mr *MockMovieRepositoryMockRecorder) GetMovies(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovies", reflect.TypeOf((*MockMovieRepository)(nil).GetMovies), limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovies", reflect.TypeOf((*MockMovieRepository)(nil).GetMovies), filter)
 }
 
 // GetNumbersOfMovie mocks base method.
-func (m *MockMovieRepository) GetNumbersOfMovie() (int, error) {
+func (m *MockMovieRepository) GetNumbersOfMovie(filter filters.MovieFilter) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNumbersOfMovie")
+	ret := m.ctrl.Call(m, "GetNumbersOfMovie", filter)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetNumbersOfMovie indicates an expected call of GetNumbersOfMovie.
-func (mr *MockMovieRepositoryMockRecorder) GetNumbersOfMovie() *gomock.Call {
+func (mr *MockMovieRepositoryMockRecorder) GetNumbersOfMovie(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumbersOfMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetNumbersOfMovie))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumbersOfMovie", reflect.TypeOf((*MockMovieRepository)(nil).GetNumbersOfMovie), filter)
 }
 
 // UpdateMovie mocks base method.

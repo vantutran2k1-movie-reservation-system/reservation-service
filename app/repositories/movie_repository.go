@@ -1,16 +1,16 @@
 package repositories
 
 import (
-	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type MovieRepository interface {
-	GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, error)
-	GetMovies(limit, offset int) ([]*models.Movie, error)
-	GetNumbersOfMovie() (int, error)
+	GetMovie(filter filters.MovieFilter, includeGenres bool) (*models.Movie, error)
+	GetMovies(filter filters.MovieFilter) ([]*models.Movie, error)
+	GetNumbersOfMovie(filter filters.MovieFilter) (int, error)
 	CreateMovie(tx *gorm.DB, movie *models.Movie) error
 	UpdateMovie(tx *gorm.DB, movie *models.Movie) error
 }
@@ -23,8 +23,8 @@ func NewMovieRepository(db *gorm.DB) MovieRepository {
 	return &movieRepository{db: db}
 }
 
-func (r *movieRepository) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, error) {
-	query := r.db.Where("id = ?", id)
+func (r *movieRepository) GetMovie(filter filters.MovieFilter, includeGenres bool) (*models.Movie, error) {
+	query := filter.GetFilterQuery(r.db)
 	if includeGenres {
 		query = query.Preload("Genres")
 	}
@@ -41,18 +41,18 @@ func (r *movieRepository) GetMovie(id uuid.UUID, includeGenres bool) (*models.Mo
 	return &m, nil
 }
 
-func (r *movieRepository) GetMovies(limit, offset int) ([]*models.Movie, error) {
+func (r *movieRepository) GetMovies(filter filters.MovieFilter) ([]*models.Movie, error) {
 	var movies []*models.Movie
-	if err := r.db.Limit(limit).Offset(offset).Find(&movies).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Find(&movies).Error; err != nil {
 		return nil, err
 	}
 
 	return movies, nil
 }
 
-func (r *movieRepository) GetNumbersOfMovie() (int, error) {
+func (r *movieRepository) GetNumbersOfMovie(filter filters.MovieFilter) (int, error) {
 	var count int64
-	if err := r.db.Model(&models.Movie{}).Count(&count).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Model(&models.Movie{}).Count(&count).Error; err != nil {
 		return 0, err
 	}
 

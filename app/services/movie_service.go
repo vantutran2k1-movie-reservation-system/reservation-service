@@ -47,7 +47,11 @@ func NewMovieService(
 }
 
 func (s *movieService) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, *errors.ApiError) {
-	m, err := s.movieRepo.GetMovie(id, includeGenres)
+	filter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+	}
+	m, err := s.movieRepo.GetMovie(filter, includeGenres)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -59,12 +63,17 @@ func (s *movieService) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie
 }
 
 func (s *movieService) GetMovies(limit, offset int) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError) {
-	movies, err := s.movieRepo.GetMovies(limit, offset)
+	movies, err := s.movieRepo.GetMovies(filters.MovieFilter{
+		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+	})
 	if err != nil {
 		return nil, nil, errors.InternalServerError(err.Error())
 	}
 
-	count, err := s.movieRepo.GetNumbersOfMovie()
+	count, err := s.movieRepo.GetNumbersOfMovie(
+		filters.MovieFilter{
+			Filter: &filters.SingleFilter{},
+		})
 	if err != nil {
 		return nil, nil, errors.InternalServerError(err.Error())
 	}
@@ -119,7 +128,11 @@ func (s *movieService) CreateMovie(req payloads.CreateMovieRequest, createdBy uu
 }
 
 func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError) {
-	m, err := s.movieRepo.GetMovie(id, false)
+	filter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+	}
+	m, err := s.movieRepo.GetMovie(filter, false)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -145,7 +158,11 @@ func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateM
 }
 
 func (s *movieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError {
-	m, err := s.movieRepo.GetMovie(id, false)
+	filter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+	}
+	m, err := s.movieRepo.GetMovie(filter, false)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}

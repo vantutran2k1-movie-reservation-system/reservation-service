@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"regexp"
 	"testing"
 
@@ -21,6 +22,10 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 
 	movie := utils.GenerateMovie()
 	genres := utils.GenerateGenres(3)
+	filter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+	}
 
 	t.Run("success with genres", func(t *testing.T) {
 		movieGenreRows := sqlmock.NewRows([]string{"movie_id", "genre_id"})
@@ -29,7 +34,7 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 		}
 
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" WHERE id = $1 ORDER BY "movies"."id" LIMIT $2`)).
-			WithArgs(movie.ID, 1).
+			WithArgs(filter.ID.Value, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(movie))
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movie_genres" WHERE "movie_genres"."movie_id" = $1`)).
 			WithArgs(movie.ID).
@@ -38,7 +43,7 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 			WithArgs(genres[0].ID, genres[1].ID, genres[2].ID).
 			WillReturnRows(utils.GenerateSqlMockRows(genres))
 
-		result, err := repo.GetMovie(movie.ID, true)
+		result, err := repo.GetMovie(filter, true)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -54,7 +59,7 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 			WithArgs(movie.ID, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(movie))
 
-		result, err := repo.GetMovie(movie.ID, false)
+		result, err := repo.GetMovie(filter, false)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -66,7 +71,7 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 			WithArgs(movie.ID, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := repo.GetMovie(movie.ID, false)
+		result, err := repo.GetMovie(filter, false)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
@@ -77,7 +82,7 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 			WithArgs(movie.ID, 1).
 			WillReturnError(errors.New("error getting movie"))
 
-		result, err := repo.GetMovie(movie.ID, false)
+		result, err := repo.GetMovie(filter, false)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
@@ -94,13 +99,18 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 	repo := NewMovieRepository(db)
 
 	movies := utils.GenerateMovies(3)
+	limit := 2
+	offset := 2
+	filter := filters.MovieFilter{
+		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
-			WithArgs(2, 2).
+			WithArgs(limit, offset).
 			WillReturnRows(utils.GenerateSqlMockRows(movies))
 
-		result, err := repo.GetMovies(2, 2)
+		result, err := repo.GetMovies(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -111,10 +121,10 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 
 	t.Run("error getting movies", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
-			WithArgs(2, 2).
+			WithArgs(limit, offset).
 			WillReturnError(errors.New("error getting movies"))
 
-		result, err := repo.GetMovies(2, 2)
+		result, err := repo.GetMovies(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -130,11 +140,15 @@ func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 
 	repo := NewMovieRepository(db)
 
+	filter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+	}
+
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "movies"`)).
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3))
 
-		result, err := repo.GetNumbersOfMovie()
+		result, err := repo.GetNumbersOfMovie(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -145,7 +159,7 @@ func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "movies"`)).
 			WillReturnError(errors.New("error counting movies"))
 
-		result, err := repo.GetNumbersOfMovie()
+		result, err := repo.GetNumbersOfMovie(filter)
 
 		assert.Equal(t, result, 0)
 		assert.NotNil(t, err)

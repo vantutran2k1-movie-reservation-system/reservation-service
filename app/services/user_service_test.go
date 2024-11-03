@@ -3,18 +3,18 @@ package services
 import (
 	"errors"
 	"fmt"
-	"net/http"
-	"os"
-	"testing"
-
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
+	"net/http"
+	"os"
+	"testing"
 )
 
 func TestUserService_GetUser(t *testing.T) {
@@ -157,12 +157,16 @@ func TestUserService_LoginUser(t *testing.T) {
 	user := utils.GenerateUser()
 	token := utils.GenerateLoginToken()
 	req := utils.GenerateLoginUserRequest()
+	tokenFilter := filters.LoginTokenFilter{
+		Filter:     &filters.SingleFilter{Logic: filters.And},
+		TokenValue: &filters.Condition{Operator: filters.OpEqual, Value: token.TokenValue},
+	}
 
 	t.Run("success", func(t *testing.T) {
 		userRepo.EXPECT().GetUserByEmail(req.Email).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
 		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
 		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -214,7 +218,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		userRepo.EXPECT().GetUserByEmail(req.Email).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, errors.New("error getting token")).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, errors.New("error getting token")).Times(1)
 
 		result, err := service.LoginUser(req)
 
@@ -228,7 +232,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		userRepo.EXPECT().GetUserByEmail(req.Email).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(token, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(token, nil).Times(1)
 
 		result, err := service.LoginUser(req)
 
@@ -242,7 +246,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		userRepo.EXPECT().GetUserByEmail(req.Email).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
 
 		result, err := service.LoginUser(req)
 
@@ -256,7 +260,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		userRepo.EXPECT().GetUserByEmail(req.Email).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
 		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
 		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -278,7 +282,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		userRepo.EXPECT().GetUserByEmail(req.Email).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
 		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
 		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -317,7 +321,7 @@ func TestUserService_LogoutUser(t *testing.T) {
 	token := utils.GenerateLoginToken()
 
 	t.Run("success", func(t *testing.T) {
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(token, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Any()).Return(token, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -338,7 +342,7 @@ func TestUserService_LogoutUser(t *testing.T) {
 	})
 
 	t.Run("token not found", func(t *testing.T) {
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Any()).Return(nil, nil).Times(1)
 
 		err := service.LogoutUser(token.TokenValue)
 
@@ -348,7 +352,7 @@ func TestUserService_LogoutUser(t *testing.T) {
 	})
 
 	t.Run("error getting token", func(t *testing.T) {
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(nil, errors.New("error getting token")).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Any()).Return(nil, errors.New("error getting token")).Times(1)
 
 		err := service.LogoutUser(token.TokenValue)
 
@@ -358,7 +362,7 @@ func TestUserService_LogoutUser(t *testing.T) {
 	})
 
 	t.Run("error revoking token", func(t *testing.T) {
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(token, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Any()).Return(token, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -374,7 +378,7 @@ func TestUserService_LogoutUser(t *testing.T) {
 	})
 
 	t.Run("error deleting session", func(t *testing.T) {
-		loginTokenRepo.EXPECT().GetActiveLoginToken(token.TokenValue).Return(token, nil).Times(1)
+		loginTokenRepo.EXPECT().GetLoginToken(gomock.Any()).Return(token, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)

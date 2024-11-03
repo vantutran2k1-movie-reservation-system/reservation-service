@@ -5,13 +5,15 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
+	"time"
 )
 
-func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
+func TestLoginTokenRepository_GetLoginToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
@@ -20,13 +22,19 @@ func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 	repo := NewLoginTokenRepository(db)
 
 	token := utils.GenerateLoginToken()
+	filter := filters.LoginTokenFilter{
+		Filter:     &filters.SingleFilter{Logic: filters.And},
+		UserID:     &filters.Condition{Operator: filters.OpEqual, Value: token.UserID},
+		TokenValue: &filters.Condition{Operator: filters.OpEqual, Value: token.TokenValue},
+		ExpiresAt:  &filters.Condition{Operator: filters.OpGreater, Value: time.Now().UTC()},
+	}
 
 	t.Run("success", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE token_value = $1 AND expires_at > $2 ORDER BY "login_tokens"."id" LIMIT $3`)).
-			WithArgs(token.TokenValue, sqlmock.AnyArg(), 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE user_id = $1 AND token_value = $2 AND expires_at > $3 ORDER BY "login_tokens"."id" LIMIT $4`)).
+			WithArgs(filter.UserID.Value, filter.TokenValue.Value, filter.ExpiresAt.Value, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(token))
 
-		result, err := repo.GetActiveLoginToken(token.TokenValue)
+		result, err := repo.GetLoginToken(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -34,26 +42,26 @@ func TestLoginTokenRepository_GetActiveLoginToken(t *testing.T) {
 	})
 
 	t.Run("token not found", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE token_value = $1 AND expires_at > $2 ORDER BY "login_tokens"."id" LIMIT $3`)).
-			WithArgs(token.TokenValue, sqlmock.AnyArg(), 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE user_id = $1 AND token_value = $2 AND expires_at > $3 ORDER BY "login_tokens"."id" LIMIT $4`)).
+			WithArgs(filter.UserID.Value, filter.TokenValue.Value, filter.ExpiresAt.Value, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := repo.GetActiveLoginToken(token.TokenValue)
+		result, err := repo.GetLoginToken(filter)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
 	})
 
-	t.Run("db error", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE token_value = $1 AND expires_at > $2 ORDER BY "login_tokens"."id" LIMIT $3`)).
-			WithArgs(token.TokenValue, sqlmock.AnyArg(), 1).
-			WillReturnError(errors.New("db error"))
+	t.Run("error getting token", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "login_tokens" WHERE user_id = $1 AND token_value = $2 AND expires_at > $3 ORDER BY "login_tokens"."id" LIMIT $4`)).
+			WithArgs(filter.UserID.Value, filter.TokenValue.Value, filter.ExpiresAt.Value, 1).
+			WillReturnError(errors.New("error getting token"))
 
-		result, err := NewLoginTokenRepository(db).GetActiveLoginToken(token.TokenValue)
+		result, err := NewLoginTokenRepository(db).GetLoginToken(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "db error", err.Error())
+		assert.Equal(t, "error getting token", err.Error())
 	})
 }
 

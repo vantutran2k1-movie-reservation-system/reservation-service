@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,7 +11,7 @@ import (
 )
 
 type LoginTokenRepository interface {
-	GetActiveLoginToken(tokenValue string) (*models.LoginToken, error)
+	GetLoginToken(filter filters.LoginTokenFilter) (*models.LoginToken, error)
 	CreateLoginToken(tx *gorm.DB, loginToken *models.LoginToken) error
 	RevokeLoginToken(tx *gorm.DB, loginToken *models.LoginToken) error
 	RevokeUserLoginTokens(tx *gorm.DB, userID uuid.UUID) error
@@ -24,9 +25,9 @@ func NewLoginTokenRepository(db *gorm.DB) LoginTokenRepository {
 	return &loginTokenRepository{db: db}
 }
 
-func (r *loginTokenRepository) GetActiveLoginToken(tokenValue string) (*models.LoginToken, error) {
+func (r *loginTokenRepository) GetLoginToken(filter filters.LoginTokenFilter) (*models.LoginToken, error) {
 	var t models.LoginToken
-	if err := r.db.Where("token_value = ? AND expires_at > ?", tokenValue, time.Now().UTC()).First(&t).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&t).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

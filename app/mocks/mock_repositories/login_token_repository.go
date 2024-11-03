@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -55,19 +56,19 @@ func (mr *MockLoginTokenRepositoryMockRecorder) CreateLoginToken(tx, loginToken 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLoginToken", reflect.TypeOf((*MockLoginTokenRepository)(nil).CreateLoginToken), tx, loginToken)
 }
 
-// GetActiveLoginToken mocks base method.
-func (m *MockLoginTokenRepository) GetActiveLoginToken(tokenValue string) (*models.LoginToken, error) {
+// GetLoginToken mocks base method.
+func (m *MockLoginTokenRepository) GetLoginToken(filter filters.LoginTokenFilter) (*models.LoginToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActiveLoginToken", tokenValue)
+	ret := m.ctrl.Call(m, "GetLoginToken", filter)
 	ret0, _ := ret[0].(*models.LoginToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetActiveLoginToken indicates an expected call of GetActiveLoginToken.
-func (mr *MockLoginTokenRepositoryMockRecorder) GetActiveLoginToken(tokenValue any) *gomock.Call {
+// GetLoginToken indicates an expected call of GetLoginToken.
+func (mr *MockLoginTokenRepositoryMockRecorder) GetLoginToken(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveLoginToken", reflect.TypeOf((*MockLoginTokenRepository)(nil).GetActiveLoginToken), tokenValue)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoginToken", reflect.TypeOf((*MockLoginTokenRepository)(nil).GetLoginToken), filter)
 }
 
 // RevokeLoginToken mocks base method.

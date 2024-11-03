@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"net/http"
 	"testing"
 
@@ -23,9 +24,13 @@ func TestMovieService_GetMovie(t *testing.T) {
 	service := NewMovieService(nil, nil, repo, nil, nil)
 
 	movie := utils.GenerateMovie()
+	filter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
+		repo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(movie, nil).Times(1)
 
 		result, err := service.GetMovie(movie.ID, false)
 
@@ -35,7 +40,7 @@ func TestMovieService_GetMovie(t *testing.T) {
 	})
 
 	t.Run("movie not found", func(t *testing.T) {
-		repo.EXPECT().GetMovie(movie.ID, false).Return(nil, nil).Times(1)
+		repo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(nil, nil).Times(1)
 
 		result, err := service.GetMovie(movie.ID, false)
 
@@ -46,7 +51,7 @@ func TestMovieService_GetMovie(t *testing.T) {
 	})
 
 	t.Run("error getting movie", func(t *testing.T) {
-		repo.EXPECT().GetMovie(movie.ID, false).Return(nil, errors.New("error getting movie")).Times(1)
+		repo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(nil, errors.New("error getting movie")).Times(1)
 
 		result, err := service.GetMovie(movie.ID, false)
 
@@ -67,10 +72,16 @@ func TestMovieService_GetMovies(t *testing.T) {
 	movies := utils.GenerateMovies(20)
 	limit := 10
 	offset := 0
+	getFilter := filters.MovieFilter{
+		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+	}
+	countFilter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetMovies(limit, offset).Return(movies, nil).Times(1)
-		repo.EXPECT().GetNumbersOfMovie().Return(len(movies), nil).Times(1)
+		repo.EXPECT().GetMovies(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
+		repo.EXPECT().GetNumbersOfMovie(gomock.Eq(countFilter)).Return(len(movies), nil).Times(1)
 
 		result, meta, err := service.GetMovies(limit, offset)
 
@@ -93,7 +104,7 @@ func TestMovieService_GetMovies(t *testing.T) {
 	})
 
 	t.Run("error getting movies", func(t *testing.T) {
-		repo.EXPECT().GetMovies(limit, offset).Return(nil, errors.New("error getting movies")).Times(1)
+		repo.EXPECT().GetMovies(gomock.Eq(getFilter)).Return(nil, errors.New("error getting movies")).Times(1)
 
 		result, meta, err := service.GetMovies(limit, offset)
 
@@ -105,8 +116,8 @@ func TestMovieService_GetMovies(t *testing.T) {
 	})
 
 	t.Run("error counting movies", func(t *testing.T) {
-		repo.EXPECT().GetMovies(limit, offset).Return(movies, nil).Times(1)
-		repo.EXPECT().GetNumbersOfMovie().Return(0, errors.New("error counting movies")).Times(1)
+		repo.EXPECT().GetMovies(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
+		repo.EXPECT().GetNumbersOfMovie(gomock.Eq(countFilter)).Return(0, errors.New("error counting movies")).Times(1)
 
 		result, meta, err := service.GetMovies(limit, offset)
 
@@ -177,9 +188,13 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 
 	movie := utils.GenerateMovie()
 	req := utils.GenerateUpdateMovieRequest()
+	filter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
+		repo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -201,7 +216,7 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 	})
 
 	t.Run("movie not found", func(t *testing.T) {
-		repo.EXPECT().GetMovie(movie.ID, false).Return(nil, nil).Times(1)
+		repo.EXPECT().GetMovie(filter, false).Return(nil, nil).Times(1)
 
 		result, err := service.UpdateMovie(movie.ID, movie.LastUpdatedBy, req)
 
@@ -212,7 +227,7 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 	})
 
 	t.Run("error updating movie", func(t *testing.T) {
-		repo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
+		repo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -243,9 +258,13 @@ func TestMovieService_AssignGenres(t *testing.T) {
 		allGenreIds[i] = utils.GenerateGenre().ID
 	}
 	updatedGenreIds := []uuid.UUID{allGenreIds[0], allGenreIds[1]}
+	filter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+	}
 
 	t.Run("success", func(t *testing.T) {
-		movieRepo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
+		movieRepo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
 		genreRepo.EXPECT().GetGenreIDs(gomock.Any()).Return(allGenreIds, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -259,7 +278,7 @@ func TestMovieService_AssignGenres(t *testing.T) {
 	})
 
 	t.Run("movie not found", func(t *testing.T) {
-		movieRepo.EXPECT().GetMovie(movie.ID, false).Return(nil, nil).Times(1)
+		movieRepo.EXPECT().GetMovie(filter, false).Return(nil, nil).Times(1)
 
 		err := service.AssignGenres(movie.ID, updatedGenreIds)
 
@@ -269,7 +288,7 @@ func TestMovieService_AssignGenres(t *testing.T) {
 	})
 
 	t.Run("error getting movie", func(t *testing.T) {
-		movieRepo.EXPECT().GetMovie(movie.ID, false).Return(nil, errors.New("error getting movie")).Times(1)
+		movieRepo.EXPECT().GetMovie(filter, false).Return(nil, errors.New("error getting movie")).Times(1)
 
 		err := service.AssignGenres(movie.ID, updatedGenreIds)
 
@@ -279,7 +298,7 @@ func TestMovieService_AssignGenres(t *testing.T) {
 	})
 
 	t.Run("error getting genres", func(t *testing.T) {
-		movieRepo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
+		movieRepo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
 		genreRepo.EXPECT().GetGenreIDs(gomock.Any()).Return(nil, errors.New("error getting genres")).Times(1)
 
 		err := service.AssignGenres(movie.ID, updatedGenreIds)
@@ -291,7 +310,7 @@ func TestMovieService_AssignGenres(t *testing.T) {
 	})
 
 	t.Run("error updated genres not found", func(t *testing.T) {
-		movieRepo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
+		movieRepo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
 		genreRepo.EXPECT().GetGenreIDs(gomock.Any()).Return(allGenreIds, nil).Times(1)
 
 		err := service.AssignGenres(movie.ID, []uuid.UUID{uuid.New(), uuid.New()})
@@ -302,7 +321,7 @@ func TestMovieService_AssignGenres(t *testing.T) {
 	})
 
 	t.Run("error updating movie", func(t *testing.T) {
-		movieRepo.EXPECT().GetMovie(movie.ID, false).Return(movie, nil).Times(1)
+		movieRepo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
 		genreRepo.EXPECT().GetGenreIDs(gomock.Any()).Return(allGenreIds, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
