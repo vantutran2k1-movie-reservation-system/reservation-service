@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -56,63 +57,48 @@ func (mr *MockGenreRepositoryMockRecorder) CreateGenre(tx, genre any) *gomock.Ca
 }
 
 // GetGenre mocks base method.
-func (m *MockGenreRepository) GetGenre(id uuid.UUID) (*models.Genre, error) {
+func (m *MockGenreRepository) GetGenre(filter filters.GenreFilter) (*models.Genre, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGenre", id)
+	ret := m.ctrl.Call(m, "GetGenre", filter)
 	ret0, _ := ret[0].(*models.Genre)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGenre indicates an expected call of GetGenre.
-func (mr *MockGenreRepositoryMockRecorder) GetGenre(id any) *gomock.Call {
+func (mr *MockGenreRepositoryMockRecorder) GetGenre(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenre", reflect.TypeOf((*MockGenreRepository)(nil).GetGenre), id)
-}
-
-// GetGenreByName mocks base method.
-func (m *MockGenreRepository) GetGenreByName(name string) (*models.Genre, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGenreByName", name)
-	ret0, _ := ret[0].(*models.Genre)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetGenreByName indicates an expected call of GetGenreByName.
-func (mr *MockGenreRepositoryMockRecorder) GetGenreByName(name any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenreByName", reflect.TypeOf((*MockGenreRepository)(nil).GetGenreByName), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenre", reflect.TypeOf((*MockGenreRepository)(nil).GetGenre), filter)
 }
 
 // GetGenreIDs mocks base method.
-func (m *MockGenreRepository) GetGenreIDs() ([]uuid.UUID, error) {
+func (m *MockGenreRepository) GetGenreIDs(filter filters.GenreFilter) ([]uuid.UUID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGenreIDs")
+	ret := m.ctrl.Call(m, "GetGenreIDs", filter)
 	ret0, _ := ret[0].([]uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGenreIDs indicates an expected call of GetGenreIDs.
-func (mr *MockGenreRepositoryMockRecorder) GetGenreIDs() *gomock.Call {
+func (mr *MockGenreRepositoryMockRecorder) GetGenreIDs(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenreIDs", reflect.TypeOf((*MockGenreRepository)(nil).GetGenreIDs))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenreIDs", reflect.TypeOf((*MockGenreRepository)(nil).GetGenreIDs), filter)
 }
 
 // GetGenres mocks base method.
-func (m *MockGenreRepository) GetGenres() ([]*models.Genre, error) {
+func (m *MockGenreRepository) GetGenres(filter filters.GenreFilter) ([]*models.Genre, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGenres")
+	ret := m.ctrl.Call(m, "GetGenres", filter)
 	ret0, _ := ret[0].([]*models.Genre)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetGenres indicates an expected call of GetGenres.
-func (mr *MockGenreRepositoryMockRecorder) GetGenres() *gomock.Call {
+func (mr *MockGenreRepositoryMockRecorder) GetGenres(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenres", reflect.TypeOf((*MockGenreRepository)(nil).GetGenres))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGenres", reflect.TypeOf((*MockGenreRepository)(nil).GetGenres), filter)
 }
 
 // UpdateGenre mocks base method.

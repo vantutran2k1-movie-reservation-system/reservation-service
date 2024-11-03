@@ -2,11 +2,12 @@ package repositories
 
 import (
 	"errors"
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"regexp"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
@@ -21,13 +22,18 @@ func TestGenreRepository_GetGenre(t *testing.T) {
 	repo := NewGenreRepository(db)
 
 	genre := utils.GenerateGenre()
+	filter := filters.GenreFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: genre.ID.String()},
+		Name:   &filters.Condition{Operator: filters.OpEqual, Value: genre.Name},
+	}
 
 	t.Run("success", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE id = $1 ORDER BY "genres"."id" LIMIT $2`)).
-			WithArgs(genre.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE id = $1 AND name = $2 ORDER BY "genres"."id" LIMIT $3`)).
+			WithArgs(filter.ID.Value, filter.Name.Value, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(genre))
 
-		result, err := repo.GetGenre(genre.ID)
+		result, err := repo.GetGenre(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -35,57 +41,11 @@ func TestGenreRepository_GetGenre(t *testing.T) {
 	})
 
 	t.Run("error getting genre", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE id = $1 ORDER BY "genres"."id" LIMIT $2`)).
-			WithArgs(genre.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE id = $1 AND name = $2 ORDER BY "genres"."id" LIMIT $3`)).
+			WithArgs(filter.ID.Value, filter.Name.Value, 1).
 			WillReturnError(errors.New("error getting genre"))
 
-		result, err := repo.GetGenre(genre.ID)
-
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.Equal(t, "error getting genre", err.Error())
-	})
-}
-
-func TestGenreRepository_GetGenreByName(t *testing.T) {
-	db, mock := mock_db.SetupTestDB(t)
-	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
-	}()
-
-	repo := NewGenreRepository(db)
-
-	genre := utils.GenerateGenre()
-
-	t.Run("success", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE name = $1 ORDER BY "genres"."id" LIMIT $2`)).
-			WithArgs(genre.Name, 1).
-			WillReturnRows(utils.GenerateSqlMockRow(genre))
-
-		result, err := repo.GetGenreByName(genre.Name)
-
-		assert.NotNil(t, result)
-		assert.Nil(t, err)
-		assert.Equal(t, genre, result)
-	})
-
-	t.Run("genre not found", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE name = $1 ORDER BY "genres"."id" LIMIT $2`)).
-			WithArgs(genre.Name, 1).
-			WillReturnRows(sqlmock.NewRows(nil))
-
-		result, err := repo.GetGenreByName(genre.Name)
-
-		assert.Nil(t, result)
-		assert.Nil(t, err)
-	})
-
-	t.Run("error getting genre", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" WHERE name = $1 ORDER BY "genres"."id" LIMIT $2`)).
-			WithArgs(genre.Name, 1).
-			WillReturnError(errors.New("error getting genre"))
-
-		result, err := repo.GetGenreByName(genre.Name)
+		result, err := repo.GetGenre(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -101,16 +61,21 @@ func TestGenreRepository_GetGenres(t *testing.T) {
 
 	repo := NewGenreRepository(db)
 
+	limit := 10
+	offset := 10
+	filter := filters.GenreFilter{Filter: &filters.MultiFilter{Logic: filters.And, Limit: &limit, Offset: &offset}}
+
 	t.Run("success", func(t *testing.T) {
 		genres := make([]*models.Genre, 3)
 		for i := 0; i < len(genres); i++ {
 			genres[i] = utils.GenerateGenre()
 		}
 
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres"`)).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres" LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
 			WillReturnRows(utils.GenerateSqlMockRows(genres))
 
-		result, err := repo.GetGenres()
+		result, err := repo.GetGenres(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -121,7 +86,7 @@ func TestGenreRepository_GetGenres(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "genres"`)).
 			WillReturnError(errors.New("error getting genres"))
 
-		result, err := repo.GetGenres()
+		result, err := repo.GetGenres(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -137,6 +102,10 @@ func TestGenreRepository_GetGenreIDs(t *testing.T) {
 
 	repo := NewGenreRepository(db)
 
+	limit := 10
+	offset := 10
+	filter := filters.GenreFilter{Filter: &filters.MultiFilter{Logic: filters.And, Limit: &limit, Offset: &offset}}
+
 	t.Run("success", func(t *testing.T) {
 		genres := make([]*models.Genre, 3)
 		for i := 0; i < len(genres); i++ {
@@ -148,10 +117,11 @@ func TestGenreRepository_GetGenreIDs(t *testing.T) {
 			rows.AddRow(genre.ID)
 		}
 
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "genres"`)).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "genres" LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
 			WillReturnRows(rows)
 
-		result, err := repo.GetGenreIDs()
+		result, err := repo.GetGenreIDs(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -162,10 +132,11 @@ func TestGenreRepository_GetGenreIDs(t *testing.T) {
 	})
 
 	t.Run("error getting genres", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "genres"`)).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "genres" LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
 			WillReturnError(errors.New("error getting genres"))
 
-		result, err := repo.GetGenreIDs()
+		result, err := repo.GetGenreIDs(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"time"
 
@@ -152,7 +153,7 @@ func (s *movieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.
 		return errors.NotFoundError("movie not found")
 	}
 
-	allGenreIDs, err := s.genreRepo.GetGenreIDs()
+	allGenreIDs, err := s.genreRepo.GetGenreIDs(filters.GenreFilter{Filter: &filters.MultiFilter{Logic: filters.And}})
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}

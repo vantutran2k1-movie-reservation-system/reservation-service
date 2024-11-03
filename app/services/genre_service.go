@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
@@ -28,7 +29,11 @@ type genreService struct {
 }
 
 func (s *genreService) GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError) {
-	g, err := s.genreRepo.GetGenre(id)
+	filter := filters.GenreFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+	}
+	g, err := s.genreRepo.GetGenre(filter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -40,7 +45,10 @@ func (s *genreService) GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError) 
 }
 
 func (s *genreService) GetGenres() ([]*models.Genre, *errors.ApiError) {
-	genres, err := s.genreRepo.GetGenres()
+	filter := filters.GenreFilter{
+		Filter: &filters.MultiFilter{Logic: filters.And},
+	}
+	genres, err := s.genreRepo.GetGenres(filter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -49,7 +57,11 @@ func (s *genreService) GetGenres() ([]*models.Genre, *errors.ApiError) {
 }
 
 func (s *genreService) CreateGenre(req payloads.CreateGenreRequest) (*models.Genre, *errors.ApiError) {
-	g, err := s.genreRepo.GetGenreByName(req.Name)
+	filter := filters.GenreFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		Name:   &filters.Condition{Operator: filters.OpEqual, Value: req.Name},
+	}
+	g, err := s.genreRepo.GetGenre(filter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -71,7 +83,11 @@ func (s *genreService) CreateGenre(req payloads.CreateGenreRequest) (*models.Gen
 }
 
 func (s *genreService) UpdateGenre(id uuid.UUID, req payloads.UpdateGenreRequest) (*models.Genre, *errors.ApiError) {
-	g, err := s.genreRepo.GetGenre(id)
+	idFilter := filters.GenreFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+	}
+	g, err := s.genreRepo.GetGenre(idFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -79,7 +95,11 @@ func (s *genreService) UpdateGenre(id uuid.UUID, req payloads.UpdateGenreRequest
 		return nil, errors.NotFoundError("genre not found")
 	}
 
-	g, err = s.genreRepo.GetGenreByName(req.Name)
+	nameFilter := filters.GenreFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		Name:   &filters.Condition{Operator: filters.OpEqual, Value: req.Name},
+	}
+	g, err = s.genreRepo.GetGenre(nameFilter)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}

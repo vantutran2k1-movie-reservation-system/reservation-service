@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"net/http"
 	"testing"
 
@@ -21,9 +22,13 @@ func TestGenreService_GetGenre(t *testing.T) {
 	service := NewGenreService(nil, nil, repo)
 
 	genre := utils.GenerateGenre()
+	filter := filters.GenreFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: genre.ID},
+	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenre(filter).Return(genre, nil).Times(1)
 
 		result, err := service.GetGenre(genre.ID)
 
@@ -33,7 +38,7 @@ func TestGenreService_GetGenre(t *testing.T) {
 	})
 
 	t.Run("genre not found", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenre(filter).Return(nil, nil).Times(1)
 
 		result, err := service.GetGenre(genre.ID)
 
@@ -44,7 +49,7 @@ func TestGenreService_GetGenre(t *testing.T) {
 	})
 
 	t.Run("error getting genre", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(nil, errors.New("error getting genre")).Times(1)
+		repo.EXPECT().GetGenre(filter).Return(nil, errors.New("error getting genre")).Times(1)
 
 		result, err := service.GetGenre(genre.ID)
 
@@ -62,10 +67,14 @@ func TestGenreService_GetGenres(t *testing.T) {
 	repo := mock_repositories.NewMockGenreRepository(ctrl)
 	service := NewGenreService(nil, nil, repo)
 
+	filter := filters.GenreFilter{
+		Filter: &filters.MultiFilter{Logic: filters.And},
+	}
+
 	t.Run("success", func(t *testing.T) {
 		genres := utils.GenerateGenres(3)
 
-		repo.EXPECT().GetGenres().Return(genres, nil).Times(1)
+		repo.EXPECT().GetGenres(filter).Return(genres, nil).Times(1)
 
 		result, err := service.GetGenres()
 
@@ -75,7 +84,7 @@ func TestGenreService_GetGenres(t *testing.T) {
 	})
 
 	t.Run("error getting genres", func(t *testing.T) {
-		repo.EXPECT().GetGenres().Return(nil, errors.New("error getting genres")).Times(1)
+		repo.EXPECT().GetGenres(filter).Return(nil, errors.New("error getting genres")).Times(1)
 
 		result, err := service.GetGenres()
 
@@ -98,7 +107,7 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	req := utils.GenerateCreateGenreRequest()
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(req.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Any()).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -114,7 +123,7 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	})
 
 	t.Run("duplicate genre name", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(req.Name).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Any()).Return(genre, nil).Times(1)
 
 		result, err := service.CreateGenre(req)
 
@@ -125,7 +134,7 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	})
 
 	t.Run("error getting genre", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(req.Name).Return(nil, errors.New("error getting genre")).Times(1)
+		repo.EXPECT().GetGenre(gomock.Any()).Return(nil, errors.New("error getting genre")).Times(1)
 
 		result, err := service.CreateGenre(req)
 
@@ -136,7 +145,7 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	})
 
 	t.Run("error creating genre", func(t *testing.T) {
-		repo.EXPECT().GetGenreByName(req.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Any()).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -163,10 +172,18 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 
 	genre := utils.GenerateGenre()
 	req := utils.GenerateUpdateGenreRequest()
+	idFilter := filters.GenreFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: genre.ID},
+	}
+	nameFilter := filters.GenreFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		Name:   &filters.Condition{Operator: filters.OpEqual, Value: req.Name},
+	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
-		repo.EXPECT().GetGenreByName(req.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(idFilter)).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(nameFilter)).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -183,7 +200,7 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	})
 
 	t.Run("genre not found", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(idFilter)).Return(nil, nil).Times(1)
 
 		result, err := service.UpdateGenre(genre.ID, req)
 
@@ -194,7 +211,7 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	})
 
 	t.Run("error getting genre", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(nil, errors.New("error getting genre")).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(idFilter)).Return(nil, errors.New("error getting genre")).Times(1)
 
 		result, err := service.UpdateGenre(genre.ID, req)
 
@@ -205,8 +222,8 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	})
 
 	t.Run("duplicate genre name", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
-		repo.EXPECT().GetGenreByName(req.Name).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(idFilter)).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(nameFilter)).Return(genre, nil).Times(1)
 
 		result, err := service.UpdateGenre(genre.ID, req)
 
@@ -217,8 +234,8 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	})
 
 	t.Run("error getting genre by name", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
-		repo.EXPECT().GetGenreByName(req.Name).Return(nil, errors.New("error getting genre")).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(idFilter)).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(nameFilter)).Return(nil, errors.New("error getting genre")).Times(1)
 
 		result, err := service.UpdateGenre(genre.ID, req)
 
@@ -229,8 +246,8 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	})
 
 	t.Run("error updating genre", func(t *testing.T) {
-		repo.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
-		repo.EXPECT().GetGenreByName(req.Name).Return(nil, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(idFilter)).Return(genre, nil).Times(1)
+		repo.EXPECT().GetGenre(gomock.Eq(nameFilter)).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)

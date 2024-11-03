@@ -3,15 +3,15 @@ package repositories
 import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type GenreRepository interface {
-	GetGenre(id uuid.UUID) (*models.Genre, error)
-	GetGenreByName(name string) (*models.Genre, error)
-	GetGenres() ([]*models.Genre, error)
-	GetGenreIDs() ([]uuid.UUID, error)
+	GetGenre(filter filters.GenreFilter) (*models.Genre, error)
+	GetGenres(filter filters.GenreFilter) ([]*models.Genre, error)
+	GetGenreIDs(filter filters.GenreFilter) ([]uuid.UUID, error)
 	CreateGenre(tx *gorm.DB, genre *models.Genre) error
 	UpdateGenre(tx *gorm.DB, genre *models.Genre) error
 }
@@ -24,9 +24,9 @@ type genreRepository struct {
 	db *gorm.DB
 }
 
-func (r *genreRepository) GetGenre(id uuid.UUID) (*models.Genre, error) {
+func (r *genreRepository) GetGenre(filter filters.GenreFilter) (*models.Genre, error) {
 	var g models.Genre
-	if err := r.db.Where("id = ?", id).First(&g).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&g).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -37,31 +37,18 @@ func (r *genreRepository) GetGenre(id uuid.UUID) (*models.Genre, error) {
 	return &g, nil
 }
 
-func (r *genreRepository) GetGenreByName(name string) (*models.Genre, error) {
-	var g models.Genre
-	if err := r.db.Where("name = ?", name).First(&g).Error; err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-
-		return nil, err
-	}
-
-	return &g, nil
-}
-
-func (r *genreRepository) GetGenres() ([]*models.Genre, error) {
+func (r *genreRepository) GetGenres(filter filters.GenreFilter) ([]*models.Genre, error) {
 	var genres []*models.Genre
-	if err := r.db.Find(&genres).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Find(&genres).Error; err != nil {
 		return nil, err
 	}
 
 	return genres, nil
 }
 
-func (r *genreRepository) GetGenreIDs() ([]uuid.UUID, error) {
+func (r *genreRepository) GetGenreIDs(filter filters.GenreFilter) ([]uuid.UUID, error) {
 	var genres []*models.Genre
-	if err := r.db.Select("id").Find(&genres).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Select("id").Find(&genres).Error; err != nil {
 		return nil, err
 	}
 
