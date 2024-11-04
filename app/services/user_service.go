@@ -61,7 +61,7 @@ func NewUserService(
 }
 
 func (s *userService) GetUser(id uuid.UUID) (*models.User, *errors.ApiError) {
-	u, err := s.userRepo.GetUser(id)
+	u, err := s.getUserById(id)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -73,7 +73,7 @@ func (s *userService) GetUser(id uuid.UUID) (*models.User, *errors.ApiError) {
 }
 
 func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, *errors.ApiError) {
-	u, err := s.userRepo.GetUserByEmail(req.Email)
+	u, err := s.getUserByEmail(req.Email)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -103,7 +103,7 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 }
 
 func (s *userService) LoginUser(req payloads.LoginUserRequest) (*models.LoginToken, *errors.ApiError) {
-	u, err := s.userRepo.GetUserByEmail(req.Email)
+	u, err := s.getUserByEmail(req.Email)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -190,7 +190,7 @@ func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
 }
 
 func (s *userService) UpdateUserPassword(userID uuid.UUID, req payloads.UpdatePasswordRequest) *errors.ApiError {
-	u, err := s.userRepo.GetUser(userID)
+	u, err := s.getUserById(userID)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}
@@ -223,7 +223,7 @@ func (s *userService) UpdateUserPassword(userID uuid.UUID, req payloads.UpdatePa
 }
 
 func (s *userService) CreatePasswordResetToken(req payloads.CreatePasswordResetTokenRequest) (*models.PasswordResetToken, *errors.ApiError) {
-	u, err := s.userRepo.GetUserByEmail(req.Email)
+	u, err := s.getUserByEmail(req.Email)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -279,7 +279,7 @@ func (s *userService) ResetUserPassword(resetToken string, req payloads.ResetPas
 		return errors.UnauthorizedError("invalid or expired token")
 	}
 
-	u, err := s.userRepo.GetUser(t.UserID)
+	u, err := s.getUserById(t.UserID)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}
@@ -321,6 +321,20 @@ func (s *userService) ResetUserPassword(resetToken string, req payloads.ResetPas
 	}
 
 	return nil
+}
+
+func (s *userService) getUserById(id uuid.UUID) (*models.User, error) {
+	return s.userRepo.GetUser(filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+	})
+}
+
+func (s *userService) getUserByEmail(email string) (*models.User, error) {
+	return s.userRepo.GetUser(filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		Email:  &filters.Condition{Operator: filters.OpEqual, Value: email},
+	})
 }
 
 func (s *userService) getRemainingUserActivePasswordResetTokens(userID uuid.UUID, tokenValue string) ([]*models.PasswordResetToken, error) {

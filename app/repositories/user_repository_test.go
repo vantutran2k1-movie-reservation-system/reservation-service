@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"regexp"
 	"testing"
 
@@ -17,16 +18,23 @@ func TestUserRepository_GetUser(t *testing.T) {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
+	repo := NewUserRepository(db)
+
 	user := utils.GenerateUser()
+	filter := filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
+		Email:  &filters.Condition{Operator: filters.OpEqual, Value: user.Email},
+	}
 
 	t.Run("success", func(t *testing.T) {
 		rows := utils.GenerateSqlMockRow(user)
 
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
-			WithArgs(user.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 AND email = $2 ORDER BY "users"."id" LIMIT $3`)).
+			WithArgs(filter.ID.Value, filter.Email.Value, 1).
 			WillReturnRows(rows)
 
-		result, err := NewUserRepository(db).GetUser(user.ID)
+		result, err := repo.GetUser(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -34,73 +42,26 @@ func TestUserRepository_GetUser(t *testing.T) {
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
-			WithArgs(user.ID, 1).
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 AND email = $2 ORDER BY "users"."id" LIMIT $3`)).
+			WithArgs(filter.ID.Value, filter.Email.Value, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := NewUserRepository(db).GetUser(user.ID)
+		result, err := repo.GetUser(filter)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
 	})
 
-	t.Run("db error", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
-			WithArgs(user.ID, 1).
-			WillReturnError(errors.New("db error"))
+	t.Run("error getting user", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 AND email = $2 ORDER BY "users"."id" LIMIT $3`)).
+			WithArgs(filter.ID.Value, filter.Email.Value, 1).
+			WillReturnError(errors.New("error getting user"))
 
-		result, err := NewUserRepository(db).GetUser(user.ID)
+		result, err := repo.GetUser(filter)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.Equal(t, "db error", err.Error())
-	})
-}
-
-func TestUserRepository_GetUserByEmail(t *testing.T) {
-	db, mock := mock_db.SetupTestDB(t)
-	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
-	}()
-
-	user := utils.GenerateUser()
-
-	t.Run("success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "email"}).AddRow(user.ID, user.Email)
-
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
-			WithArgs(user.Email, 1).
-			WillReturnRows(rows)
-
-		result, err := NewUserRepository(db).GetUserByEmail(user.Email)
-
-		assert.NotNil(t, result)
-		assert.Nil(t, err)
-		assert.Equal(t, user.ID, result.ID)
-		assert.Equal(t, user.Email, result.Email)
-	})
-
-	t.Run("user not found", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
-			WithArgs(user.Email, 1).
-			WillReturnRows(sqlmock.NewRows(nil))
-
-		result, err := NewUserRepository(db).GetUserByEmail(user.Email)
-
-		assert.Nil(t, result)
-		assert.Nil(t, err)
-	})
-
-	t.Run("db error", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
-			WithArgs(user.Email, 1).
-			WillReturnError(errors.New("db error"))
-
-		result, err := NewUserRepository(db).GetUserByEmail(user.Email)
-
-		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.Equal(t, "db error", err.Error())
+		assert.Equal(t, "error getting user", err.Error())
 	})
 }
 

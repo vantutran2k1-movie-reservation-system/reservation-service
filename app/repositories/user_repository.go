@@ -2,16 +2,15 @@ package repositories
 
 import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
-	GetUser(id uuid.UUID) (*models.User, error)
-	GetUserByEmail(email string) (*models.User, error)
+	GetUser(filter filters.UserFilter) (*models.User, error)
 	CreateUser(tx *gorm.DB, user *models.User) error
 	UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error)
 }
@@ -24,22 +23,9 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) GetUser(id uuid.UUID) (*models.User, error) {
+func (r *userRepository) GetUser(filter filters.UserFilter) (*models.User, error) {
 	var u models.User
-	if err := r.db.Where("id = ?", id).First(&u).Error; err != nil {
-		if errors.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-
-		return nil, err
-	}
-
-	return &u, nil
-}
-
-func (r *userRepository) GetUserByEmail(email string) (*models.User, error) {
-	var u models.User
-	if err := r.db.Where("email = ?", email).First(&u).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&u).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
