@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"regexp"
 	"testing"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 )
 
-func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
+func TestUserProfileRepository_GetProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
@@ -20,13 +21,17 @@ func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 	repo := NewUserProfileRepository(db)
 
 	profile := utils.GenerateUserProfile()
+	filter := filters.UserProfileFilter{
+		Filter: &filters.SingleFilter{},
+		UserID: &filters.Condition{Operator: filters.OpEqual, Value: profile.UserID},
+	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "user_profiles" WHERE user_id = $1 ORDER BY "user_profiles"."id" LIMIT $2`)).
-			WithArgs(profile.UserID, 1).
+			WithArgs(filter.UserID.Value, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(profile))
 
-		result, err := repo.GetProfileByUserID(profile.UserID)
+		result, err := repo.GetProfile(filter)
 
 		assert.NotNil(t, profile)
 		assert.Nil(t, err)
@@ -35,10 +40,10 @@ func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 
 	t.Run("profile not found", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "user_profiles" WHERE user_id = $1 ORDER BY "user_profiles"."id" LIMIT $2`)).
-			WithArgs(profile.UserID, 1).
+			WithArgs(filter.UserID.Value, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := repo.GetProfileByUserID(profile.UserID)
+		result, err := repo.GetProfile(filter)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
@@ -46,10 +51,10 @@ func TestUserProfileRepository_GetProfileByUserID(t *testing.T) {
 
 	t.Run("error getting profile", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "user_profiles" WHERE user_id = $1 ORDER BY "user_profiles"."id" LIMIT $2`)).
-			WithArgs(profile.UserID, 1).
+			WithArgs(filter.UserID.Value, 1).
 			WillReturnError(errors.New("error getting profile"))
 
-		result, err := NewUserProfileRepository(db).GetProfileByUserID(profile.UserID)
+		result, err := repo.GetProfile(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -166,7 +171,7 @@ func TestUserRepository_UpdateProfilePicture(t *testing.T) {
 
 	t.Run("error updating profile", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "user_profiles" SET "profile_picture_url"=\$1,"updated_at"=\$2 WHERE "id" = \$3`).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "user_profiles" SET "profile_picture_url"=$1,"updated_at"=$2 WHERE "id" = $3`)).
 			WithArgs(url, sqlmock.AnyArg(), profile.ID).
 			WillReturnError(errors.New("error updating profile"))
 		mock.ExpectRollback()

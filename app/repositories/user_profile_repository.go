@@ -2,15 +2,15 @@ package repositories
 
 import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type UserProfileRepository interface {
-	GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error)
+	GetProfile(filter filters.UserProfileFilter) (*models.UserProfile, error)
 	CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
 	UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
 	UpdateProfilePicture(tx *gorm.DB, profile *models.UserProfile, url *string) (*models.UserProfile, error)
@@ -24,9 +24,9 @@ func NewUserProfileRepository(db *gorm.DB) UserProfileRepository {
 	return &userProfileRepository{db: db}
 }
 
-func (r *userProfileRepository) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error) {
+func (r *userProfileRepository) GetProfile(filter filters.UserProfileFilter) (*models.UserProfile, error) {
 	var p models.UserProfile
-	if err := r.db.Where("user_id = ?", userID).First(&p).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&p).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

@@ -12,7 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -55,19 +55,19 @@ func (mr *MockUserProfileRepositoryMockRecorder) CreateUserProfile(tx, profile a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserProfile", reflect.TypeOf((*MockUserProfileRepository)(nil).CreateUserProfile), tx, profile)
 }
 
-// GetProfileByUserID mocks base method.
-func (m *MockUserProfileRepository) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, error) {
+// GetProfile mocks base method.
+func (m *MockUserProfileRepository) GetProfile(filter filters.UserProfileFilter) (*models.UserProfile, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProfileByUserID", userID)
+	ret := m.ctrl.Call(m, "GetProfile", filter)
 	ret0, _ := ret[0].(*models.UserProfile)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetProfileByUserID indicates an expected call of GetProfileByUserID.
-func (mr *MockUserProfileRepositoryMockRecorder) GetProfileByUserID(userID any) *gomock.Call {
+// GetProfile indicates an expected call of GetProfile.
+func (mr *MockUserProfileRepositoryMockRecorder) GetProfile(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfileByUserID", reflect.TypeOf((*MockUserProfileRepository)(nil).GetProfileByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfile", reflect.TypeOf((*MockUserProfileRepository)(nil).GetProfile), filter)
 }
 
 // UpdateProfilePicture mocks base method.

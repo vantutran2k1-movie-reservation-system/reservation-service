@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"mime/multipart"
 	"os"
@@ -45,7 +46,7 @@ func NewUserProfileService(
 }
 
 func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.userProfileRepo.GetProfileByUserID(userID)
+	p, err := s.getUserProfile(userID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 
@@ -58,15 +59,16 @@ func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserP
 }
 
 func (s *userProfileService) CreateUserProfile(userID uuid.UUID, req payloads.CreateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
-	u, err := s.userProfileRepo.GetProfileByUserID(userID)
+	// TODO: check for user existence
+	p, err := s.getUserProfile(userID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
-	if u != nil {
+	if p != nil {
 		return nil, errors.BadRequestError("duplicate profile for current user")
 	}
 
-	p := models.UserProfile{
+	p = &models.UserProfile{
 		ID:          uuid.New(),
 		UserID:      userID,
 		FirstName:   req.FirstName,
@@ -77,16 +79,16 @@ func (s *userProfileService) CreateUserProfile(userID uuid.UUID, req payloads.Cr
 		UpdatedAt:   time.Now().UTC(),
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.userProfileRepo.CreateUserProfile(tx, &p)
+		return s.userProfileRepo.CreateUserProfile(tx, p)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 
-	return &p, nil
+	return p, nil
 }
 
 func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, req payloads.UpdateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.userProfileRepo.GetProfileByUserID(userID)
+	p, err := s.getUserProfile(userID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 
@@ -110,7 +112,7 @@ func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, req payloads.Up
 }
 
 func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.userProfileRepo.GetProfileByUserID(userID)
+	p, err := s.getUserProfile(userID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 
@@ -138,7 +140,7 @@ func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multip
 }
 
 func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiError {
-	p, err := s.userProfileRepo.GetProfileByUserID(userID)
+	p, err := s.getUserProfile(userID)
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 
@@ -155,4 +157,11 @@ func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiE
 	}
 
 	return nil
+}
+
+func (s *userProfileService) getUserProfile(userID uuid.UUID) (*models.UserProfile, error) {
+	return s.userProfileRepo.GetProfile(filters.UserProfileFilter{
+		Filter: &filters.SingleFilter{},
+		UserID: &filters.Condition{Operator: filters.OpEqual, Value: userID},
+	})
 }
