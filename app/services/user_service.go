@@ -233,7 +233,10 @@ func (s *userService) CreatePasswordResetToken(req payloads.CreatePasswordResetT
 
 	token := s.authenticator.GeneratePasswordResetToken()
 
-	t, err := s.passwordResetTokenRepo.GetActivePasswordResetToken(token)
+	t, err := s.passwordResetTokenRepo.GetToken(filters.PasswordResetTokenFilter{
+		Filter:     &filters.SingleFilter{},
+		TokenValue: &filters.Condition{Operator: filters.OpEqual, Value: token},
+	})
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -265,7 +268,10 @@ func (s *userService) CreatePasswordResetToken(req payloads.CreatePasswordResetT
 }
 
 func (s *userService) ResetUserPassword(resetToken string, req payloads.ResetPasswordRequest) *errors.ApiError {
-	t, err := s.passwordResetTokenRepo.GetActivePasswordResetToken(resetToken)
+	t, err := s.passwordResetTokenRepo.GetToken(filters.PasswordResetTokenFilter{
+		Filter:     &filters.SingleFilter{},
+		TokenValue: &filters.Condition{Operator: filters.OpEqual, Value: resetToken},
+	})
 	if err != nil {
 		return errors.InternalServerError(err.Error())
 	}
@@ -318,7 +324,11 @@ func (s *userService) ResetUserPassword(resetToken string, req payloads.ResetPas
 }
 
 func (s *userService) getRemainingUserActivePasswordResetTokens(userID uuid.UUID, tokenValue string) ([]*models.PasswordResetToken, error) {
-	allTokens, err := s.passwordResetTokenRepo.GetUserActivePasswordResetTokens(userID)
+	allTokens, err := s.passwordResetTokenRepo.GetTokens(filters.PasswordResetTokenFilter{
+		Filter:    &filters.MultiFilter{},
+		UserID:    &filters.Condition{Operator: filters.OpEqual, Value: userID},
+		ExpiresAt: &filters.Condition{Operator: filters.OpGreater, Value: time.Now().UTC()},
+	})
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}

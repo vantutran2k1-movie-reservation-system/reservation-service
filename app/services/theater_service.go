@@ -12,7 +12,7 @@ import (
 )
 
 type TheaterService interface {
-	GetTheater(filter payloads.GetTheaterFilter) (*models.Theater, *errors.ApiError)
+	GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError)
 	CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError)
 	CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
 }
@@ -41,8 +41,12 @@ type theaterService struct {
 	cityRepo            repositories.CityRepository
 }
 
-func (s *theaterService) GetTheater(filter payloads.GetTheaterFilter) (*models.Theater, *errors.ApiError) {
-	t, err := s.theaterRepo.GetTheater(filter)
+func (s *theaterService) GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError) {
+	filter := filters.TheaterFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+	}
+	t, err := s.theaterRepo.GetTheater(filter, includeLocation)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -54,7 +58,11 @@ func (s *theaterService) GetTheater(filter payloads.GetTheaterFilter) (*models.T
 }
 
 func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError) {
-	t, err := s.theaterRepo.GetTheater(payloads.GetTheaterFilter{Name: &req.Name})
+	filter := filters.TheaterFilter{
+		Filter: &filters.SingleFilter{},
+		Name:   &filters.Condition{Operator: filters.OpEqual, Value: &req.Name},
+	}
+	t, err := s.theaterRepo.GetTheater(filter, false)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -76,19 +84,17 @@ func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*mode
 }
 
 func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError) {
-	t, err := s.theaterRepo.GetTheater(payloads.GetTheaterFilter{ID: &theaterID})
+	t, err := s.theaterRepo.GetTheater(filters.TheaterFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: theaterID},
+	}, true)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 	if t == nil {
 		return nil, errors.NotFoundError("theater not found")
 	}
-
-	l, err := s.theaterLocationRepo.GetLocationByTheaterID(theaterID)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-	if l != nil {
+	if t.Location != nil {
 		return nil, errors.BadRequestError("duplicate location for this theater")
 	}
 
@@ -104,7 +110,7 @@ func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads
 		return nil, errors.BadRequestError("invalid city id")
 	}
 
-	l = &models.TheaterLocation{
+	l := &models.TheaterLocation{
 		ID:         uuid.New(),
 		TheaterID:  theaterID,
 		CityID:     req.CityID,

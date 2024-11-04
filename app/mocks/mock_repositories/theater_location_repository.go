@@ -12,7 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -55,17 +55,17 @@ func (mr *MockTheaterLocationRepositoryMockRecorder) CreateTheaterLocation(tx, l
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheaterLocation", reflect.TypeOf((*MockTheaterLocationRepository)(nil).CreateTheaterLocation), tx, location)
 }
 
-// GetLocationByTheaterID mocks base method.
-func (m *MockTheaterLocationRepository) GetLocationByTheaterID(theaterId uuid.UUID) (*models.TheaterLocation, error) {
+// GetLocation mocks base method.
+func (m *MockTheaterLocationRepository) GetLocation(filter filters.TheaterLocationFilter) (*models.TheaterLocation, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLocationByTheaterID", theaterId)
+	ret := m.ctrl.Call(m, "GetLocation", filter)
 	ret0, _ := ret[0].(*models.TheaterLocation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLocationByTheaterID indicates an expected call of GetLocationByTheaterID.
-func (mr *MockTheaterLocationRepositoryMockRecorder) GetLocationByTheaterID(theaterId any) *gomock.Call {
+// GetLocation indicates an expected call of GetLocation.
+func (mr *MockTheaterLocationRepositoryMockRecorder) GetLocation(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocationByTheaterID", reflect.TypeOf((*MockTheaterLocationRepository)(nil).GetLocationByTheaterID), theaterId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocation", reflect.TypeOf((*MockTheaterLocationRepository)(nil).GetLocation), filter)
 }

@@ -4,13 +4,15 @@ import (
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
+	"time"
 )
 
-func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) {
+func TestPasswordResetTokenRepository_GetToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
@@ -19,13 +21,19 @@ func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) 
 	repo := NewPasswordResetTokenRepository(db)
 
 	token := utils.GeneratePasswordResetToken()
+	filter := filters.PasswordResetTokenFilter{
+		Filter:     &filters.SingleFilter{},
+		TokenValue: &filters.Condition{Operator: filters.OpEqual, Value: token.TokenValue},
+		IsUsed:     &filters.Condition{Operator: filters.OpEqual, Value: false},
+		ExpiresAt:  &filters.Condition{Operator: filters.OpGreater, Value: time.Now().UTC()},
+	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "password_reset_tokens" WHERE token_value = $1 AND is_used = $2 AND expires_at > $3 ORDER BY "password_reset_tokens"."id" LIMIT $4`)).
-			WithArgs(token.TokenValue, false, sqlmock.AnyArg(), 1).
+			WithArgs(filter.TokenValue.Value, filter.IsUsed.Value, filter.ExpiresAt.Value, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(token))
 
-		result, err := repo.GetActivePasswordResetToken(token.TokenValue)
+		result, err := repo.GetToken(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -34,29 +42,29 @@ func TestPasswordResetTokenRepository_GetActivePasswordResetToken(t *testing.T) 
 
 	t.Run("token not found", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "password_reset_tokens" WHERE token_value = $1 AND is_used = $2 AND expires_at > $3 ORDER BY "password_reset_tokens"."id" LIMIT $4`)).
-			WithArgs(token.TokenValue, false, sqlmock.AnyArg(), 1).
+			WithArgs(filter.TokenValue.Value, filter.IsUsed.Value, filter.ExpiresAt.Value, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := repo.GetActivePasswordResetToken(token.TokenValue)
+		result, err := repo.GetToken(filter)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
 	})
 
-	t.Run("db error", func(t *testing.T) {
+	t.Run("error getting token", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "password_reset_tokens" WHERE token_value = $1 AND is_used = $2 AND expires_at > $3 ORDER BY "password_reset_tokens"."id" LIMIT $4`)).
-			WithArgs(token.TokenValue, false, sqlmock.AnyArg(), 1).
-			WillReturnError(errors.New("db error"))
+			WithArgs(filter.TokenValue.Value, filter.IsUsed.Value, filter.ExpiresAt.Value, 1).
+			WillReturnError(errors.New("error getting token"))
 
-		result, err := repo.GetActivePasswordResetToken(token.TokenValue)
+		result, err := repo.GetToken(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, "db error", err.Error())
+		assert.Equal(t, "error getting token", err.Error())
 	})
 }
 
-func TestPasswordResetTokenRepository_GetUserActivePasswordResetTokens(t *testing.T) {
+func TestPasswordResetTokenRepository_GetTokens(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
@@ -65,15 +73,21 @@ func TestPasswordResetTokenRepository_GetUserActivePasswordResetTokens(t *testin
 	repo := NewPasswordResetTokenRepository(db)
 
 	user := utils.GenerateUser()
+	filter := filters.PasswordResetTokenFilter{
+		Filter:    &filters.MultiFilter{},
+		UserID:    &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
+		IsUsed:    &filters.Condition{Operator: filters.OpEqual, Value: false},
+		ExpiresAt: &filters.Condition{Operator: filters.OpGreater, Value: time.Now().UTC()},
+	}
 
 	t.Run("success", func(t *testing.T) {
 		tokens := utils.GeneratePasswordResetTokens(3)
 
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "password_reset_tokens" WHERE user_id = $1 AND is_used = $2 AND expires_at > $3`)).
-			WithArgs(user.ID, false, sqlmock.AnyArg()).
+			WithArgs(filter.UserID.Value, filter.IsUsed.Value, filter.ExpiresAt.Value).
 			WillReturnRows(utils.GenerateSqlMockRows(tokens))
 
-		result, err := repo.GetUserActivePasswordResetTokens(user.ID)
+		result, err := repo.GetTokens(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -84,10 +98,10 @@ func TestPasswordResetTokenRepository_GetUserActivePasswordResetTokens(t *testin
 
 	t.Run("db error", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "password_reset_tokens" WHERE user_id = $1 AND is_used = $2 AND expires_at > $3`)).
-			WithArgs(user.ID, false, sqlmock.AnyArg()).
+			WithArgs(filter.UserID.Value, filter.IsUsed.Value, filter.ExpiresAt.Value).
 			WillReturnError(errors.New("db error"))
 
-		result, err := repo.GetUserActivePasswordResetTokens(user.ID)
+		result, err := repo.GetTokens(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

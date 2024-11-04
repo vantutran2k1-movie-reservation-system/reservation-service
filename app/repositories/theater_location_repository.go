@@ -1,14 +1,14 @@
 package repositories
 
 import (
-	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 )
 
 type TheaterLocationRepository interface {
-	GetLocationByTheaterID(theaterId uuid.UUID) (*models.TheaterLocation, error)
+	GetLocation(filter filters.TheaterLocationFilter) (*models.TheaterLocation, error)
 	CreateTheaterLocation(tx *gorm.DB, location *models.TheaterLocation) error
 }
 
@@ -22,9 +22,9 @@ type theaterLocationRepository struct {
 	db *gorm.DB
 }
 
-func (r *theaterLocationRepository) GetLocationByTheaterID(theaterId uuid.UUID) (*models.TheaterLocation, error) {
+func (r *theaterLocationRepository) GetLocation(filter filters.TheaterLocationFilter) (*models.TheaterLocation, error) {
 	var location models.TheaterLocation
-	if err := r.db.Where("theater_id = ?", theaterId).First(&location).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&location).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

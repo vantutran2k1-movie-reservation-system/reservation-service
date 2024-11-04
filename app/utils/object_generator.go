@@ -375,18 +375,6 @@ func GenerateTheaterLocation() *models.TheaterLocation {
 	}
 }
 
-func GenerateTheaterFilter() payloads.GetTheaterFilter {
-	id := generateUUID()
-	name := generateString(letterChars, 10)
-	includeLocation := generateBool()
-
-	return payloads.GetTheaterFilter{
-		ID:              &id,
-		Name:            &name,
-		IncludeLocation: &includeLocation,
-	}
-}
-
 func GenerateCreateTheaterRequest() payloads.CreateTheaterRequest {
 	return payloads.CreateTheaterRequest{
 		Name: generateString(letterChars, 10),

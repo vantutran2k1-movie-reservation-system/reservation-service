@@ -2,13 +2,13 @@ package repositories
 
 import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"gorm.io/gorm"
 )
 
 type TheaterRepository interface {
-	GetTheater(filter payloads.GetTheaterFilter) (*models.Theater, error)
+	GetTheater(filter filters.TheaterFilter, includeLocation bool) (*models.Theater, error)
 	CreateTheater(tx *gorm.DB, theater *models.Theater) error
 }
 
@@ -22,9 +22,14 @@ type theaterRepository struct {
 	db *gorm.DB
 }
 
-func (r *theaterRepository) GetTheater(filter payloads.GetTheaterFilter) (*models.Theater, error) {
+func (r *theaterRepository) GetTheater(filter filters.TheaterFilter, includeLocation bool) (*models.Theater, error) {
+	query := filter.GetFilterQuery(r.db)
+	if includeLocation {
+		query = query.Preload("Location")
+	}
+
 	var theater models.Theater
-	if err := r.getTheaterFilterQuery(r.db, filter).First(&theater).Error; err != nil {
+	if err := query.First(&theater).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -37,20 +42,4 @@ func (r *theaterRepository) GetTheater(filter payloads.GetTheaterFilter) (*model
 
 func (r *theaterRepository) CreateTheater(tx *gorm.DB, theater *models.Theater) error {
 	return tx.Create(theater).Error
-}
-
-func (r *theaterRepository) getTheaterFilterQuery(query *gorm.DB, filter payloads.GetTheaterFilter) *gorm.DB {
-	if filter.ID != nil {
-		query = query.Where("id = ?", filter.ID)
-	}
-
-	if filter.Name != nil {
-		query = query.Where("name = ?", *filter.Name)
-	}
-
-	if filter.IncludeLocation != nil && *filter.IncludeLocation {
-		query = query.Preload("Location")
-	}
-
-	return query
 }

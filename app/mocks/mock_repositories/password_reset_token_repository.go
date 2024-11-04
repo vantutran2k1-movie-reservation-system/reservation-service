@@ -12,7 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -55,34 +55,34 @@ func (mr *MockPasswordResetTokenRepositoryMockRecorder) CreateToken(tx, token an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).CreateToken), tx, token)
 }
 
-// GetActivePasswordResetToken mocks base method.
-func (m *MockPasswordResetTokenRepository) GetActivePasswordResetToken(tokenValue string) (*models.PasswordResetToken, error) {
+// GetToken mocks base method.
+func (m *MockPasswordResetTokenRepository) GetToken(filter filters.PasswordResetTokenFilter) (*models.PasswordResetToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActivePasswordResetToken", tokenValue)
+	ret := m.ctrl.Call(m, "GetToken", filter)
 	ret0, _ := ret[0].(*models.PasswordResetToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetActivePasswordResetToken indicates an expected call of GetActivePasswordResetToken.
-func (mr *MockPasswordResetTokenRepositoryMockRecorder) GetActivePasswordResetToken(tokenValue any) *gomock.Call {
+// GetToken indicates an expected call of GetToken.
+func (mr *MockPasswordResetTokenRepositoryMockRecorder) GetToken(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActivePasswordResetToken", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).GetActivePasswordResetToken), tokenValue)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).GetToken), filter)
 }
 
-// GetUserActivePasswordResetTokens mocks base method.
-func (m *MockPasswordResetTokenRepository) GetUserActivePasswordResetTokens(userID uuid.UUID) ([]*models.PasswordResetToken, error) {
+// GetTokens mocks base method.
+func (m *MockPasswordResetTokenRepository) GetTokens(filter filters.PasswordResetTokenFilter) ([]*models.PasswordResetToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserActivePasswordResetTokens", userID)
+	ret := m.ctrl.Call(m, "GetTokens", filter)
 	ret0, _ := ret[0].([]*models.PasswordResetToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserActivePasswordResetTokens indicates an expected call of GetUserActivePasswordResetTokens.
-func (mr *MockPasswordResetTokenRepositoryMockRecorder) GetUserActivePasswordResetTokens(userID any) *gomock.Call {
+// GetTokens indicates an expected call of GetTokens.
+func (mr *MockPasswordResetTokenRepositoryMockRecorder) GetTokens(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserActivePasswordResetTokens", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).GetUserActivePasswordResetTokens), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokens", reflect.TypeOf((*MockPasswordResetTokenRepository)(nil).GetTokens), filter)
 }
 
 // RevokeTokens mocks base method.

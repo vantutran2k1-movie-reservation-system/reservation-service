@@ -3,14 +3,15 @@ package repositories
 import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"gorm.io/gorm"
 	"time"
 )
 
 type PasswordResetTokenRepository interface {
-	GetActivePasswordResetToken(tokenValue string) (*models.PasswordResetToken, error)
-	GetUserActivePasswordResetTokens(userID uuid.UUID) ([]*models.PasswordResetToken, error)
+	GetToken(filter filters.PasswordResetTokenFilter) (*models.PasswordResetToken, error)
+	GetTokens(filter filters.PasswordResetTokenFilter) ([]*models.PasswordResetToken, error)
 	CreateToken(tx *gorm.DB, token *models.PasswordResetToken) error
 	UseToken(tx *gorm.DB, token *models.PasswordResetToken) error
 	RevokeTokens(tx *gorm.DB, tokens []*models.PasswordResetToken) error
@@ -24,9 +25,9 @@ type passwordResetTokenRepository struct {
 	db *gorm.DB
 }
 
-func (r *passwordResetTokenRepository) GetActivePasswordResetToken(tokenValue string) (*models.PasswordResetToken, error) {
+func (r *passwordResetTokenRepository) GetToken(filter filters.PasswordResetTokenFilter) (*models.PasswordResetToken, error) {
 	var token models.PasswordResetToken
-	if err := r.db.Where("token_value = ? AND is_used = ? AND expires_at > ?", tokenValue, false, time.Now().UTC()).First(&token).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).First(&token).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
@@ -37,9 +38,9 @@ func (r *passwordResetTokenRepository) GetActivePasswordResetToken(tokenValue st
 	return &token, nil
 }
 
-func (r *passwordResetTokenRepository) GetUserActivePasswordResetTokens(userID uuid.UUID) ([]*models.PasswordResetToken, error) {
+func (r *passwordResetTokenRepository) GetTokens(filter filters.PasswordResetTokenFilter) ([]*models.PasswordResetToken, error) {
 	var tokens []*models.PasswordResetToken
-	if err := r.db.Where("user_id = ? AND is_used = ? AND expires_at > ?", userID, false, time.Now().UTC()).Find(&tokens).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Find(&tokens).Error; err != nil {
 		return nil, err
 	}
 
@@ -60,5 +61,10 @@ func (r *passwordResetTokenRepository) RevokeTokens(tx *gorm.DB, tokens []*model
 		tokenIDs[i] = token.ID
 	}
 
-	return tx.Model(&models.PasswordResetToken{}).Where("id IN (?)", tokenIDs).Updates(map[string]any{"expires_at": time.Now().UTC()}).Error
+	filter := filters.PasswordResetTokenFilter{
+		Filter: &filters.MultiFilter{},
+		ID:     &filters.Condition{Operator: filters.OpIn, Value: tokenIDs},
+	}
+
+	return filter.GetFilterQuery(tx).Model(&models.PasswordResetToken{}).Updates(map[string]any{"expires_at": time.Now().UTC()}).Error
 }

@@ -4,13 +4,14 @@ import (
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
 )
 
-func TestTheaterLocationRepository_GetLocationByTheaterID(t *testing.T) {
+func TestTheaterLocationRepository_GetLocation(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
 		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
@@ -19,13 +20,17 @@ func TestTheaterLocationRepository_GetLocationByTheaterID(t *testing.T) {
 	repo := NewTheaterLocationRepository(db)
 
 	location := utils.GenerateTheaterLocation()
+	filter := filters.TheaterLocationFilter{
+		Filter:    &filters.SingleFilter{},
+		TheaterID: &filters.Condition{Operator: filters.OpEqual, Value: location.TheaterID},
+	}
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theater_locations" WHERE theater_id = $1 ORDER BY "theater_locations"."id" LIMIT $2`)).
-			WithArgs(location.TheaterID, 1).
+			WithArgs(filter.TheaterID.Value, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(location))
 
-		result, err := repo.GetLocationByTheaterID(location.TheaterID)
+		result, err := repo.GetLocation(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -34,10 +39,10 @@ func TestTheaterLocationRepository_GetLocationByTheaterID(t *testing.T) {
 
 	t.Run("location not found", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theater_locations" WHERE theater_id = $1 ORDER BY "theater_locations"."id" LIMIT $2`)).
-			WithArgs(location.TheaterID, 1).
+			WithArgs(filter.TheaterID.Value, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := repo.GetLocationByTheaterID(location.TheaterID)
+		result, err := repo.GetLocation(filter)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
@@ -45,10 +50,10 @@ func TestTheaterLocationRepository_GetLocationByTheaterID(t *testing.T) {
 
 	t.Run("error getting location", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theater_locations" WHERE theater_id = $1 ORDER BY "theater_locations"."id" LIMIT $2`)).
-			WithArgs(location.TheaterID, 1).
+			WithArgs(filter.TheaterID.Value, 1).
 			WillReturnError(errors.New("error getting location"))
 
-		result, err := repo.GetLocationByTheaterID(location.TheaterID)
+		result, err := repo.GetLocation(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)

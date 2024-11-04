@@ -60,8 +60,6 @@ type Filter interface {
 	GetFilterQuery(query *gorm.DB, conditions []FilterCondition) *gorm.DB
 }
 
-type CountOnlyFilter struct{}
-
 type SingleFilter struct {
 	Logic LogicOperator
 }
@@ -105,16 +103,19 @@ func (f *MultiFilter) GetFilterQuery(query *gorm.DB, conditions []FilterConditio
 
 func applyConditions(query *gorm.DB, conditions []FilterCondition, logic LogicOperator) *gorm.DB {
 	for i, condition := range conditions {
-		clause := fmt.Sprintf("%s %s ?", condition.Field, condition.Operator)
-		if i == 0 {
-			query = query.Where(clause, condition.Value)
-		} else {
-			if logic == And || logic == "" {
-				query = query.Where(clause, condition.Value)
-			} else {
-				query = query.Or(clause, condition.Value)
-			}
+		conditionFormat := "%s %s ?"
+		if condition.Operator == OpIn || condition.Operator == OpNotIn {
+			conditionFormat = "%s %s (?)"
 		}
+
+		clause := fmt.Sprintf(conditionFormat, condition.Field, condition.Operator)
+		applyFunc := query.Where
+		if i > 0 && logic == Or {
+			applyFunc = query.Or
+		}
+
+		query = applyFunc(clause, condition.Value)
 	}
+
 	return query
 }
