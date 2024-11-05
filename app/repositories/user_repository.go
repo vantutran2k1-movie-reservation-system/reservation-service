@@ -10,7 +10,7 @@ import (
 )
 
 type UserRepository interface {
-	GetUser(filter filters.UserFilter) (*models.User, error)
+	GetUser(filter filters.UserFilter, includeProfile bool) (*models.User, error)
 	CreateUser(tx *gorm.DB, user *models.User) error
 	UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error)
 }
@@ -23,9 +23,14 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) GetUser(filter filters.UserFilter) (*models.User, error) {
+func (r *userRepository) GetUser(filter filters.UserFilter, includeProfile bool) (*models.User, error) {
+	query := filter.GetFilterQuery(r.db)
+	if includeProfile {
+		query = query.Preload("Profile")
+	}
+
 	var u models.User
-	if err := filter.GetFilterQuery(r.db).First(&u).Error; err != nil {
+	if err := query.First(&u).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}

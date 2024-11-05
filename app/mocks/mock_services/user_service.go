@@ -73,18 +73,18 @@ func (mr *MockUserServiceMockRecorder) CreateUser(req any) *gomock.Call {
 }
 
 // GetUser mocks base method.
-func (m *MockUserService) GetUser(id uuid.UUID) (*models.User, *errors.ApiError) {
+func (m *MockUserService) GetUser(id uuid.UUID, includeProfile bool) (*models.User, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUser", id)
+	ret := m.ctrl.Call(m, "GetUser", id, includeProfile)
 	ret0, _ := ret[0].(*models.User)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
 }
 
 // GetUser indicates an expected call of GetUser.
-func (mr *MockUserServiceMockRecorder) GetUser(id any) *gomock.Call {
+func (mr *MockUserServiceMockRecorder) GetUser(id, includeProfile any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserService)(nil).GetUser), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserService)(nil).GetUser), id, includeProfile)
 }
 
 // LoginUser mocks base method.

@@ -20,14 +20,15 @@ func NewUserController(userService *services.UserService) *UserController {
 	return &UserController{UserService: *userService}
 }
 
-func (c *UserController) GetUser(ctx *gin.Context) {
+func (c *UserController) GetCurrentUser(ctx *gin.Context) {
 	s, err := middlewares.GetUserSession(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	u, err := c.UserService.GetUser(s.UserID)
+	includeProfile := ctx.Query(constants.IncludeUserProfile) == "true"
+	u, err := c.UserService.GetUser(s.UserID, includeProfile)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

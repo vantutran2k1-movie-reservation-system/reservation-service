@@ -21,6 +21,9 @@ func TestUserRepository_GetUser(t *testing.T) {
 	repo := NewUserRepository(db)
 
 	user := utils.GenerateUser()
+	profile := utils.GenerateUserProfile()
+	profile.UserID = user.ID
+	user.Profile = profile
 	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
@@ -28,13 +31,14 @@ func TestUserRepository_GetUser(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		rows := utils.GenerateSqlMockRow(user)
-
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 AND email = $2 ORDER BY "users"."id" LIMIT $3`)).
 			WithArgs(filter.ID.Value, filter.Email.Value, 1).
-			WillReturnRows(rows)
+			WillReturnRows(utils.GenerateSqlMockRow(user))
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "user_profiles" WHERE "user_profiles"."user_id" = $1`)).
+			WithArgs(user.ID).
+			WillReturnRows(utils.GenerateSqlMockRow(profile))
 
-		result, err := repo.GetUser(filter)
+		result, err := repo.GetUser(filter, true)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -46,7 +50,7 @@ func TestUserRepository_GetUser(t *testing.T) {
 			WithArgs(filter.ID.Value, filter.Email.Value, 1).
 			WillReturnRows(sqlmock.NewRows(nil))
 
-		result, err := repo.GetUser(filter)
+		result, err := repo.GetUser(filter, true)
 
 		assert.Nil(t, result)
 		assert.Nil(t, err)
@@ -57,7 +61,7 @@ func TestUserRepository_GetUser(t *testing.T) {
 			WithArgs(filter.ID.Value, filter.Email.Value, 1).
 			WillReturnError(errors.New("error getting user"))
 
-		result, err := repo.GetUser(filter)
+		result, err := repo.GetUser(filter, true)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)

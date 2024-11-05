@@ -31,9 +31,9 @@ func TestUserService_GetUser(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetUser(filter).Return(user, nil).Times(1)
+		repo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
 
-		result, err := service.GetUser(user.ID)
+		result, err := service.GetUser(user.ID, false)
 
 		assert.NotNil(t, user)
 		assert.Nil(t, err)
@@ -41,9 +41,9 @@ func TestUserService_GetUser(t *testing.T) {
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		repo.EXPECT().GetUser(filter).Return(nil, nil).Times(1)
+		repo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
 
-		result, err := service.GetUser(user.ID)
+		result, err := service.GetUser(user.ID, false)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -52,9 +52,9 @@ func TestUserService_GetUser(t *testing.T) {
 	})
 
 	t.Run("error getting user", func(t *testing.T) {
-		repo.EXPECT().GetUser(filter).Return(nil, errors.New("repo error")).Times(1)
+		repo.EXPECT().GetUser(filter, false).Return(nil, errors.New("repo error")).Times(1)
 
-		result, err := service.GetUser(user.ID)
+		result, err := service.GetUser(user.ID, false)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -80,7 +80,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetUser(filter).Return(nil, nil).Times(1)
+		repo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -98,7 +98,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("duplicate email", func(t *testing.T) {
-		repo.EXPECT().GetUser(filter).Return(user, nil).Times(1)
+		repo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
 
 		result, err := service.CreateUser(req)
 
@@ -109,7 +109,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("error getting user", func(t *testing.T) {
-		repo.EXPECT().GetUser(filter).Return(nil, errors.New("error getting user")).Times(1)
+		repo.EXPECT().GetUser(filter, false).Return(nil, errors.New("error getting user")).Times(1)
 
 		result, err := service.CreateUser(req)
 
@@ -120,7 +120,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("error generating password hash", func(t *testing.T) {
-		repo.EXPECT().GetUser(filter).Return(nil, nil).Times(1)
+		repo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return("", errors.New("error generating password hash"))
 
 		result, err := service.CreateUser(req)
@@ -132,7 +132,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("error creating user", func(t *testing.T) {
-		repo.EXPECT().GetUser(filter).Return(nil, nil).Times(1)
+		repo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -175,7 +175,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
@@ -204,7 +204,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("invalid email", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(nil, nil).Times(1)
 
 		result, err := service.LoginUser(req)
 
@@ -215,7 +215,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("invalid password", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(false).Times(1)
 
 		result, err := service.LoginUser(req)
@@ -227,7 +227,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("error getting token", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, errors.New("error getting token")).Times(1)
@@ -241,7 +241,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("token already exists", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(token, nil).Times(1)
@@ -255,7 +255,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("error getting expiry time", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
@@ -269,7 +269,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("error creating token", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
@@ -291,7 +291,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("error creating user session", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
@@ -433,7 +433,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(false).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -456,7 +456,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
 
 		err := service.UpdateUserPassword(user.ID, req)
 
@@ -466,7 +466,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	})
 
 	t.Run("error getting user", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter).Return(nil, errors.New("error getting user")).Times(1)
+		userRepo.EXPECT().GetUser(filter, false).Return(nil, errors.New("error getting user")).Times(1)
 
 		err := service.UpdateUserPassword(user.ID, req)
 
@@ -476,7 +476,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	})
 
 	t.Run("error password same as current value", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 
 		err := service.UpdateUserPassword(user.ID, req)
@@ -487,7 +487,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	})
 
 	t.Run("error generating hashed password", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(false).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return("", errors.New("hashing error")).Times(1)
 
@@ -499,7 +499,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	})
 
 	t.Run("error updating password", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(false).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -517,7 +517,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	})
 
 	t.Run("error revoking tokens", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(false).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -536,7 +536,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	})
 
 	t.Run("error deleting sessions", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(false).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -585,7 +585,7 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GeneratePasswordResetToken().Return(token.TokenValue).Times(1)
 		tokenRepo.EXPECT().GetToken(tokenFilter).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -607,7 +607,7 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 	})
 
 	t.Run("error getting user", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(nil, errors.New("error getting user")).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(nil, errors.New("error getting user")).Times(1)
 
 		result, err := service.CreatePasswordResetToken(req)
 
@@ -618,7 +618,7 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 	})
 
 	t.Run("error email not found", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(nil, nil).Times(1)
 
 		result, err := service.CreatePasswordResetToken(req)
 
@@ -629,7 +629,7 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 	})
 
 	t.Run("error getting active tokens", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GeneratePasswordResetToken().Return(token.TokenValue).Times(1)
 		tokenRepo.EXPECT().GetToken(tokenFilter).Return(nil, errors.New("error getting tokens")).Times(1)
 
@@ -642,7 +642,7 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 	})
 
 	t.Run("duplicate token", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GeneratePasswordResetToken().Return(token.TokenValue).Times(1)
 		tokenRepo.EXPECT().GetToken(tokenFilter).Return(token, nil).Times(1)
 
@@ -655,7 +655,7 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 	})
 
 	t.Run("error getting expire time", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GeneratePasswordResetToken().Return(token.TokenValue).Times(1)
 		tokenRepo.EXPECT().GetToken(tokenFilter).Return(nil, nil).Times(1)
 
@@ -668,7 +668,7 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 	})
 
 	t.Run("error creating token", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GeneratePasswordResetToken().Return(token.TokenValue).Times(1)
 		tokenRepo.EXPECT().GetToken(tokenFilter).Return(nil, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -719,7 +719,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -765,7 +765,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("user not found", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(nil, nil).Times(1)
 
 		err := service.ResetUserPassword(resetToken.TokenValue, req)
 
@@ -776,7 +776,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("error getting user", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(nil, errors.New("error getting user")).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(nil, errors.New("error getting user")).Times(1)
 
 		err := service.ResetUserPassword(resetToken.TokenValue, req)
 
@@ -787,7 +787,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("error generating password", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return("", errors.New("error generating password")).Times(1)
 
 		err := service.ResetUserPassword(resetToken.TokenValue, req)
@@ -799,7 +799,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("error updating password", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -817,7 +817,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("error revoking user login tokens", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -836,7 +836,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("error using reset token", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -856,7 +856,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("error getting password reset tokens", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -877,7 +877,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("error revoking reset tokens", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -899,7 +899,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 
 	t.Run("error deleting user sessions", func(t *testing.T) {
 		resetTokenRepo.EXPECT().GetToken(tokenFilter).Return(resetToken, nil).Times(1)
-		userRepo.EXPECT().GetUser(userFilter).Return(user, nil).Times(1)
+		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {

@@ -56,18 +56,18 @@ func (mr *MockUserRepositoryMockRecorder) CreateUser(tx, user any) *gomock.Call 
 }
 
 // GetUser mocks base method.
-func (m *MockUserRepository) GetUser(filter filters.UserFilter) (*models.User, error) {
+func (m *MockUserRepository) GetUser(filter filters.UserFilter, includeProfile bool) (*models.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUser", filter)
+	ret := m.ctrl.Call(m, "GetUser", filter, includeProfile)
 	ret0, _ := ret[0].(*models.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUser indicates an expected call of GetUser.
-func (mr *MockUserRepositoryMockRecorder) GetUser(filter any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) GetUser(filter, includeProfile any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserRepository)(nil).GetUser), filter)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserRepository)(nil).GetUser), filter, includeProfile)
 }
 
 // UpdatePassword mocks base method.

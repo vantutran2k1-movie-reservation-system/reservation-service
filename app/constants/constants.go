@@ -12,6 +12,7 @@ const (
 	ResetToken                   = "Reset-Token"
 
 	// Request query params
+	IncludeUserProfile     = "includeProfile"
 	IncludeGenres          = "includeGenres"
 	IncludeTheaterLocation = "includeLocation"
 

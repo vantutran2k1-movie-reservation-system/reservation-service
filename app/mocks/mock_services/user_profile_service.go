@@ -75,7 +75,7 @@ func (mr *MockUserProfileServiceMockRecorder) DeleteProfilePicture(userID any) *
 // GetProfileByUserID mocks base method.
 func (m *MockUserProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProfile", userID)
+	ret := m.ctrl.Call(m, "GetProfileByUserID", userID)
 	ret0, _ := ret[0].(*models.UserProfile)
 	ret1, _ := ret[1].(*errors.ApiError)
 	return ret0, ret1
@@ -84,7 +84,7 @@ func (m *MockUserProfileService) GetProfileByUserID(userID uuid.UUID) (*models.U
 // GetProfileByUserID indicates an expected call of GetProfileByUserID.
 func (mr *MockUserProfileServiceMockRecorder) GetProfileByUserID(userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfile", reflect.TypeOf((*MockUserProfileService)(nil).GetProfileByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfileByUserID", reflect.TypeOf((*MockUserProfileService)(nil).GetProfileByUserID), userID)
 }
 
 // UpdateProfilePicture mocks base method.

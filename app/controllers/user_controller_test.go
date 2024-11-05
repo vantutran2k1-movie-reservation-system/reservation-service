@@ -17,7 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestUserController_GetUser(t *testing.T) {
+func TestUserController_GetCurrentUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -31,18 +31,18 @@ func TestUserController_GetUser(t *testing.T) {
 	session := utils.GenerateUserSession()
 	user := utils.GenerateUser()
 
-	t.Run("successful user retrieval", func(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
 			c.Set(constants.UserSession, session)
 			c.Next()
 		})
-		router.GET("/user", controller.GetUser)
+		router.GET("/users/me", controller.GetCurrentUser)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/user", nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/me?%s=%v", constants.IncludeUserProfile, true), nil)
 
-		service.EXPECT().GetUser(session.UserID).Return(user, nil).Times(1)
+		service.EXPECT().GetUser(session.UserID, true).Return(user, nil).Times(1)
 
 		router.ServeHTTP(w, req)
 
@@ -53,10 +53,10 @@ func TestUserController_GetUser(t *testing.T) {
 
 	t.Run("session not found", func(t *testing.T) {
 		router := gin.Default()
-		router.GET("/user", controller.GetUser)
+		router.GET("/users/me", controller.GetCurrentUser)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/user", nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/me?%s=%v", constants.IncludeUserProfile, true), nil)
 
 		router.ServeHTTP(w, req)
 
@@ -69,12 +69,12 @@ func TestUserController_GetUser(t *testing.T) {
 			c.Set(constants.UserSession, session)
 			c.Next()
 		})
-		router.GET("/user", controller.GetUser)
+		router.GET("/users/me", controller.GetCurrentUser)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/user", nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/me?%s=%v", constants.IncludeUserProfile, true), nil)
 
-		service.EXPECT().GetUser(session.UserID).Return(nil, errors.BadRequestError("user not found"))
+		service.EXPECT().GetUser(session.UserID, true).Return(nil, errors.BadRequestError("user not found"))
 
 		router.ServeHTTP(w, req)
 
