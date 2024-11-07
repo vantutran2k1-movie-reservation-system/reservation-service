@@ -3,45 +3,58 @@ package services
 import (
 	"errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
-	"gorm.io/gorm"
 )
 
 func TestUserProfileService_GetProfileByUserID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mock_repositories.NewMockUserProfileRepository(ctrl)
-	service := NewUserProfileService(nil, nil, repo, nil)
+	userRepo := mock_repositories.NewMockUserRepository(ctrl)
+	service := NewUserProfileService(nil, nil, userRepo, nil, nil)
 
-	userProfile := utils.GenerateUserProfile()
-	filter := filters.UserProfileFilter{
+	user, profile := setupUserWithProfile()
+
+	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
-		UserID: &filters.Condition{Operator: filters.OpEqual, Value: userProfile.UserID},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
 	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(userProfile, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 
-		result, err := service.GetProfileByUserID(userProfile.UserID)
+		result, err := service.GetProfileByUserID(profile.UserID)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.Equal(t, userProfile, result)
+		assert.Equal(t, profile, result)
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, nil).Times(1)
 
-		result, err := service.GetProfileByUserID(userProfile.UserID)
+		result, err := service.GetProfileByUserID(profile.UserID)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "user does not exist", err.Error())
+	})
+
+	t.Run("profile not found", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(&models.User{}, nil).Times(1)
+
+		result, err := service.GetProfileByUserID(profile.UserID)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -50,9 +63,9 @@ func TestUserProfileService_GetProfileByUserID(t *testing.T) {
 	})
 
 	t.Run("error getting user", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, errors.New("error getting user")).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, errors.New("error getting user")).Times(1)
 
-		result, err := service.GetProfileByUserID(userProfile.UserID)
+		result, err := service.GetProfileByUserID(profile.UserID)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -66,23 +79,27 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 	defer ctrl.Finish()
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
-	repo := mock_repositories.NewMockUserProfileRepository(ctrl)
-	service := NewUserProfileService(nil, transaction, repo, nil)
+	userRepo := mock_repositories.NewMockUserRepository(ctrl)
+	profileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
+	service := NewUserProfileService(nil, transaction, userRepo, profileRepo, nil)
 
+	user := utils.GenerateUser()
 	profile := utils.GenerateUserProfile()
+	profile.UserID = user.ID
+
 	req := utils.GenerateCreateUserProfileRequest()
-	filter := filters.UserProfileFilter{
+	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
-		UserID: &filters.Condition{Operator: filters.OpEqual, Value: profile.UserID},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
 	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			}).Times(1)
-		repo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		profileRepo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
 		result, err := service.CreateUserProfile(profile.UserID, req)
 
@@ -94,35 +111,46 @@ func TestUserProfileService_CreateUserProfile(t *testing.T) {
 		assert.Equal(t, req.DateOfBirth, result.DateOfBirth)
 	})
 
-	t.Run("duplicate user", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(profile, nil).Times(1)
+	t.Run("user not found", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, nil).Times(1)
 
 		result, err := service.CreateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
-		assert.Equal(t, "duplicate profile for current user", err.Error())
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "user does not exist", err.Error())
 	})
 
-	t.Run("error getting profile", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, errors.New("error getting profile")).Times(1)
+	t.Run("error getting user", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, errors.New("error getting user")).Times(1)
 
 		result, err := service.CreateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
-		assert.Equal(t, "error getting profile", err.Error())
+		assert.Equal(t, "error getting user", err.Error())
+	})
+
+	t.Run("duplicate profile", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(&models.User{Profile: profile}, nil).Times(1)
+
+		result, err := service.CreateUserProfile(profile.UserID, req)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "user profile already exists", err.Error())
 	})
 
 	t.Run("error creating profile", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			}).Times(1)
-		repo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error creating profile")).Times(1)
+		profileRepo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error creating profile")).Times(1)
 
 		result, err := service.CreateUserProfile(profile.UserID, req)
 
@@ -138,23 +166,24 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 	defer ctrl.Finish()
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
-	repo := mock_repositories.NewMockUserProfileRepository(ctrl)
-	service := NewUserProfileService(nil, transaction, repo, nil)
+	userRepo := mock_repositories.NewMockUserRepository(ctrl)
+	profileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
+	service := NewUserProfileService(nil, transaction, userRepo, profileRepo, nil)
 
-	profile := utils.GenerateUserProfile()
+	user, profile := setupUserWithProfile()
 	req := utils.GenerateUpdateUserProfileRequest()
-	filter := filters.UserProfileFilter{
+	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
-		UserID: &filters.Condition{Operator: filters.OpEqual, Value: profile.UserID},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
 	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(profile, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			}).Times(1)
-		repo.EXPECT().UpdateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		profileRepo.EXPECT().UpdateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
 		result, err := service.UpdateUserProfile(profile.UserID, req)
 
@@ -166,22 +195,21 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 		assert.Equal(t, req.LastName, result.LastName)
 		assert.Equal(t, req.PhoneNumber, result.PhoneNumber)
 		assert.Equal(t, req.DateOfBirth, result.DateOfBirth)
-
 	})
 
-	t.Run("profile not found", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, nil).Times(1)
+	t.Run("user not found", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, nil).Times(1)
 
 		result, err := service.UpdateUserProfile(profile.UserID, req)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, http.StatusNotFound, err.StatusCode)
-		assert.Equal(t, "user profile does not exist", err.Error())
+		assert.Equal(t, "user does not exist", err.Error())
 	})
 
 	t.Run("error getting user", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, errors.New("error getting user")).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, errors.New("error getting user")).Times(1)
 
 		result, err := service.UpdateUserProfile(profile.UserID, req)
 
@@ -191,13 +219,24 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 		assert.Equal(t, "error getting user", err.Error())
 	})
 
+	t.Run("profile not found", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(&models.User{}, nil).Times(1)
+
+		result, err := service.UpdateUserProfile(profile.UserID, req)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "user profile does not exist", err.Error())
+	})
+
 	t.Run("error updating profile", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(profile, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			}).Times(1)
-		repo.EXPECT().UpdateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error updating profile")).Times(1)
+		profileRepo.EXPECT().UpdateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error updating profile")).Times(1)
 
 		result, err := service.UpdateUserProfile(profile.UserID, req)
 
@@ -217,19 +256,20 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 	defer os.Unsetenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
+	userRepo := mock_repositories.NewMockUserRepository(ctrl)
 	profileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
 	profilePictureRepo := mock_repositories.NewMockProfilePictureRepository(ctrl)
-	service := NewUserProfileService(nil, transaction, profileRepo, profilePictureRepo)
+	service := NewUserProfileService(nil, transaction, userRepo, profileRepo, profilePictureRepo)
 
-	profile := utils.GenerateUserProfile()
+	user, profile := setupUserWithProfile()
 	file := utils.GenerateFileHeader()
-	filter := filters.UserProfileFilter{
+	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
-		UserID: &filters.Condition{Operator: filters.OpEqual, Value: profile.UserID},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
 	}
 
 	t.Run("success", func(t *testing.T) {
-		profileRepo.EXPECT().GetProfile(filter).Return(profile, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, gomock.Any()).Return(nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -244,8 +284,30 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
+	t.Run("user not found", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, nil).Times(1)
+
+		result, err := service.UpdateProfilePicture(profile.UserID, file)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "user does not exist", err.Error())
+	})
+
+	t.Run("error getting user", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, errors.New("error getting user")).Times(1)
+
+		result, err := service.UpdateProfilePicture(profile.UserID, file)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting user", err.Error())
+	})
+
 	t.Run("profile not found", func(t *testing.T) {
-		profileRepo.EXPECT().GetProfile(filter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(&models.User{}, nil).Times(1)
 
 		result, err := service.UpdateProfilePicture(profile.UserID, file)
 
@@ -255,19 +317,8 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 		assert.Equal(t, "user profile does not exist", err.Error())
 	})
 
-	t.Run("error getting profile", func(t *testing.T) {
-		profileRepo.EXPECT().GetProfile(filter).Return(nil, errors.New("error getting profile")).Times(1)
-
-		result, err := service.UpdateProfilePicture(profile.UserID, file)
-
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
-		assert.Equal(t, "error getting profile", err.Error())
-	})
-
 	t.Run("error creating picture", func(t *testing.T) {
-		profileRepo.EXPECT().GetProfile(filter).Return(profile, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, gomock.Any()).Return(errors.New("error creating picture")).Times(1)
 
 		result, err := service.UpdateProfilePicture(profile.UserID, file)
@@ -279,7 +330,7 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 	})
 
 	t.Run("error updating profile", func(t *testing.T) {
-		profileRepo.EXPECT().GetProfile(filter).Return(profile, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, gomock.Any()).Return(nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
@@ -302,31 +353,52 @@ func TestUserProfileService_DeleteProfilePicture(t *testing.T) {
 	defer ctrl.Finish()
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
-	repo := mock_repositories.NewMockUserProfileRepository(ctrl)
-	service := NewUserProfileService(nil, transaction, repo, nil)
+	userRepo := mock_repositories.NewMockUserRepository(ctrl)
+	profileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
+	service := NewUserProfileService(nil, transaction, userRepo, profileRepo, nil)
 
-	profile := utils.GenerateUserProfile()
-	filter := filters.UserProfileFilter{
+	user, profile := setupUserWithProfile()
+	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
-		UserID: &filters.Condition{Operator: filters.OpEqual, Value: profile.UserID},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
 	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(profile, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-		repo.EXPECT().UpdateProfilePicture(gomock.Any(), profile, nil).Return(profile, nil).Times(1)
+		profileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), profile, nil).Return(profile, nil).Times(1)
 
 		err := service.DeleteProfilePicture(profile.UserID)
 
 		assert.Nil(t, err)
 	})
 
+	t.Run("user not found", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, nil).Times(1)
+
+		err := service.DeleteProfilePicture(profile.UserID)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "user does not exist", err.Error())
+	})
+
+	t.Run("error getting user", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(nil, errors.New("error getting user")).Times(1)
+
+		err := service.DeleteProfilePicture(profile.UserID)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting user", err.Error())
+	})
+
 	t.Run("profile not found", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, nil).Times(1)
+		userRepo.EXPECT().GetUser(filter, true).Return(&models.User{}, nil).Times(1)
 
 		err := service.DeleteProfilePicture(profile.UserID)
 
@@ -335,25 +407,14 @@ func TestUserProfileService_DeleteProfilePicture(t *testing.T) {
 		assert.Equal(t, "user profile does not exist", err.Error())
 	})
 
-	t.Run("error getting profile", func(t *testing.T) {
-		repo.EXPECT().GetProfile(filter).Return(nil, errors.New("error getting profile")).Times(1)
-
-		err := service.DeleteProfilePicture(profile.UserID)
-
-		assert.NotNil(t, err)
-		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
-		assert.Equal(t, "error getting profile", err.Error())
-	})
-
 	t.Run("error deleting profile picture", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
 			},
 		).Times(1)
-
-		repo.EXPECT().GetProfile(filter).Return(profile, nil).Times(1)
-		repo.EXPECT().UpdateProfilePicture(gomock.Any(), profile, nil).Return(nil, errors.New("error deleting profile picture")).Times(1)
+		profileRepo.EXPECT().UpdateProfilePicture(gomock.Any(), profile, nil).Return(nil, errors.New("error deleting profile picture")).Times(1)
 
 		err := service.DeleteProfilePicture(profile.UserID)
 
@@ -361,4 +422,14 @@ func TestUserProfileService_DeleteProfilePicture(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
 		assert.Equal(t, "error deleting profile picture", err.Error())
 	})
+}
+
+func setupUserWithProfile() (*models.User, *models.UserProfile) {
+	user := utils.GenerateUser()
+	profile := utils.GenerateUserProfile()
+
+	profile.UserID = user.ID
+	user.Profile = profile
+
+	return user, profile
 }

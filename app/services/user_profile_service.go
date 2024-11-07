@@ -27,6 +27,7 @@ type UserProfileService interface {
 type userProfileService struct {
 	db                 *gorm.DB
 	transactionManager transaction.TransactionManager
+	userRepo           repositories.UserRepository
 	userProfileRepo    repositories.UserProfileRepository
 	profilePictureRepo repositories.ProfilePictureRepository
 }
@@ -34,41 +35,36 @@ type userProfileService struct {
 func NewUserProfileService(
 	db *gorm.DB,
 	transactionManager transaction.TransactionManager,
+	userRepo repositories.UserRepository,
 	userProfileRepo repositories.UserProfileRepository,
 	profilePictureRepo repositories.ProfilePictureRepository,
 ) UserProfileService {
 	return &userProfileService{
 		db:                 db,
 		transactionManager: transactionManager,
+		userRepo:           userRepo,
 		userProfileRepo:    userProfileRepo,
 		profilePictureRepo: profilePictureRepo,
 	}
 }
 
 func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.getUserProfile(userID)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-
-	}
-	if p == nil {
-		return nil, errors.NotFoundError("user profile does not exist")
-	}
-
-	return p, nil
+	return s.getUserProfileAndVerifyExist(userID)
 }
 
 func (s *userProfileService) CreateUserProfile(userID uuid.UUID, req payloads.CreateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
-	// TODO: check for user existence
-	p, err := s.getUserProfile(userID)
+	u, err := s.getUser(userID)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
-	if p != nil {
-		return nil, errors.BadRequestError("duplicate profile for current user")
+	if u == nil {
+		return nil, errors.NotFoundError("user does not exist")
+	}
+	if u.Profile != nil {
+		return nil, errors.BadRequestError("user profile already exists")
 	}
 
-	p = &models.UserProfile{
+	p := &models.UserProfile{
 		ID:          uuid.New(),
 		UserID:      userID,
 		FirstName:   req.FirstName,
@@ -88,13 +84,9 @@ func (s *userProfileService) CreateUserProfile(userID uuid.UUID, req payloads.Cr
 }
 
 func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, req payloads.UpdateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.getUserProfile(userID)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-
-	}
-	if p == nil {
-		return nil, errors.NotFoundError("user profile does not exist")
+	p, apiErr := s.getUserProfileAndVerifyExist(userID)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	p.FirstName = req.FirstName
@@ -112,13 +104,9 @@ func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, req payloads.Up
 }
 
 func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) (*models.UserProfile, *errors.ApiError) {
-	p, err := s.getUserProfile(userID)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-
-	}
-	if p == nil {
-		return nil, errors.NotFoundError("user profile does not exist")
+	p, apiErr := s.getUserProfileAndVerifyExist(userID)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
@@ -140,13 +128,9 @@ func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multip
 }
 
 func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiError {
-	p, err := s.getUserProfile(userID)
-	if err != nil {
-		return errors.InternalServerError(err.Error())
-
-	}
-	if p == nil {
-		return errors.NotFoundError("user profile does not exist")
+	p, apiErr := s.getUserProfileAndVerifyExist(userID)
+	if apiErr != nil {
+		return apiErr
 	}
 
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
@@ -159,9 +143,24 @@ func (s *userProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiE
 	return nil
 }
 
-func (s *userProfileService) getUserProfile(userID uuid.UUID) (*models.UserProfile, error) {
-	return s.userProfileRepo.GetProfile(filters.UserProfileFilter{
+func (s *userProfileService) getUser(id uuid.UUID) (*models.User, error) {
+	return s.userRepo.GetUser(filters.UserFilter{
 		Filter: &filters.SingleFilter{},
-		UserID: &filters.Condition{Operator: filters.OpEqual, Value: userID},
-	})
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+	}, true)
+}
+
+func (s *userProfileService) getUserProfileAndVerifyExist(userID uuid.UUID) (*models.UserProfile, *errors.ApiError) {
+	u, err := s.getUser(userID)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if u == nil {
+		return nil, errors.NotFoundError("user does not exist")
+	}
+	if u.Profile == nil {
+		return nil, errors.NotFoundError("user profile does not exist")
+	}
+
+	return u.Profile, nil
 }
