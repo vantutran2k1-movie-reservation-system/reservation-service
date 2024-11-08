@@ -23,6 +23,7 @@ const (
 	ApplicationJson = "application/json"
 
 	// Configcat feature flags
+	CanModifyUsers     = "canModifyUsers"
 	CanModifyMovies    = "canModifyMovies"
 	CanModifyGenres    = "canModifyGenres"
 	CanModifyLocations = "canModifyLocations"

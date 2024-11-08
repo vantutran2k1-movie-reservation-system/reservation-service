@@ -17,6 +17,49 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func TestUserController_GetUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockUserService(ctrl)
+	controller := UserController{
+		UserService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	user := utils.GenerateUser()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/users/:userId", controller.GetUser)
+
+		service.EXPECT().GetUser(user.ID, true).Return(user, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/%s?%s=%v", user.ID, constants.IncludeUserProfile, true), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), user.Email)
+		assert.Contains(t, w.Body.String(), user.ID.String())
+	})
+
+	t.Run("error getting user", func(t *testing.T) {
+		router := gin.Default()
+		router.GET("/users/:userId", controller.GetUser)
+
+		service.EXPECT().GetUser(user.ID, true).Return(nil, errors.InternalServerError("error getting user")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/%s?%s=%v", user.ID, constants.IncludeUserProfile, true), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "error getting user")
+	})
+}
+
 func TestUserController_GetCurrentUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

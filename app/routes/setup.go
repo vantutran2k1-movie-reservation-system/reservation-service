@@ -98,6 +98,7 @@ func setupServices(repositories *Repositories) {
 		UserProfileService: services.NewUserProfileService(
 			config.DB,
 			transactionManager,
+			repositories.UserRepository,
 			repositories.UserProfileRepository,
 			repositories.ProfilePictureRepository,
 		),

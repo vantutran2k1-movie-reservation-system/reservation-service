@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"net/http"
 
@@ -18,6 +19,23 @@ type UserController struct {
 
 func NewUserController(userService *services.UserService) *UserController {
 	return &UserController{UserService: *userService}
+}
+
+func (c *UserController) GetUser(ctx *gin.Context) {
+	userId, e := uuid.Parse(ctx.Param("userId"))
+	if e != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+	
+	includeProfile := ctx.Query(constants.IncludeUserProfile) == "true"
+	u, err := c.UserService.GetUser(userId, includeProfile)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(u)})
 }
 
 func (c *UserController) GetCurrentUser(ctx *gin.Context) {
