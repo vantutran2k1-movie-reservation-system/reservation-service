@@ -168,6 +168,7 @@ func GenerateMovie() *models.Movie {
 		DurationMinutes: generateInt(100, 200),
 		Language:        &language,
 		Rating:          &rating,
+		IsActive:        generateBool(),
 		CreatedAt:       generateCurrentTime(),
 		UpdatedAt:       generateCurrentTime(),
 		CreatedBy:       generateUUID(),
@@ -188,6 +189,7 @@ func GenerateCreateMovieRequest() payloads.CreateMovieRequest {
 	description := generateString(allChars, 100)
 	language := generateString(lowercaseChars, 10)
 	rating := generateFloat(0, 5)
+	isActive := generateBool()
 
 	return payloads.CreateMovieRequest{
 		Title:           generateString(allChars, 10),
@@ -196,6 +198,7 @@ func GenerateCreateMovieRequest() payloads.CreateMovieRequest {
 		DurationMinutes: generateInt(100, 200),
 		Language:        &language,
 		Rating:          &rating,
+		IsActive:        &isActive,
 	}
 }
 
@@ -203,6 +206,7 @@ func GenerateUpdateMovieRequest() payloads.UpdateMovieRequest {
 	description := generateString(allChars, 100)
 	language := generateString(lowercaseChars, 10)
 	rating := generateFloat(0, 5)
+	isActive := generateBool()
 
 	return payloads.UpdateMovieRequest{
 		Title:           generateString(allChars, 10),
@@ -211,6 +215,7 @@ func GenerateUpdateMovieRequest() payloads.UpdateMovieRequest {
 		DurationMinutes: generateInt(100, 200),
 		Language:        &language,
 		Rating:          &rating,
+		IsActive:        &isActive,
 	}
 }
 

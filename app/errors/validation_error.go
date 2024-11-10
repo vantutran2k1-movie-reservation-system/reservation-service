@@ -36,14 +36,16 @@ func BindAndValidate(ctx *gin.Context, obj any) []*ValidationError {
 
 	var validationErrors []*ValidationError
 
-	if unmarshalErrors, ok := err.(*json.UnmarshalTypeError); ok {
+	var unmarshalErrors *json.UnmarshalTypeError
+	if errors.As(err, &unmarshalErrors) {
 		validationErrors = append(validationErrors, &ValidationError{
 			Field:   unmarshalErrors.Field,
 			Message: fmt.Sprintf("Invalid data type: expected '%v' but got '%v'", unmarshalErrors.Type, unmarshalErrors.Value),
 		})
 	}
 
-	if syntaxError, ok := err.(*json.SyntaxError); ok {
+	var syntaxError *json.SyntaxError
+	if errors.As(err, &syntaxError) {
 		validationErrors = append(validationErrors, &ValidationError{
 			Message: fmt.Sprintf("Syntax error: %v", syntaxError.Error()),
 		})

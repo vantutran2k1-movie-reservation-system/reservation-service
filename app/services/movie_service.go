@@ -113,6 +113,7 @@ func (s *movieService) CreateMovie(req payloads.CreateMovieRequest, createdBy uu
 		DurationMinutes: req.DurationMinutes,
 		Language:        req.Language,
 		Rating:          req.Rating,
+		IsActive:        *req.IsActive,
 		CreatedAt:       time.Now().UTC(),
 		UpdatedAt:       time.Now().UTC(),
 		CreatedBy:       createdBy,
@@ -146,6 +147,7 @@ func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateM
 	m.DurationMinutes = req.DurationMinutes
 	m.Language = req.Language
 	m.Rating = req.Rating
+	m.IsActive = *req.IsActive
 	m.UpdatedAt = time.Now().UTC()
 	m.LastUpdatedBy = updatedBy
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {

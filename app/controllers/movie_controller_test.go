@@ -192,13 +192,15 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		service.EXPECT().CreateMovie(payload, session.UserID).
 			Return(movie, nil)
 
-		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
-			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *payload.Rating)
+		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
+			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *payload.Rating, *payload.IsActive)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
 		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
+
+		fmt.Println(bytes.NewBufferString(reqBody).String())
 
 		assert.Equal(t, http.StatusCreated, w.Code)
 		assert.Contains(t, w.Body.String(), movie.Title)
@@ -207,6 +209,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		assert.Contains(t, w.Body.String(), fmt.Sprint(movie.DurationMinutes))
 		assert.Contains(t, w.Body.String(), *movie.Language)
 		assert.Contains(t, w.Body.String(), fmt.Sprint(*movie.Rating))
+		assert.Contains(t, w.Body.String(), fmt.Sprint(movie.IsActive))
 		assert.Contains(t, w.Body.String(), movie.CreatedBy.String())
 	})
 
@@ -214,8 +217,8 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		router := gin.Default()
 		router.POST("/movies", controller.CreateMovie)
 
-		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
-			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, 6.0)
+		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
+			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, 6.0, *payload.IsActive)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
@@ -231,8 +234,8 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		router := gin.Default()
 		router.POST("/movies", controller.CreateMovie)
 
-		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
-			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *movie.Rating)
+		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
+			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *movie.Rating, *payload.IsActive)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
@@ -255,8 +258,8 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		service.EXPECT().CreateMovie(payload, session.UserID).
 			Return(nil, errors.InternalServerError("Service error"))
 
-		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
-			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *payload.Rating)
+		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
+			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *payload.Rating, *payload.IsActive)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
@@ -296,8 +299,8 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 		service.EXPECT().UpdateMovie(movie.ID, session.UserID, payload).
 			Return(movie, nil)
 
-		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
-			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *payload.Rating)
+		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
+			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *payload.Rating, *payload.IsActive)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s", movie.ID), bytes.NewBufferString(reqBody))
@@ -311,6 +314,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 		assert.Contains(t, w.Body.String(), fmt.Sprint(movie.DurationMinutes))
 		assert.Contains(t, w.Body.String(), *movie.Language)
 		assert.Contains(t, w.Body.String(), fmt.Sprint(*movie.Rating))
+		assert.Contains(t, w.Body.String(), fmt.Sprint(movie.IsActive))
 		assert.Contains(t, w.Body.String(), movie.CreatedBy.String())
 	})
 
@@ -318,8 +322,8 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 		router := gin.Default()
 		router.PUT("/movies/:id", controller.UpdateMovie)
 
-		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
-			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, 6.0)
+		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
+			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, 6.0, *payload.IsActive)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s", movie.ID), bytes.NewBufferString(reqBody))
@@ -342,8 +346,8 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 		service.EXPECT().UpdateMovie(movie.ID, session.UserID, payload).
 			Return(nil, errors.InternalServerError("Service error"))
 
-		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g}`,
-			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *payload.Rating)
+		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
+			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *payload.Rating, *payload.IsActive)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/movies/%s", movie.ID), bytes.NewBufferString(reqBody))

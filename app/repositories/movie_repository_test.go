@@ -179,8 +179,8 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "movies" ("id","title","description","release_date","duration_minutes","language","rating","created_at","updated_at","created_by","last_updated_by") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`)).
-			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "movies" ("id","title","description","release_date","duration_minutes","language","rating","is_active","created_at","updated_at","created_by","last_updated_by") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`)).
+			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.IsActive, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -193,8 +193,8 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 
 	t.Run("error creating movie", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "movies" ("id","title","description","release_date","duration_minutes","language","rating","created_at","updated_at","created_by","last_updated_by") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`)).
-			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "movies" ("id","title","description","release_date","duration_minutes","language","rating","is_active","created_at","updated_at","created_by","last_updated_by") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`)).
+			WithArgs(movie.ID, movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.IsActive, movie.CreatedAt, movie.UpdatedAt, movie.CreatedBy, movie.LastUpdatedBy).
 			WillReturnError(errors.New("error creating movie"))
 		mock.ExpectRollback()
 
@@ -219,8 +219,8 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "movies" SET "title"=$1,"description"=$2,"release_date"=$3,"duration_minutes"=$4,"language"=$5,"rating"=$6,"created_at"=$7,"updated_at"=$8,"created_by"=$9,"last_updated_by"=$10 WHERE "id" = $11`)).
-			WithArgs(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, sqlmock.AnyArg(), movie.CreatedBy, movie.LastUpdatedBy, movie.ID).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "movies" SET "title"=$1,"description"=$2,"release_date"=$3,"duration_minutes"=$4,"language"=$5,"rating"=$6,"is_active"=$7,"created_at"=$8,"updated_at"=$9,"created_by"=$10,"last_updated_by"=$11 WHERE "id" = $12`)).
+			WithArgs(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.IsActive, movie.CreatedAt, sqlmock.AnyArg(), movie.CreatedBy, movie.LastUpdatedBy, movie.ID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -233,8 +233,8 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 
 	t.Run("error updating movie", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "movies" SET "title"=$1,"description"=$2,"release_date"=$3,"duration_minutes"=$4,"language"=$5,"rating"=$6,"created_at"=$7,"updated_at"=$8,"created_by"=$9,"last_updated_by"=$10 WHERE "id" = $11`)).
-			WithArgs(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.CreatedAt, sqlmock.AnyArg(), movie.CreatedBy, movie.LastUpdatedBy, movie.ID).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "movies" SET "title"=$1,"description"=$2,"release_date"=$3,"duration_minutes"=$4,"language"=$5,"rating"=$6,"is_active"=$7,"created_at"=$8,"updated_at"=$9,"created_by"=$10,"last_updated_by"=$11 WHERE "id" = $12`)).
+			WithArgs(movie.Title, movie.Description, movie.ReleaseDate, movie.DurationMinutes, movie.Language, movie.Rating, movie.IsActive, movie.CreatedAt, sqlmock.AnyArg(), movie.CreatedBy, movie.LastUpdatedBy, movie.ID).
 			WillReturnError(errors.New("error updating movie"))
 		mock.ExpectRollback()
 

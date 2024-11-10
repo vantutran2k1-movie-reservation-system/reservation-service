@@ -158,6 +158,7 @@ func TestMovieService_CreateMovie(t *testing.T) {
 		assert.Equal(t, req.DurationMinutes, result.DurationMinutes)
 		assert.Equal(t, req.Language, result.Language)
 		assert.Equal(t, req.Rating, result.Rating)
+		assert.Equal(t, req.IsActive, &result.IsActive)
 		assert.Equal(t, movie.CreatedBy, result.CreatedBy)
 	})
 
@@ -212,6 +213,7 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 		assert.Equal(t, req.DurationMinutes, result.DurationMinutes)
 		assert.Equal(t, req.Language, result.Language)
 		assert.Equal(t, req.Rating, result.Rating)
+		assert.Equal(t, req.IsActive, &result.IsActive)
 		assert.Equal(t, movie.CreatedBy, result.CreatedBy)
 	})
 

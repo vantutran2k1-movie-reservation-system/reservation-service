@@ -9,6 +9,7 @@ type CreateMovieRequest struct {
 	DurationMinutes int      `json:"duration_minutes" binding:"required,min=1"`
 	Language        *string  `json:"language" binding:"omitempty,min=1,max=50"`
 	Rating          *float64 `json:"rating"  binding:"omitempty,min=0,max=5"`
+	IsActive        *bool    `json:"is_active" binding:"required"`
 }
 
 type UpdateMovieRequest struct {
@@ -18,6 +19,7 @@ type UpdateMovieRequest struct {
 	DurationMinutes int      `json:"duration_minutes" binding:"required,min=1"`
 	Language        *string  `json:"language" binding:"omitempty,min=1,max=50"`
 	Rating          *float64 `json:"rating"  binding:"omitempty,min=0,max=5"`
+	IsActive        *bool    `json:"is_active" binding:"required"`
 }
 
 type UpdateMovieGenresRequest struct {

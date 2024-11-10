@@ -14,6 +14,7 @@ type Movie struct {
 	DurationMinutes int       `json:"duration_minutes" gorm:"column:duration_minutes"`
 	Language        *string   `json:"language,omitempty" gorm:"column:language"`
 	Rating          *float64  `json:"rating,omitempty" gorm:"column:rating"`
+	IsActive        bool      `json:"is_active" gorm:"column:is_active"`
 	CreatedAt       time.Time `json:"-" gorm:"column:created_at"`
 	UpdatedAt       time.Time `json:"-" gorm:"column:updated_at"`
 	CreatedBy       uuid.UUID `json:"created_by" gorm:"column:created_by"`
