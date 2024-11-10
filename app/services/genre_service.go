@@ -16,16 +16,28 @@ type GenreService interface {
 	GetGenres() ([]*models.Genre, *errors.ApiError)
 	CreateGenre(req payloads.CreateGenreRequest) (*models.Genre, *errors.ApiError)
 	UpdateGenre(id uuid.UUID, req payloads.UpdateGenreRequest) (*models.Genre, *errors.ApiError)
+	DeleteGenre(id uuid.UUID) *errors.ApiError
 }
 
-func NewGenreService(db *gorm.DB, transactionManager transaction.TransactionManager, genreRepo repositories.GenreRepository) GenreService {
-	return &genreService{db: db, transactionManager: transactionManager, genreRepo: genreRepo}
+func NewGenreService(
+	db *gorm.DB,
+	transactionManager transaction.TransactionManager,
+	genreRepo repositories.GenreRepository,
+	movieGenreRepo repositories.MovieGenreRepository,
+) GenreService {
+	return &genreService{
+		db:                 db,
+		transactionManager: transactionManager,
+		genreRepo:          genreRepo,
+		movieGenreRepo:     movieGenreRepo,
+	}
 }
 
 type genreService struct {
 	db                 *gorm.DB
 	transactionManager transaction.TransactionManager
 	genreRepo          repositories.GenreRepository
+	movieGenreRepo     repositories.MovieGenreRepository
 }
 
 func (s *genreService) GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError) {
@@ -57,11 +69,10 @@ func (s *genreService) GetGenres() ([]*models.Genre, *errors.ApiError) {
 }
 
 func (s *genreService) CreateGenre(req payloads.CreateGenreRequest) (*models.Genre, *errors.ApiError) {
-	filter := filters.GenreFilter{
+	g, err := s.genreRepo.GetGenre(filters.GenreFilter{
 		Filter: &filters.SingleFilter{Logic: filters.And},
 		Name:   &filters.Condition{Operator: filters.OpEqual, Value: req.Name},
-	}
-	g, err := s.genreRepo.GetGenre(filter)
+	})
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -83,23 +94,15 @@ func (s *genreService) CreateGenre(req payloads.CreateGenreRequest) (*models.Gen
 }
 
 func (s *genreService) UpdateGenre(id uuid.UUID, req payloads.UpdateGenreRequest) (*models.Genre, *errors.ApiError) {
-	idFilter := filters.GenreFilter{
-		Filter: &filters.SingleFilter{Logic: filters.And},
-		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
-	}
-	g, err := s.genreRepo.GetGenre(idFilter)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-	if g == nil {
-		return nil, errors.NotFoundError("genre not found")
+	g, apiErr := s.GetGenre(id)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
-	nameFilter := filters.GenreFilter{
+	g, err := s.genreRepo.GetGenre(filters.GenreFilter{
 		Filter: &filters.SingleFilter{Logic: filters.And},
 		Name:   &filters.Condition{Operator: filters.OpEqual, Value: req.Name},
-	}
-	g, err = s.genreRepo.GetGenre(nameFilter)
+	})
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
@@ -118,4 +121,24 @@ func (s *genreService) UpdateGenre(id uuid.UUID, req payloads.UpdateGenreRequest
 	}
 
 	return g, nil
+}
+
+func (s *genreService) DeleteGenre(id uuid.UUID) *errors.ApiError {
+	g, apiErr := s.GetGenre(id)
+	if apiErr != nil {
+		return apiErr
+	}
+
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		err := s.movieGenreRepo.DeleteByGenreId(tx, g.ID)
+		if err != nil {
+			return err
+		}
+		
+		return s.genreRepo.DeleteGenre(tx, g)
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
 }

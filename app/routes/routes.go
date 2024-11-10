@@ -85,7 +85,14 @@ func RegisterRoutes() *gin.Engine {
 				"/:id",
 				m.AuthMiddleware.RequireAuthMiddleware(),
 				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyGenres),
-				c.GenreController.UpdateGenre)
+				c.GenreController.UpdateGenre,
+			)
+			genres.DELETE(
+				"/:id",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyGenres),
+				c.GenreController.DeleteGenre,
+			)
 		}
 
 		countries := apiV1.Group("/countries")

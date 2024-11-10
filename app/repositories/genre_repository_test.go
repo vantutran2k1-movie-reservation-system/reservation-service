@@ -221,3 +221,43 @@ func TestGenreRepository_UpdateGenre(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 }
+
+func TestGenreRepository_DeleteGenre(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewGenreRepository(db)
+
+	genre := utils.GenerateGenre()
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "genres" WHERE "genres"."id" = $1`)).
+			WithArgs(genre.ID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.DeleteGenre(tx, genre)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error deleting genre", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "genres" WHERE "genres"."id" = $1`)).
+			WithArgs(genre.ID).
+			WillReturnError(errors.New("error deleting genre"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.DeleteGenre(tx, genre)
+		tx.Rollback()
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "error deleting genre", err.Error())
+	})
+}

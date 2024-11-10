@@ -40,6 +40,20 @@ func (m *MockMovieGenreRepository) EXPECT() *MockMovieGenreRepositoryMockRecorde
 	return m.recorder
 }
 
+// DeleteByGenreId mocks base method.
+func (m *MockMovieGenreRepository) DeleteByGenreId(tx *gorm.DB, genreId uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByGenreId", tx, genreId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByGenreId indicates an expected call of DeleteByGenreId.
+func (mr *MockMovieGenreRepositoryMockRecorder) DeleteByGenreId(tx, genreId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByGenreId", reflect.TypeOf((*MockMovieGenreRepository)(nil).DeleteByGenreId), tx, genreId)
+}
+
 // UpdateGenresOfMovie mocks base method.
 func (m *MockMovieGenreRepository) UpdateGenresOfMovie(tx *gorm.DB, movieID uuid.UUID, genreIDs []uuid.UUID) error {
 	m.ctrl.T.Helper()

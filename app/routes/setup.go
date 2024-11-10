@@ -113,6 +113,7 @@ func setupServices(repositories *Repositories) {
 			config.DB,
 			transactionManager,
 			repositories.GenreRepository,
+			repositories.MovieGenreRepository,
 		),
 		LocationService: services.NewLocationService(
 			config.DB,

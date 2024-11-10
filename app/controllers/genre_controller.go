@@ -82,3 +82,18 @@ func (c *GenreController) UpdateGenre(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(g)})
 }
+
+func (c *GenreController) DeleteGenre(ctx *gin.Context) {
+	id, e := uuid.Parse(ctx.Param("id"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid genre id"})
+		return
+	}
+
+	if err := c.GenreService.DeleteGenre(id); err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, gin.H{})
+}

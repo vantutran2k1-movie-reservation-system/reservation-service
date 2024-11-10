@@ -14,6 +14,7 @@ type GenreRepository interface {
 	GetGenreIDs(filter filters.GenreFilter) ([]uuid.UUID, error)
 	CreateGenre(tx *gorm.DB, genre *models.Genre) error
 	UpdateGenre(tx *gorm.DB, genre *models.Genre) error
+	DeleteGenre(tx *gorm.DB, genre *models.Genre) error
 }
 
 func NewGenreRepository(db *gorm.DB) GenreRepository {
@@ -66,4 +67,8 @@ func (r *genreRepository) CreateGenre(tx *gorm.DB, genre *models.Genre) error {
 
 func (r *genreRepository) UpdateGenre(tx *gorm.DB, genre *models.Genre) error {
 	return tx.Save(genre).Error
+}
+
+func (r *genreRepository) DeleteGenre(tx *gorm.DB, genre *models.Genre) error {
+	return tx.Delete(genre).Error
 }

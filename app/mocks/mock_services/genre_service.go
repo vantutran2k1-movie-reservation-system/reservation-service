@@ -57,6 +57,20 @@ func (mr *MockGenreServiceMockRecorder) CreateGenre(req any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGenre", reflect.TypeOf((*MockGenreService)(nil).CreateGenre), req)
 }
 
+// DeleteGenre mocks base method.
+func (m *MockGenreService) DeleteGenre(id uuid.UUID) *errors.ApiError {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGenre", id)
+	ret0, _ := ret[0].(*errors.ApiError)
+	return ret0
+}
+
+// DeleteGenre indicates an expected call of DeleteGenre.
+func (mr *MockGenreServiceMockRecorder) DeleteGenre(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGenre", reflect.TypeOf((*MockGenreService)(nil).DeleteGenre), id)
+}
+
 // GetGenre mocks base method.
 func (m *MockGenreService) GetGenre(id uuid.UUID) (*models.Genre, *errors.ApiError) {
 	m.ctrl.T.Helper()

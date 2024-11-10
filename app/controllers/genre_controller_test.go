@@ -261,3 +261,44 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "error updating genre")
 	})
 }
+
+func TestGenreController_DeleteGenre(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockGenreService(ctrl)
+	controller := GenreController{
+		GenreService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	genre := utils.GenerateGenre()
+
+	t.Run("success", func(t *testing.T) {
+		router := gin.Default()
+		router.DELETE("/genres/:id", controller.DeleteGenre)
+
+		service.EXPECT().DeleteGenre(genre.ID).Return(nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/genres/%s", genre.ID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+	})
+
+	t.Run("error deleting genre", func(t *testing.T) {
+		router := gin.Default()
+		router.DELETE("/genres/:id", controller.DeleteGenre)
+
+		service.EXPECT().DeleteGenre(genre.ID).Return(errors.InternalServerError("error deleting genre")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/genres/%s", genre.ID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "error deleting genre")
+	})
+}

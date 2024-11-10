@@ -56,6 +56,20 @@ func (mr *MockGenreRepositoryMockRecorder) CreateGenre(tx, genre any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGenre", reflect.TypeOf((*MockGenreRepository)(nil).CreateGenre), tx, genre)
 }
 
+// DeleteGenre mocks base method.
+func (m *MockGenreRepository) DeleteGenre(tx *gorm.DB, genre *models.Genre) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGenre", tx, genre)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGenre indicates an expected call of DeleteGenre.
+func (mr *MockGenreRepositoryMockRecorder) DeleteGenre(tx, genre any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGenre", reflect.TypeOf((*MockGenreRepository)(nil).DeleteGenre), tx, genre)
+}
+
 // GetGenre mocks base method.
 func (m *MockGenreRepository) GetGenre(filter filters.GenreFilter) (*models.Genre, error) {
 	m.ctrl.T.Helper()
