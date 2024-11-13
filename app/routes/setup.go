@@ -108,6 +108,7 @@ func setupServices(repositories *Repositories) {
 			repositories.MovieRepository,
 			repositories.GenreRepository,
 			repositories.MovieGenreRepository,
+			repositories.FeatureFlagRepository,
 		),
 		GenreService: services.NewGenreService(
 			config.DB,

@@ -16,7 +16,7 @@ import (
 )
 
 type MovieService interface {
-	GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, *errors.ApiError)
+	GetMovie(id uuid.UUID, userEmail *string, includeGenres bool) (*models.Movie, *errors.ApiError)
 	GetMovies(limit, offset int, includeGenres bool) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
 	CreateMovie(req payloads.CreateMovieRequest, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
 	UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError)
@@ -29,6 +29,7 @@ type movieService struct {
 	movieRepo          repositories.MovieRepository
 	genreRepo          repositories.GenreRepository
 	movieGenreRepo     repositories.MovieGenreRepository
+	featureFlagRepo    repositories.FeatureFlagRepository
 }
 
 func NewMovieService(
@@ -37,6 +38,7 @@ func NewMovieService(
 	movieRepo repositories.MovieRepository,
 	genreRepo repositories.GenreRepository,
 	movieGenreRepo repositories.MovieGenreRepository,
+	featureFlagRepo repositories.FeatureFlagRepository,
 ) MovieService {
 	return &movieService{
 		db:                 db,
@@ -44,20 +46,27 @@ func NewMovieService(
 		movieRepo:          movieRepo,
 		genreRepo:          genreRepo,
 		movieGenreRepo:     movieGenreRepo,
+		featureFlagRepo:    featureFlagRepo,
 	}
 }
 
-func (s *movieService) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, *errors.ApiError) {
+func (s *movieService) GetMovie(id uuid.UUID, userEmail *string, includeGenres bool) (*models.Movie, *errors.ApiError) {
 	filter := filters.MovieFilter{
 		Filter: &filters.SingleFilter{},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
 	}
+
 	m, err := s.movieRepo.GetMovie(filter, includeGenres)
 	if err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 	if m == nil {
 		return nil, errors.NotFoundError("movie not found")
+	}
+
+	isAdmin := userEmail != nil && s.featureFlagRepo.HasFlagEnabled(*userEmail, constants.CanModifyMovies)
+	if !isAdmin && !m.IsActive {
+		return nil, errors.ForbiddenError("permission denied")
 	}
 
 	return m, nil

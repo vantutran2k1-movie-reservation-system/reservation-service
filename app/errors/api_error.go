@@ -22,6 +22,10 @@ func UnauthorizedError(format string, args ...any) *ApiError {
 	return newError(http.StatusUnauthorized, fmt.Sprintf(format, args...))
 }
 
+func ForbiddenError(format string, args ...any) *ApiError {
+	return newError(http.StatusForbidden, fmt.Sprintf(format, args...))
+}
+
 func NotFoundError(format string, args ...any) *ApiError {
 	return newError(http.StatusNotFound, fmt.Sprintf(format, args...))
 }

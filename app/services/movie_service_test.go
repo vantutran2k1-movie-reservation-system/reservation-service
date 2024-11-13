@@ -22,19 +22,23 @@ func TestMovieService_GetMovie(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mock_repositories.NewMockMovieRepository(ctrl)
-	service := NewMovieService(nil, nil, repo, nil, nil)
+	flagRepo := mock_repositories.NewMockFeatureFlagRepository(ctrl)
+	movieRepo := mock_repositories.NewMockMovieRepository(ctrl)
+	service := NewMovieService(nil, nil, movieRepo, nil, nil, flagRepo)
 
+	email := "test@example.com"
 	movie := utils.GenerateMovie()
+	movie.IsActive = false
 	filter := filters.MovieFilter{
 		Filter: &filters.SingleFilter{},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
 	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(movie, nil).Times(1)
+		movieRepo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(movie, nil).Times(1)
+		flagRepo.EXPECT().HasFlagEnabled(email, constants.CanModifyMovies).Return(true).Times(1)
 
-		result, err := service.GetMovie(movie.ID, false)
+		result, err := service.GetMovie(movie.ID, &email, false)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
@@ -42,9 +46,9 @@ func TestMovieService_GetMovie(t *testing.T) {
 	})
 
 	t.Run("movie not found", func(t *testing.T) {
-		repo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(nil, nil).Times(1)
+		movieRepo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(nil, nil).Times(1)
 
-		result, err := service.GetMovie(movie.ID, false)
+		result, err := service.GetMovie(movie.ID, &email, false)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
@@ -53,14 +57,37 @@ func TestMovieService_GetMovie(t *testing.T) {
 	})
 
 	t.Run("error getting movie", func(t *testing.T) {
-		repo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(nil, errors.New("error getting movie")).Times(1)
+		movieRepo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(nil, errors.New("error getting movie")).Times(1)
 
-		result, err := service.GetMovie(movie.ID, false)
+		result, err := service.GetMovie(movie.ID, &email, false)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
 		assert.Equal(t, "error getting movie", err.Error())
+	})
+
+	t.Run("unauthenticated user", func(t *testing.T) {
+		movieRepo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(movie, nil).Times(1)
+
+		result, err := service.GetMovie(movie.ID, nil, false)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+		assert.Equal(t, "permission denied", err.Error())
+	})
+
+	t.Run("unauthorized user", func(t *testing.T) {
+		movieRepo.EXPECT().GetMovie(gomock.Eq(filter), false).Return(movie, nil).Times(1)
+		flagRepo.EXPECT().HasFlagEnabled(email, constants.CanModifyMovies).Return(false).Times(1)
+
+		result, err := service.GetMovie(movie.ID, &email, false)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+		assert.Equal(t, "permission denied", err.Error())
 	})
 }
 
@@ -69,7 +96,7 @@ func TestMovieService_GetMovies(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock_repositories.NewMockMovieRepository(ctrl)
-	service := NewMovieService(nil, nil, repo, nil, nil)
+	service := NewMovieService(nil, nil, repo, nil, nil, nil)
 
 	movies := utils.GenerateMovies(20)
 	limit := 10
@@ -138,7 +165,7 @@ func TestMovieService_CreateMovie(t *testing.T) {
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
 	repo := mock_repositories.NewMockMovieRepository(ctrl)
-	service := NewMovieService(nil, transaction, repo, nil, nil)
+	service := NewMovieService(nil, transaction, repo, nil, nil, nil)
 
 	movie := utils.GenerateMovie()
 	req := utils.GenerateCreateMovieRequest()
@@ -188,7 +215,7 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
 	repo := mock_repositories.NewMockMovieRepository(ctrl)
-	service := NewMovieService(nil, transaction, repo, nil, nil)
+	service := NewMovieService(nil, transaction, repo, nil, nil, nil)
 
 	movie := utils.GenerateMovie()
 	req := utils.GenerateUpdateMovieRequest()
@@ -255,7 +282,7 @@ func TestMovieService_AssignGenres(t *testing.T) {
 	movieRepo := mock_repositories.NewMockMovieRepository(ctrl)
 	genreRepo := mock_repositories.NewMockGenreRepository(ctrl)
 	movieGenreRepo := mock_repositories.NewMockMovieGenreRepository(ctrl)
-	service := NewMovieService(nil, transaction, movieRepo, genreRepo, movieGenreRepo)
+	service := NewMovieService(nil, transaction, movieRepo, genreRepo, movieGenreRepo, nil)
 
 	movie := utils.GenerateMovie()
 	allGenreIds := make([]uuid.UUID, 3)

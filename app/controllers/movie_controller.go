@@ -6,6 +6,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
@@ -28,7 +29,12 @@ func (c *MovieController) GetMovie(ctx *gin.Context) {
 		return
 	}
 
-	m, err := c.MovieService.GetMovie(id, c.doIncludeGenres(ctx))
+	var userEmail *string
+	if userSession, exist := ctx.Get(constants.UserSession); exist {
+		userEmail = &userSession.(*models.UserSession).Email
+	}
+
+	m, err := c.MovieService.GetMovie(id, userEmail, c.doIncludeGenres(ctx))
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
