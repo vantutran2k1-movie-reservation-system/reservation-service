@@ -1,6 +1,14 @@
 package payloads
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
+
+type MovieGenre struct {
+	MovieId   uuid.UUID `json:"movie_id"`
+	GenreId   uuid.UUID `json:"genre_id"`
+	GenreName string    `json:"genre_name"`
+}
 
 type CreateMovieRequest struct {
 	Title           string   `json:"title" binding:"required,min=1,max=255"`

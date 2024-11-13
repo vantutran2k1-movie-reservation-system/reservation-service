@@ -132,6 +132,88 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 	})
 }
 
+func TestMovieRepository_GetMoviesWithGenres(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewMovieRepository(db)
+
+	movies := utils.GenerateMovies(2)
+	genres := utils.GenerateGenres(2)
+	limit := 2
+	offset := 1
+	filter := filters.MovieFilter{
+		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"movie_id", "genre_id"}).
+			AddRow(movies[0].ID, genres[0].ID).
+			AddRow(movies[0].ID, genres[1].ID).
+			AddRow(movies[1].ID, genres[0].ID)
+
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
+			WillReturnRows(utils.GenerateSqlMockRows(movies))
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT genres.id AS genre_id, genres.name AS genre_name, movie_genres.movie_id FROM "genres" JOIN movie_genres ON movie_genres.genre_id = genres.id WHERE movie_genres.movie_id IN ($1,$2)`)).
+			WithArgs(movies[0].ID, movies[1].ID).
+			WillReturnRows(rows)
+
+		result, err := repo.GetMoviesWithGenres(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, movies[0].ID, result[0].ID)
+		assert.Equal(t, movies[1].ID, result[1].ID)
+		assert.Len(t, result[0].Genres, 2)
+		assert.Len(t, result[1].Genres, 1)
+		assert.Equal(t, genres[0].ID, result[0].Genres[0].ID)
+		assert.Equal(t, genres[1].ID, result[0].Genres[1].ID)
+		assert.Equal(t, genres[0].ID, result[1].Genres[0].ID)
+	})
+
+	t.Run("error getting movies", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
+			WillReturnError(errors.New("error getting movies"))
+
+		result, err := repo.GetMoviesWithGenres(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting movies", err.Error())
+	})
+
+	t.Run("no movies", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
+			WillReturnRows(sqlmock.NewRows(nil))
+
+		result, err := repo.GetMoviesWithGenres(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Len(t, result, 0)
+	})
+
+	t.Run("error getting genres", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "movies" LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
+			WillReturnRows(utils.GenerateSqlMockRows(movies))
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT genres.id AS genre_id, genres.name AS genre_name, movie_genres.movie_id FROM "genres" JOIN movie_genres ON movie_genres.genre_id = genres.id WHERE movie_genres.movie_id IN ($1,$2)`)).
+			WithArgs(movies[0].ID, movies[1].ID).
+			WillReturnError(errors.New("error getting genres"))
+
+		result, err := repo.GetMoviesWithGenres(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting genres", err.Error())
+	})
+}
+
 func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {

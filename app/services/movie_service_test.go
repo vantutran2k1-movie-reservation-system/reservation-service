@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"net/http"
 	"testing"
@@ -72,6 +74,7 @@ func TestMovieService_GetMovies(t *testing.T) {
 	movies := utils.GenerateMovies(20)
 	limit := 10
 	offset := 0
+	includeGenres := true
 	getFilter := filters.MovieFilter{
 		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
 	}
@@ -80,10 +83,10 @@ func TestMovieService_GetMovies(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetMovies(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
+		repo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
 		repo.EXPECT().GetNumbersOfMovie(gomock.Eq(countFilter)).Return(len(movies), nil).Times(1)
 
-		result, meta, err := service.GetMovies(limit, offset)
+		result, meta, err := service.GetMovies(limit, offset, includeGenres)
 
 		assert.NotNil(t, result)
 		assert.NotNil(t, meta)
@@ -93,7 +96,7 @@ func TestMovieService_GetMovies(t *testing.T) {
 			assert.Equal(t, movies[i], m)
 		}
 
-		nextUrl := "/movies?limit=10&offset=10"
+		nextUrl := fmt.Sprintf("/movies?%s=10&%s=10&includeGenres=%v", constants.Limit, constants.Offset, includeGenres)
 		expectedMeta := models.ResponseMeta{
 			Limit:   limit,
 			Offset:  offset,
@@ -104,9 +107,9 @@ func TestMovieService_GetMovies(t *testing.T) {
 	})
 
 	t.Run("error getting movies", func(t *testing.T) {
-		repo.EXPECT().GetMovies(gomock.Eq(getFilter)).Return(nil, errors.New("error getting movies")).Times(1)
+		repo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(nil, errors.New("error getting movies")).Times(1)
 
-		result, meta, err := service.GetMovies(limit, offset)
+		result, meta, err := service.GetMovies(limit, offset, includeGenres)
 
 		assert.Nil(t, result)
 		assert.Nil(t, meta)
@@ -116,10 +119,10 @@ func TestMovieService_GetMovies(t *testing.T) {
 	})
 
 	t.Run("error counting movies", func(t *testing.T) {
-		repo.EXPECT().GetMovies(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
+		repo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
 		repo.EXPECT().GetNumbersOfMovie(gomock.Eq(countFilter)).Return(0, errors.New("error counting movies")).Times(1)
 
-		result, meta, err := service.GetMovies(limit, offset)
+		result, meta, err := service.GetMovies(limit, offset, includeGenres)
 
 		assert.Nil(t, result)
 		assert.Nil(t, meta)

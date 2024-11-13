@@ -1,15 +1,18 @@
 package repositories
 
 import (
+	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"gorm.io/gorm"
 )
 
 type MovieRepository interface {
 	GetMovie(filter filters.MovieFilter, includeGenres bool) (*models.Movie, error)
 	GetMovies(filter filters.MovieFilter) ([]*models.Movie, error)
+	GetMoviesWithGenres(filter filters.MovieFilter) ([]*models.Movie, error)
 	GetNumbersOfMovie(filter filters.MovieFilter) (int, error)
 	CreateMovie(tx *gorm.DB, movie *models.Movie) error
 	UpdateMovie(tx *gorm.DB, movie *models.Movie) error
@@ -45,6 +48,52 @@ func (r *movieRepository) GetMovies(filter filters.MovieFilter) ([]*models.Movie
 	var movies []*models.Movie
 	if err := filter.GetFilterQuery(r.db).Find(&movies).Error; err != nil {
 		return nil, err
+	}
+
+	return movies, nil
+}
+
+func (r *movieRepository) GetMoviesWithGenres(filter filters.MovieFilter) ([]*models.Movie, error) {
+	var movies []*models.Movie
+	if err := filter.GetFilterQuery(r.db).Find(&movies).Error; err != nil {
+		return nil, err
+	}
+
+	if len(movies) == 0 {
+		return movies, nil
+	}
+
+	movieIds := make([]uuid.UUID, 0, len(movies))
+	for _, movie := range movies {
+		movieIds = append(movieIds, movie.ID)
+	}
+
+	var movieGenres []*payloads.MovieGenre
+	if err := r.db.Table("genres").
+		Select("genres.id AS genre_id, genres.name AS genre_name, movie_genres.movie_id").
+		Joins("JOIN movie_genres ON movie_genres.genre_id = genres.id").
+		Where("movie_genres.movie_id IN ?", movieIds).
+		Scan(&movieGenres).Error; err != nil {
+		return nil, err
+	}
+
+	movieGenresMap := make(map[uuid.UUID][]models.Genre)
+	for _, movieGenre := range movieGenres {
+		genres, exists := movieGenresMap[movieGenre.MovieId]
+		if !exists {
+			movieGenresMap[movieGenre.MovieId] = []models.Genre{}
+		}
+
+		movieGenresMap[movieGenre.MovieId] = append(genres, models.Genre{ID: movieGenre.GenreId, Name: movieGenre.GenreName})
+	}
+
+	for _, movie := range movies {
+		genres, exists := movieGenresMap[movie.ID]
+		if !exists {
+			movie.Genres = make([]models.Genre, 0)
+		} else {
+			movie.Genres = genres
+		}
 	}
 
 	return movies, nil

@@ -28,8 +28,7 @@ func (c *MovieController) GetMovie(ctx *gin.Context) {
 		return
 	}
 
-	includeGenre := ctx.Query(constants.IncludeGenres) == "true"
-	m, err := c.MovieService.GetMovie(id, includeGenre)
+	m, err := c.MovieService.GetMovie(id, c.doIncludeGenres(ctx))
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -39,19 +38,19 @@ func (c *MovieController) GetMovie(ctx *gin.Context) {
 }
 
 func (c *MovieController) GetMovies(ctx *gin.Context) {
-	limitParam := ctx.DefaultQuery("limit", "10")
+	limitParam := ctx.DefaultQuery(constants.Limit, "10")
 	limit, e := strconv.Atoi(limitParam)
 	if e != nil || limit <= 0 {
 		limit = 10
 	}
 
-	offsetParam := ctx.DefaultQuery("offset", "0")
+	offsetParam := ctx.DefaultQuery(constants.Offset, "0")
 	offset, e := strconv.Atoi(offsetParam)
 	if e != nil || offset < 0 {
 		offset = 0
 	}
 
-	movies, meta, err := c.MovieService.GetMovies(limit, offset)
+	movies, meta, err := c.MovieService.GetMovies(limit, offset, c.doIncludeGenres(ctx))
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -129,4 +128,8 @@ func (c *MovieController) UpdateMovieGenres(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": "genres of movie are updated successfully"})
+}
+
+func (c *MovieController) doIncludeGenres(ctx *gin.Context) bool {
+	return ctx.Query(constants.IncludeGenres) == "true"
 }

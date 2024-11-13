@@ -108,10 +108,10 @@ func TestMovieController_GetMovies(t *testing.T) {
 		router := gin.Default()
 		router.GET("/movies", controller.GetMovies)
 
-		service.EXPECT().GetMovies(10, 0).Return(movies, meta, nil).Times(1)
+		service.EXPECT().GetMovies(10, 0, false).Return(movies, meta, nil).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/movies?limit=10&offet=0", nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies?%s=10&%s=0", constants.Limit, constants.Offset), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -130,10 +130,10 @@ func TestMovieController_GetMovies(t *testing.T) {
 		router := gin.Default()
 		router.GET("/movies", controller.GetMovies)
 
-		service.EXPECT().GetMovies(10, 0).Return(movies, meta, nil).Times(1)
+		service.EXPECT().GetMovies(10, 0, false).Return(movies, meta, nil).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/movies?limit=a&offet=b", nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies?%s=a&%s=b", constants.Limit, constants.Offset), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -152,10 +152,10 @@ func TestMovieController_GetMovies(t *testing.T) {
 		router := gin.Default()
 		router.GET("/movies", controller.GetMovies)
 
-		service.EXPECT().GetMovies(10, 0).Return(nil, nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().GetMovies(10, 0, false).Return(nil, nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/movies?limit=10&offet=0", nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies?%s=10&%s=0", constants.Limit, constants.Offset), nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)

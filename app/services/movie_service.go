@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"time"
@@ -16,7 +17,7 @@ import (
 
 type MovieService interface {
 	GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie, *errors.ApiError)
-	GetMovies(limit, offset int) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
+	GetMovies(limit, offset int, includeGenres bool) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
 	CreateMovie(req payloads.CreateMovieRequest, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
 	UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError)
 	AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError
@@ -62,10 +63,18 @@ func (s *movieService) GetMovie(id uuid.UUID, includeGenres bool) (*models.Movie
 	return m, nil
 }
 
-func (s *movieService) GetMovies(limit, offset int) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError) {
-	movies, err := s.movieRepo.GetMovies(filters.MovieFilter{
+func (s *movieService) GetMovies(limit, offset int, includeGenres bool) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError) {
+	filter := filters.MovieFilter{
 		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
-	})
+	}
+
+	var movies []*models.Movie
+	var err error
+	if includeGenres {
+		movies, err = s.movieRepo.GetMoviesWithGenres(filter)
+	} else {
+		movies, err = s.movieRepo.GetMovies(filter)
+	}
 	if err != nil {
 		return nil, nil, errors.InternalServerError(err.Error())
 	}
@@ -85,12 +94,12 @@ func (s *movieService) GetMovies(limit, offset int) ([]*models.Movie, *models.Re
 		if prevOffset < 0 {
 			prevOffset = 0
 		}
-		prevUrl = buildPaginationURL(limit, prevOffset)
+		prevUrl = buildPaginationURL(limit, prevOffset, includeGenres)
 	}
 
 	if offset+limit < count {
 		nextUrlOffset := offset + limit
-		nextUrl = buildPaginationURL(limit, nextUrlOffset)
+		nextUrl = buildPaginationURL(limit, nextUrlOffset, includeGenres)
 	}
 
 	meta := &models.ResponseMeta{
@@ -205,7 +214,7 @@ func allIdsInSlice(first, second []uuid.UUID) bool {
 	return true
 }
 
-func buildPaginationURL(limit, offset int) *string {
-	url := fmt.Sprintf("/movies?limit=%d&offset=%d", limit, offset)
+func buildPaginationURL(limit, offset int, includeGenres bool) *string {
+	url := fmt.Sprintf("/movies?%s=%d&%s=%d&%s=%v", constants.Limit, limit, constants.Offset, offset, constants.IncludeGenres, includeGenres)
 	return &url
 }

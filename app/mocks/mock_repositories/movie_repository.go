@@ -85,6 +85,21 @@ func (mr *MockMovieRepositoryMockRecorder) GetMovies(filter any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovies", reflect.TypeOf((*MockMovieRepository)(nil).GetMovies), filter)
 }
 
+// GetMoviesWithGenres mocks base method.
+func (m *MockMovieRepository) GetMoviesWithGenres(filter filters.MovieFilter) ([]*models.Movie, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMoviesWithGenres", filter)
+	ret0, _ := ret[0].([]*models.Movie)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMoviesWithGenres indicates an expected call of GetMoviesWithGenres.
+func (mr *MockMovieRepositoryMockRecorder) GetMoviesWithGenres(filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMoviesWithGenres", reflect.TypeOf((*MockMovieRepository)(nil).GetMoviesWithGenres), filter)
+}
+
 // GetNumbersOfMovie mocks base method.
 func (m *MockMovieRepository) GetNumbersOfMovie(filter filters.MovieFilter) (int, error) {
 	m.ctrl.T.Helper()
