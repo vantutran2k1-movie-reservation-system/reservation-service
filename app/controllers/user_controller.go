@@ -3,11 +3,11 @@ package controllers
 import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
@@ -27,7 +27,7 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
 		return
 	}
-	
+
 	includeProfile := ctx.Query(constants.IncludeUserProfile) == "true"
 	u, err := c.UserService.GetUser(userId, includeProfile)
 	if err != nil {
@@ -39,14 +39,18 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 }
 
 func (c *UserController) GetCurrentUser(ctx *gin.Context) {
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
+		return
+	}
 
 	includeProfile := ctx.Query(constants.IncludeUserProfile) == "true"
-	u, err := c.UserService.GetUser(s.UserID, includeProfile)
+	u, err := c.UserService.GetUser(reqContext.UserSession.UserID, includeProfile)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -104,13 +108,17 @@ func (c *UserController) UpdateUserPassword(ctx *gin.Context) {
 		return
 	}
 
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
+		return
+	}
 
-	if err := c.UserService.UpdateUserPassword(s.UserID, req); err != nil {
+	if err := c.UserService.UpdateUserPassword(reqContext.UserSession.UserID, req); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}

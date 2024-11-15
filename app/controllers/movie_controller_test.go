@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -36,7 +37,7 @@ func TestMovieController_GetMovie(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.GET("/movies/:id", controller.GetMovie)
@@ -61,7 +62,7 @@ func TestMovieController_GetMovie(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.GET("/movies/:id", controller.GetMovie)
@@ -172,7 +173,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.POST("/movies", controller.CreateMovie)
@@ -203,6 +204,10 @@ func TestMovieController_CreateMovie(t *testing.T) {
 
 	t.Run("validation error", func(t *testing.T) {
 		router := gin.Default()
+		router.Use(func(c *gin.Context) {
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
+			c.Next()
+		})
 		router.POST("/movies", controller.CreateMovie)
 
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
@@ -232,13 +237,13 @@ func TestMovieController_CreateMovie(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		assert.Contains(t, w.Body.String(), "error")
-		assert.Contains(t, w.Body.String(), "Can not get user id from request")
+		assert.Contains(t, w.Body.String(), "can not get request context")
 	})
 
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.POST("/movies", controller.CreateMovie)
@@ -279,7 +284,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.PUT("/movies/:id", controller.UpdateMovie)
@@ -326,7 +331,7 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.PUT("/movies/:id", controller.UpdateMovie)

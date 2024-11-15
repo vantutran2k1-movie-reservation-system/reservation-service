@@ -1,8 +1,6 @@
 package constants
 
 const (
-	UserSession = "user_session"
-
 	// Gin mode
 	GinReleaseMode = "release"
 	GinDebugMode   = "debug"

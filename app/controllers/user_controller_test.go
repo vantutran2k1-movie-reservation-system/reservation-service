@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -77,7 +78,7 @@ func TestUserController_GetCurrentUser(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.GET("/users/me", controller.GetCurrentUser)
@@ -109,7 +110,7 @@ func TestUserController_GetCurrentUser(t *testing.T) {
 	t.Run("error retrieving user", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.GET("/users/me", controller.GetCurrentUser)
@@ -272,7 +273,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 	t.Run("successful password update", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.PUT("/users/password", controller.UpdateUserPassword)
@@ -293,7 +294,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 	t.Run("validation error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.PUT("/users/password", controller.UpdateUserPassword)
@@ -327,7 +328,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
-			c.Set(constants.UserSession, session)
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
 		router.PUT("/users/password", controller.UpdateUserPassword)

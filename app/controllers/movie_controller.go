@@ -4,9 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
@@ -30,8 +29,9 @@ func (c *MovieController) GetMovie(ctx *gin.Context) {
 	}
 
 	var userEmail *string
-	if userSession, exist := ctx.Get(constants.UserSession); exist {
-		userEmail = &userSession.(*models.UserSession).Email
+	reqContext, err := context.GetRequestContext(ctx)
+	if err == nil && reqContext.UserSession != nil {
+		userEmail = &reqContext.UserSession.Email
 	}
 
 	m, err := c.MovieService.GetMovie(id, userEmail, c.doIncludeGenres(ctx))
@@ -72,13 +72,17 @@ func (c *MovieController) CreateMovie(ctx *gin.Context) {
 		return
 	}
 
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
+		return
+	}
 
-	m, err := c.MovieService.CreateMovie(req, s.UserID)
+	m, err := c.MovieService.CreateMovie(req, reqContext.UserSession.UserID)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -94,9 +98,13 @@ func (c *MovieController) UpdateMovie(ctx *gin.Context) {
 		return
 	}
 
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
 		return
 	}
 
@@ -106,7 +114,7 @@ func (c *MovieController) UpdateMovie(ctx *gin.Context) {
 		return
 	}
 
-	m, err := c.MovieService.UpdateMovie(id, s.UserID, req)
+	m, err := c.MovieService.UpdateMovie(id, reqContext.UserSession.UserID, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return

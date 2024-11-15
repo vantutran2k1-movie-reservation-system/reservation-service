@@ -61,6 +61,7 @@ type Controllers struct {
 type Middlewares struct {
 	AuthMiddleware        middlewares.AuthMiddleware
 	FilesUploadMiddleware middlewares.FilesUploadMiddleware
+	ContextMiddleware     middlewares.ContextMiddleware
 }
 
 func setupRepositories() {
@@ -148,6 +149,7 @@ func setupMiddlewares(repositories *Repositories) {
 	m = &Middlewares{
 		AuthMiddleware:        *middlewares.NewAuthMiddleware(repositories.UserSessionRepository, repositories.FeatureFlagRepository),
 		FilesUploadMiddleware: *middlewares.NewFilesUploadMiddleware(),
+		ContextMiddleware:     *middlewares.NewContextMiddleware(),
 	}
 }
 

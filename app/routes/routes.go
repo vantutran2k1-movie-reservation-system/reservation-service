@@ -10,6 +10,7 @@ func RegisterRoutes() *gin.Engine {
 	setupRoutes()
 
 	apiV1 := router.Group("/api/v1")
+	apiV1.Use(m.ContextMiddleware.AddRequestContext())
 	{
 		users := apiV1.Group("/users")
 		{
@@ -49,7 +50,7 @@ func RegisterRoutes() *gin.Engine {
 
 		movies := apiV1.Group("/movies")
 		{
-			movies.GET("/:id", c.MovieController.GetMovie)
+			movies.GET("/:id", m.AuthMiddleware.OptionalAuthMiddleware(), c.MovieController.GetMovie)
 			movies.GET("/", c.MovieController.GetMovies)
 			movies.POST(
 				"/",

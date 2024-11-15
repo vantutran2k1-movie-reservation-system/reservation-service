@@ -1,12 +1,10 @@
 package middlewares
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 )
@@ -38,20 +36,59 @@ func (m *AuthMiddleware) RequireAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(constants.UserSession, s)
+		reqContext, apiErr := context.GetRequestContext(ctx)
+		if apiErr != nil {
+			ctx.AbortWithStatusJSON(apiErr.StatusCode, gin.H{"error": apiErr.Error()})
+			return
+		}
+		reqContext.UserSession = s
+
+		context.SetRequestContext(ctx, reqContext)
+		ctx.Next()
+	}
+}
+
+func (m *AuthMiddleware) OptionalAuthMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		tokenValue := utils.GetAuthorizationHeader(ctx.Request)
+		if tokenValue == "" {
+			ctx.Next()
+			return
+		}
+
+		s, err := m.userSessionRepo.GetUserSession(m.userSessionRepo.GetUserSessionID(tokenValue))
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if s != nil {
+			reqContext, apiErr := context.GetRequestContext(ctx)
+			if apiErr != nil {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": apiErr.Error()})
+				return
+			}
+			reqContext.UserSession = s
+
+			context.SetRequestContext(ctx, reqContext)
+		}
+
 		ctx.Next()
 	}
 }
 
 func (m *AuthMiddleware) RequireFeatureFlagMiddleware(flagName string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		session, err := GetUserSession(ctx)
+		reqContext, err := context.GetRequestContext(ctx)
 		if err != nil {
-			ctx.AbortWithStatusJSON(err.StatusCode, gin.H{"error": "can not get feature flags of user"})
+			ctx.AbortWithStatusJSON(err.StatusCode, gin.H{"error": err.Error()})
+			return
+		}
+		if reqContext.UserSession == nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "can not get feature flags of user"})
 			return
 		}
 
-		hasFlagEnabled := m.featureFlagRepo.HasFlagEnabled(session.Email, flagName)
+		hasFlagEnabled := m.featureFlagRepo.HasFlagEnabled(reqContext.UserSession.Email, flagName)
 		if !hasFlagEnabled {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "permission error"})
 			return
@@ -59,13 +96,4 @@ func (m *AuthMiddleware) RequireFeatureFlagMiddleware(flagName string) gin.Handl
 
 		ctx.Next()
 	}
-}
-
-func GetUserSession(ctx *gin.Context) (*models.UserSession, *errors.ApiError) {
-	userSession, exist := ctx.Get(constants.UserSession)
-	if !exist {
-		return nil, errors.InternalServerError("Can not get user id from request")
-	}
-
-	return userSession.(*models.UserSession), nil
 }

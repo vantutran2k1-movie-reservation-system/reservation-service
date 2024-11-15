@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,13 +22,17 @@ func NewUserProfileController(userProfileService *services.UserProfileService) *
 }
 
 func (c *UserProfileController) GetProfileByUserID(ctx *gin.Context) {
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
+		return
+	}
 
-	p, err := c.UserProfileService.GetProfileByUserID(s.UserID)
+	p, err := c.UserProfileService.GetProfileByUserID(reqContext.UserSession.UserID)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -43,13 +48,17 @@ func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
+		return
+	}
 
-	p, err := c.UserProfileService.CreateUserProfile(s.UserID, req)
+	p, err := c.UserProfileService.CreateUserProfile(reqContext.UserSession.UserID, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -65,13 +74,17 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
+		return
+	}
 
-	p, err := c.UserProfileService.UpdateUserProfile(s.UserID, req)
+	p, err := c.UserProfileService.UpdateUserProfile(reqContext.UserSession.UserID, req)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -81,9 +94,13 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 }
 
 func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
 		return
 	}
 
@@ -93,7 +110,7 @@ func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
 		return
 	}
 
-	p, err := c.UserProfileService.UpdateProfilePicture(s.UserID, files[0])
+	p, err := c.UserProfileService.UpdateProfilePicture(reqContext.UserSession.UserID, files[0])
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -103,13 +120,17 @@ func (c *UserProfileController) UpdateProfilePicture(ctx *gin.Context) {
 }
 
 func (c *UserProfileController) DeleteProfilePicture(ctx *gin.Context) {
-	s, err := middlewares.GetUserSession(ctx)
+	reqContext, err := context.GetRequestContext(ctx)
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
+		return
+	}
 
-	if err := c.UserProfileService.DeleteProfilePicture(s.UserID); err != nil {
+	if err := c.UserProfileService.DeleteProfilePicture(reqContext.UserSession.UserID); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
