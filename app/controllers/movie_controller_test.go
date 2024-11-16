@@ -90,14 +90,19 @@ func TestMovieController_GetMovies(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
+	session := utils.GenerateUserSession()
 	movies := utils.GenerateMovies(20)
 	meta := utils.GenerateResponseMeta()
 
 	t.Run("success", func(t *testing.T) {
 		router := gin.Default()
+		router.Use(func(c *gin.Context) {
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
+			c.Next()
+		})
 		router.GET("/movies", controller.GetMovies)
 
-		service.EXPECT().GetMovies(10, 0, false).Return(movies, meta, nil).Times(1)
+		service.EXPECT().GetMovies(10, 0, &session.Email, false).Return(movies, meta, nil).Times(1)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies?%s=10&%s=0", constants.Limit, constants.Offset), nil)
@@ -117,9 +122,13 @@ func TestMovieController_GetMovies(t *testing.T) {
 
 	t.Run("default limit and offset when receiving invalid values", func(t *testing.T) {
 		router := gin.Default()
+		router.Use(func(c *gin.Context) {
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
+			c.Next()
+		})
 		router.GET("/movies", controller.GetMovies)
 
-		service.EXPECT().GetMovies(10, 0, false).Return(movies, meta, nil).Times(1)
+		service.EXPECT().GetMovies(10, 0, &session.Email, false).Return(movies, meta, nil).Times(1)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies?%s=a&%s=b", constants.Limit, constants.Offset), nil)
@@ -139,9 +148,13 @@ func TestMovieController_GetMovies(t *testing.T) {
 
 	t.Run("service error", func(t *testing.T) {
 		router := gin.Default()
+		router.Use(func(c *gin.Context) {
+			context.SetRequestContext(c, context.RequestContext{UserSession: session})
+			c.Next()
+		})
 		router.GET("/movies", controller.GetMovies)
 
-		service.EXPECT().GetMovies(10, 0, false).Return(nil, nil, errors.InternalServerError("service error")).Times(1)
+		service.EXPECT().GetMovies(10, 0, &session.Email, false).Return(nil, nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/movies?%s=10&%s=0", constants.Limit, constants.Offset), nil)

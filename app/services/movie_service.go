@@ -17,7 +17,7 @@ import (
 
 type MovieService interface {
 	GetMovie(id uuid.UUID, userEmail *string, includeGenres bool) (*models.Movie, *errors.ApiError)
-	GetMovies(limit, offset int, includeGenres bool) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
+	GetMovies(limit, offset int, userEmail *string, includeGenres bool) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError)
 	CreateMovie(req payloads.CreateMovieRequest, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
 	UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError)
 	AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError
@@ -64,34 +64,37 @@ func (s *movieService) GetMovie(id uuid.UUID, userEmail *string, includeGenres b
 		return nil, errors.NotFoundError("movie not found")
 	}
 
-	isAdmin := userEmail != nil && s.featureFlagRepo.HasFlagEnabled(*userEmail, constants.CanModifyMovies)
-	if !isAdmin && !m.IsActive {
+	if !s.isAdminUser(userEmail) && !m.IsActive {
 		return nil, errors.ForbiddenError("permission denied")
 	}
 
 	return m, nil
 }
 
-func (s *movieService) GetMovies(limit, offset int, includeGenres bool) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError) {
-	filter := filters.MovieFilter{
+func (s *movieService) GetMovies(limit, offset int, userEmail *string, includeGenres bool) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError) {
+	getFilter := filters.MovieFilter{
 		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+	}
+	countFilter := filters.MovieFilter{
+		Filter: &filters.SingleFilter{},
+	}
+	if !s.isAdminUser(userEmail) {
+		getFilter.IsActive = &filters.Condition{Operator: filters.OpEqual, Value: true}
+		countFilter.IsActive = &filters.Condition{Operator: filters.OpEqual, Value: true}
 	}
 
 	var movies []*models.Movie
 	var err error
 	if includeGenres {
-		movies, err = s.movieRepo.GetMoviesWithGenres(filter)
+		movies, err = s.movieRepo.GetMoviesWithGenres(getFilter)
 	} else {
-		movies, err = s.movieRepo.GetMovies(filter)
+		movies, err = s.movieRepo.GetMovies(getFilter)
 	}
 	if err != nil {
 		return nil, nil, errors.InternalServerError(err.Error())
 	}
 
-	count, err := s.movieRepo.GetNumbersOfMovie(
-		filters.MovieFilter{
-			Filter: &filters.SingleFilter{},
-		})
+	count, err := s.movieRepo.GetNumbersOfMovie(countFilter)
 	if err != nil {
 		return nil, nil, errors.InternalServerError(err.Error())
 	}
@@ -206,6 +209,11 @@ func (s *movieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.
 	}
 
 	return nil
+}
+
+func (s *movieService) isAdminUser(userEmail *string) bool {
+	isAdmin := userEmail != nil && s.featureFlagRepo.HasFlagEnabled(*userEmail, constants.CanModifyMovies)
+	return isAdmin
 }
 
 func allIdsInSlice(first, second []uuid.UUID) bool {

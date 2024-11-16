@@ -51,7 +51,7 @@ func RegisterRoutes() *gin.Engine {
 		movies := apiV1.Group("/movies")
 		{
 			movies.GET("/:id", m.AuthMiddleware.OptionalAuthMiddleware(), c.MovieController.GetMovie)
-			movies.GET("/", c.MovieController.GetMovies)
+			movies.GET("/", m.AuthMiddleware.OptionalAuthMiddleware(), c.MovieController.GetMovies)
 			movies.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),

@@ -28,13 +28,7 @@ func (c *MovieController) GetMovie(ctx *gin.Context) {
 		return
 	}
 
-	var userEmail *string
-	reqContext, err := context.GetRequestContext(ctx)
-	if err == nil && reqContext.UserSession != nil {
-		userEmail = &reqContext.UserSession.Email
-	}
-
-	m, err := c.MovieService.GetMovie(id, userEmail, c.doIncludeGenres(ctx))
+	m, err := c.MovieService.GetMovie(id, c.getUserEmail(ctx), c.doIncludeGenres(ctx))
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -56,7 +50,7 @@ func (c *MovieController) GetMovies(ctx *gin.Context) {
 		offset = 0
 	}
 
-	movies, meta, err := c.MovieService.GetMovies(limit, offset, c.doIncludeGenres(ctx))
+	movies, meta, err := c.MovieService.GetMovies(limit, offset, c.getUserEmail(ctx), c.doIncludeGenres(ctx))
 	if err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
@@ -146,4 +140,14 @@ func (c *MovieController) UpdateMovieGenres(ctx *gin.Context) {
 
 func (c *MovieController) doIncludeGenres(ctx *gin.Context) bool {
 	return ctx.Query(constants.IncludeGenres) == "true"
+}
+
+func (c *MovieController) getUserEmail(ctx *gin.Context) *string {
+	var userEmail *string
+	reqContext, err := context.GetRequestContext(ctx)
+	if err == nil && reqContext.UserSession != nil {
+		userEmail = &reqContext.UserSession.Email
+	}
+
+	return userEmail
 }

@@ -95,9 +95,11 @@ func TestMovieService_GetMovies(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repo := mock_repositories.NewMockMovieRepository(ctrl)
-	service := NewMovieService(nil, nil, repo, nil, nil, nil)
+	movieRepo := mock_repositories.NewMockMovieRepository(ctrl)
+	flagRepo := mock_repositories.NewMockFeatureFlagRepository(ctrl)
+	service := NewMovieService(nil, nil, movieRepo, nil, nil, flagRepo)
 
+	userEmail := "test@example.com"
 	movies := utils.GenerateMovies(20)
 	limit := 10
 	offset := 0
@@ -109,15 +111,49 @@ func TestMovieService_GetMovies(t *testing.T) {
 		Filter: &filters.SingleFilter{},
 	}
 
-	t.Run("success", func(t *testing.T) {
-		repo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
-		repo.EXPECT().GetNumbersOfMovie(gomock.Eq(countFilter)).Return(len(movies), nil).Times(1)
+	t.Run("success for normal user", func(t *testing.T) {
+		flagRepo.EXPECT().HasFlagEnabled(userEmail, constants.CanModifyMovies).Return(false).Times(1)
 
-		result, meta, err := service.GetMovies(limit, offset, includeGenres)
+		normalGetFilter := getFilter
+		normalGetFilter.IsActive = &filters.Condition{Operator: filters.OpEqual, Value: true}
+		movieRepo.EXPECT().GetMoviesWithGenres(normalGetFilter).Return(movies, nil).Times(1)
+
+		normalCountFilter := countFilter
+		normalCountFilter.IsActive = &filters.Condition{Operator: filters.OpEqual, Value: true}
+		movieRepo.EXPECT().GetNumbersOfMovie(normalCountFilter).Return(len(movies), nil).Times(1)
+
+		result, meta, err := service.GetMovies(limit, offset, &userEmail, includeGenres)
 
 		assert.NotNil(t, result)
 		assert.NotNil(t, meta)
 		assert.Nil(t, err)
+		assert.Equal(t, len(movies), len(result))
+
+		for i, m := range result {
+			assert.Equal(t, movies[i], m)
+		}
+
+		nextUrl := fmt.Sprintf("/movies?%s=10&%s=10&includeGenres=%v", constants.Limit, constants.Offset, includeGenres)
+		expectedMeta := models.ResponseMeta{
+			Limit:   limit,
+			Offset:  offset,
+			Total:   len(movies),
+			NextUrl: &nextUrl,
+		}
+		assert.Equal(t, &expectedMeta, meta)
+	})
+
+	t.Run("success for admin user", func(t *testing.T) {
+		flagRepo.EXPECT().HasFlagEnabled(userEmail, constants.CanModifyMovies).Return(true).Times(1)
+		movieRepo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
+		movieRepo.EXPECT().GetNumbersOfMovie(gomock.Eq(countFilter)).Return(len(movies), nil).Times(1)
+
+		result, meta, err := service.GetMovies(limit, offset, &userEmail, includeGenres)
+
+		assert.NotNil(t, result)
+		assert.NotNil(t, meta)
+		assert.Nil(t, err)
+		assert.Equal(t, len(movies), len(result))
 
 		for i, m := range result {
 			assert.Equal(t, movies[i], m)
@@ -134,9 +170,10 @@ func TestMovieService_GetMovies(t *testing.T) {
 	})
 
 	t.Run("error getting movies", func(t *testing.T) {
-		repo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(nil, errors.New("error getting movies")).Times(1)
+		flagRepo.EXPECT().HasFlagEnabled(userEmail, constants.CanModifyMovies).Return(true).Times(1)
+		movieRepo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(nil, errors.New("error getting movies")).Times(1)
 
-		result, meta, err := service.GetMovies(limit, offset, includeGenres)
+		result, meta, err := service.GetMovies(limit, offset, &userEmail, includeGenres)
 
 		assert.Nil(t, result)
 		assert.Nil(t, meta)
@@ -146,10 +183,11 @@ func TestMovieService_GetMovies(t *testing.T) {
 	})
 
 	t.Run("error counting movies", func(t *testing.T) {
-		repo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
-		repo.EXPECT().GetNumbersOfMovie(gomock.Eq(countFilter)).Return(0, errors.New("error counting movies")).Times(1)
+		flagRepo.EXPECT().HasFlagEnabled(userEmail, constants.CanModifyMovies).Return(true).Times(1)
+		movieRepo.EXPECT().GetMoviesWithGenres(gomock.Eq(getFilter)).Return(movies, nil).Times(1)
+		movieRepo.EXPECT().GetNumbersOfMovie(gomock.Eq(countFilter)).Return(0, errors.New("error counting movies")).Times(1)
 
-		result, meta, err := service.GetMovies(limit, offset, includeGenres)
+		result, meta, err := service.GetMovies(limit, offset, &userEmail, includeGenres)
 
 		assert.Nil(t, result)
 		assert.Nil(t, meta)
