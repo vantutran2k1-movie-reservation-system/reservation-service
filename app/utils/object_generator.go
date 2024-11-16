@@ -171,6 +171,7 @@ func GenerateMovie() *models.Movie {
 		IsActive:        generateBool(),
 		CreatedAt:       generateCurrentTime(),
 		UpdatedAt:       generateCurrentTime(),
+		IsDeleted:       generateBool(),
 		CreatedBy:       generateUUID(),
 		LastUpdatedBy:   generateUUID(),
 	}

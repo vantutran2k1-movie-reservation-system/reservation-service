@@ -30,8 +30,9 @@ func TestMovieService_GetMovie(t *testing.T) {
 	movie := utils.GenerateMovie()
 	movie.IsActive = false
 	filter := filters.MovieFilter{
-		Filter: &filters.SingleFilter{},
-		ID:     &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+		Filter:    &filters.SingleFilter{},
+		ID:        &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 
 	t.Run("success", func(t *testing.T) {
@@ -105,10 +106,12 @@ func TestMovieService_GetMovies(t *testing.T) {
 	offset := 0
 	includeGenres := true
 	getFilter := filters.MovieFilter{
-		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+		Filter:    &filters.MultiFilter{Limit: &limit, Offset: &offset},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 	countFilter := filters.MovieFilter{
-		Filter: &filters.SingleFilter{},
+		Filter:    &filters.SingleFilter{},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 
 	t.Run("success for normal user", func(t *testing.T) {
@@ -258,8 +261,9 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 	movie := utils.GenerateMovie()
 	req := utils.GenerateUpdateMovieRequest()
 	filter := filters.MovieFilter{
-		Filter: &filters.SingleFilter{},
-		ID:     &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+		Filter:    &filters.SingleFilter{},
+		ID:        &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 
 	t.Run("success", func(t *testing.T) {
@@ -329,8 +333,9 @@ func TestMovieService_AssignGenres(t *testing.T) {
 	}
 	updatedGenreIds := []uuid.UUID{allGenreIds[0], allGenreIds[1]}
 	filter := filters.MovieFilter{
-		Filter: &filters.SingleFilter{},
-		ID:     &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+		Filter:    &filters.SingleFilter{},
+		ID:        &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 
 	t.Run("success", func(t *testing.T) {

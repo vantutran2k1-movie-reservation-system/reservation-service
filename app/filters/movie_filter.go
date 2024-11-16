@@ -4,8 +4,9 @@ import "gorm.io/gorm"
 
 type MovieFilter struct {
 	Filter
-	ID       *Condition
-	IsActive *Condition
+	ID        *Condition
+	IsActive  *Condition
+	IsDeleted *Condition
 }
 
 func (f *MovieFilter) GetConditions() []FilterCondition {
@@ -17,6 +18,10 @@ func (f *MovieFilter) GetConditions() []FilterCondition {
 
 	if f.IsActive != nil {
 		conditions = append(conditions, f.IsActive.ToFilterCondition("is_active"))
+	}
+
+	if f.IsDeleted != nil {
+		conditions = append(conditions, f.IsDeleted.ToFilterCondition("is_deleted"))
 	}
 
 	return conditions

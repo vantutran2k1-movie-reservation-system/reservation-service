@@ -52,8 +52,9 @@ func NewMovieService(
 
 func (s *movieService) GetMovie(id uuid.UUID, userEmail *string, includeGenres bool) (*models.Movie, *errors.ApiError) {
 	filter := filters.MovieFilter{
-		Filter: &filters.SingleFilter{},
-		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+		Filter:    &filters.SingleFilter{},
+		ID:        &filters.Condition{Operator: filters.OpEqual, Value: id},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 
 	m, err := s.movieRepo.GetMovie(filter, includeGenres)
@@ -73,10 +74,12 @@ func (s *movieService) GetMovie(id uuid.UUID, userEmail *string, includeGenres b
 
 func (s *movieService) GetMovies(limit, offset int, userEmail *string, includeGenres bool) ([]*models.Movie, *models.ResponseMeta, *errors.ApiError) {
 	getFilter := filters.MovieFilter{
-		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+		Filter:    &filters.MultiFilter{Limit: &limit, Offset: &offset},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 	countFilter := filters.MovieFilter{
-		Filter: &filters.SingleFilter{},
+		Filter:    &filters.SingleFilter{},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 	if !s.isAdminUser(userEmail) {
 		getFilter.IsActive = &filters.Condition{Operator: filters.OpEqual, Value: true}
@@ -151,8 +154,9 @@ func (s *movieService) CreateMovie(req payloads.CreateMovieRequest, createdBy uu
 
 func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError) {
 	filter := filters.MovieFilter{
-		Filter: &filters.SingleFilter{},
-		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+		Filter:    &filters.SingleFilter{},
+		ID:        &filters.Condition{Operator: filters.OpEqual, Value: id},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 	m, err := s.movieRepo.GetMovie(filter, false)
 	if err != nil {
@@ -182,8 +186,9 @@ func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateM
 
 func (s *movieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError {
 	filter := filters.MovieFilter{
-		Filter: &filters.SingleFilter{},
-		ID:     &filters.Condition{Operator: filters.OpEqual, Value: id},
+		Filter:    &filters.SingleFilter{},
+		ID:        &filters.Condition{Operator: filters.OpEqual, Value: id},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
 	}
 	m, err := s.movieRepo.GetMovie(filter, false)
 	if err != nil {

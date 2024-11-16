@@ -17,6 +17,7 @@ type Movie struct {
 	IsActive        bool      `json:"is_active" gorm:"column:is_active"`
 	CreatedAt       time.Time `json:"-" gorm:"column:created_at"`
 	UpdatedAt       time.Time `json:"-" gorm:"column:updated_at"`
+	IsDeleted       bool      `json:"is_deleted" gorm:"column:is_deleted"`
 	CreatedBy       uuid.UUID `json:"created_by" gorm:"column:created_by"`
 	LastUpdatedBy   uuid.UUID `json:"last_updated_by" gorm:"column:last_updated_by"`
 	Genres          []Genre   `json:"genres,omitempty" gorm:"many2many:movie_genres"`
