@@ -7,6 +7,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"gorm.io/gorm"
+	"time"
 )
 
 type MovieRepository interface {
@@ -16,6 +17,7 @@ type MovieRepository interface {
 	GetNumbersOfMovie(filter filters.MovieFilter) (int, error)
 	CreateMovie(tx *gorm.DB, movie *models.Movie) error
 	UpdateMovie(tx *gorm.DB, movie *models.Movie) error
+	DeleteMovie(tx *gorm.DB, movie *models.Movie, deletedBy uuid.UUID) error
 }
 
 type movieRepository struct {
@@ -114,4 +116,8 @@ func (r *movieRepository) CreateMovie(tx *gorm.DB, movie *models.Movie) error {
 
 func (r *movieRepository) UpdateMovie(tx *gorm.DB, movie *models.Movie) error {
 	return tx.Save(movie).Error
+}
+
+func (r *movieRepository) DeleteMovie(tx *gorm.DB, movie *models.Movie, deletedBy uuid.UUID) error {
+	return tx.Model(movie).Updates(map[string]any{"is_deleted": true, "updated_at": time.Now().UTC(), "last_updated_by": deletedBy}).Error
 }

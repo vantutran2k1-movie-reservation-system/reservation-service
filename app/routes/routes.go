@@ -70,6 +70,12 @@ func RegisterRoutes() *gin.Engine {
 				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyMovies),
 				c.MovieController.UpdateMovieGenres,
 			)
+			movies.DELETE(
+				"/:id",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyMovies),
+				c.MovieController.DeleteMovie,
+			)
 		}
 
 		genres := apiV1.Group("/genres")

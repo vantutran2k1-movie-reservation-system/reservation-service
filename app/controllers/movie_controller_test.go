@@ -430,3 +430,46 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "service error")
 	})
 }
+
+func TestMovieController_DeleteMovie(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockMovieService(ctrl)
+	controller := MovieController{
+		MovieService: service,
+	}
+
+	gin.SetMode(gin.TestMode)
+
+	movie := utils.GenerateMovie()
+	session := utils.GenerateUserSession()
+
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		context.SetRequestContext(c, context.RequestContext{UserSession: session})
+		c.Next()
+	})
+	router.DELETE("/movies/:id", controller.DeleteMovie)
+
+	t.Run("success", func(t *testing.T) {
+		service.EXPECT().DeleteMovie(movie.ID, session.UserID).Return(nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/movies/%s", movie.ID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		service.EXPECT().DeleteMovie(movie.ID, session.UserID).Return(errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/movies/%s", movie.ID), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}

@@ -12,6 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
@@ -53,6 +54,20 @@ func (m *MockMovieRepository) CreateMovie(tx *gorm.DB, movie *models.Movie) erro
 func (mr *MockMovieRepositoryMockRecorder) CreateMovie(tx, movie any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMovie", reflect.TypeOf((*MockMovieRepository)(nil).CreateMovie), tx, movie)
+}
+
+// DeleteMovie mocks base method.
+func (m *MockMovieRepository) DeleteMovie(tx *gorm.DB, movie *models.Movie, deletedBy uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteMovie", tx, movie, deletedBy)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteMovie indicates an expected call of DeleteMovie.
+func (mr *MockMovieRepositoryMockRecorder) DeleteMovie(tx, movie, deletedBy any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMovie", reflect.TypeOf((*MockMovieRepository)(nil).DeleteMovie), tx, movie, deletedBy)
 }
 
 // GetMovie mocks base method.

@@ -91,6 +91,46 @@ func TestMovieGenreRepository_UpdateGenresOfMovie(t *testing.T) {
 	})
 }
 
+func TestMovieGenreRepository_DeleteByMovieId(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewMovieGenreRepository(db)
+
+	movie := utils.GenerateMovie()
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "movie_genres" WHERE movie_id = $1`)).
+			WithArgs(movie.ID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.DeleteByMovieId(tx, movie.ID)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error deleting by movie id", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "movie_genres" WHERE movie_id = $1`)).
+			WithArgs(movie.ID).
+			WillReturnError(errors.New("error deleting by movie id"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.DeleteByMovieId(tx, movie.ID)
+		tx.Rollback()
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "error deleting by movie id", err.Error())
+	})
+}
+
 func TestMovieGenreRepository_DeleteByGenreId(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {

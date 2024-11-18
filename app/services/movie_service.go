@@ -21,6 +21,7 @@ type MovieService interface {
 	CreateMovie(req payloads.CreateMovieRequest, createdBy uuid.UUID) (*models.Movie, *errors.ApiError)
 	UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError)
 	AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError
+	DeleteMovie(id uuid.UUID, deletedBy uuid.UUID) *errors.ApiError
 }
 
 type movieService struct {
@@ -51,18 +52,9 @@ func NewMovieService(
 }
 
 func (s *movieService) GetMovie(id uuid.UUID, userEmail *string, includeGenres bool) (*models.Movie, *errors.ApiError) {
-	filter := filters.MovieFilter{
-		Filter:    &filters.SingleFilter{},
-		ID:        &filters.Condition{Operator: filters.OpEqual, Value: id},
-		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
-	}
-
-	m, err := s.movieRepo.GetMovie(filter, includeGenres)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-	if m == nil {
-		return nil, errors.NotFoundError("movie not found")
+	m, apiErr := s.getMovie(id, includeGenres)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	if !s.isAdminUser(userEmail) && !m.IsActive {
@@ -153,17 +145,9 @@ func (s *movieService) CreateMovie(req payloads.CreateMovieRequest, createdBy uu
 }
 
 func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateMovieRequest) (*models.Movie, *errors.ApiError) {
-	filter := filters.MovieFilter{
-		Filter:    &filters.SingleFilter{},
-		ID:        &filters.Condition{Operator: filters.OpEqual, Value: id},
-		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
-	}
-	m, err := s.movieRepo.GetMovie(filter, false)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-	if m == nil {
-		return nil, errors.NotFoundError("movie not found")
+	m, apiErr := s.getMovie(id, false)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	m.Title = req.Title
@@ -185,17 +169,9 @@ func (s *movieService) UpdateMovie(id, updatedBy uuid.UUID, req payloads.UpdateM
 }
 
 func (s *movieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.ApiError {
-	filter := filters.MovieFilter{
-		Filter:    &filters.SingleFilter{},
-		ID:        &filters.Condition{Operator: filters.OpEqual, Value: id},
-		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
-	}
-	m, err := s.movieRepo.GetMovie(filter, false)
-	if err != nil {
-		return errors.InternalServerError(err.Error())
-	}
-	if m == nil {
-		return errors.NotFoundError("movie not found")
+	_, apiErr := s.getMovie(id, false)
+	if apiErr != nil {
+		return apiErr
 	}
 
 	allGenreIDs, err := s.genreRepo.GetGenreIDs(filters.GenreFilter{Filter: &filters.MultiFilter{Logic: filters.And}})
@@ -216,9 +192,44 @@ func (s *movieService) AssignGenres(id uuid.UUID, genreIDs []uuid.UUID) *errors.
 	return nil
 }
 
+func (s *movieService) DeleteMovie(id uuid.UUID, deletedBy uuid.UUID) *errors.ApiError {
+	movie, apiErr := s.getMovie(id, false)
+	if apiErr != nil {
+		return apiErr
+	}
+
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		if err := s.movieGenreRepo.DeleteByMovieId(tx, movie.ID); err != nil {
+			return err
+		}
+
+		return s.movieRepo.DeleteMovie(tx, movie, deletedBy)
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
+}
+
 func (s *movieService) isAdminUser(userEmail *string) bool {
 	isAdmin := userEmail != nil && s.featureFlagRepo.HasFlagEnabled(*userEmail, constants.CanModifyMovies)
 	return isAdmin
+}
+
+func (s *movieService) getMovie(id uuid.UUID, includeGenres bool) (*models.Movie, *errors.ApiError) {
+	m, err := s.movieRepo.GetMovie(filters.MovieFilter{
+		Filter:    &filters.SingleFilter{},
+		ID:        &filters.Condition{Operator: filters.OpEqual, Value: id},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
+	}, includeGenres)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if m == nil {
+		return nil, errors.NotFoundError("movie not found")
+	}
+
+	return m, nil
 }
 
 func allIdsInSlice(first, second []uuid.UUID) bool {

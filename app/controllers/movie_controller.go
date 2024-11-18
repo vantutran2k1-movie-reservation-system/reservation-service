@@ -138,6 +138,31 @@ func (c *MovieController) UpdateMovieGenres(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": "genres of movie are updated successfully"})
 }
 
+func (c *MovieController) DeleteMovie(ctx *gin.Context) {
+	id, e := uuid.Parse(ctx.Param("id"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid movie id"})
+		return
+	}
+
+	reqContext, err := context.GetRequestContext(ctx)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+	if reqContext.UserSession == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized user"})
+		return
+	}
+
+	if err := c.MovieService.DeleteMovie(id, reqContext.UserSession.UserID); err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, gin.H{})
+}
+
 func (c *MovieController) doIncludeGenres(ctx *gin.Context) bool {
 	return ctx.Query(constants.IncludeGenres) == "true"
 }

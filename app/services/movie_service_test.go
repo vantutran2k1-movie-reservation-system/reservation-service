@@ -411,3 +411,87 @@ func TestMovieService_AssignGenres(t *testing.T) {
 		assert.Equal(t, "error updating movie", err.Error())
 	})
 }
+
+func TestMovieService_DeleteMovie(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	transaction := mock_transaction.NewMockTransactionManager(ctrl)
+	movieRepo := mock_repositories.NewMockMovieRepository(ctrl)
+	genreRepo := mock_repositories.NewMockGenreRepository(ctrl)
+	movieGenreRepo := mock_repositories.NewMockMovieGenreRepository(ctrl)
+	service := NewMovieService(nil, transaction, movieRepo, genreRepo, movieGenreRepo, nil)
+
+	movie := utils.GenerateMovie()
+	deletedBy := uuid.New()
+	filter := filters.MovieFilter{
+		Filter:    &filters.SingleFilter{},
+		ID:        &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},
+		IsDeleted: &filters.Condition{Operator: filters.OpEqual, Value: false},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		movieRepo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			}).Times(1)
+		movieGenreRepo.EXPECT().DeleteByMovieId(gomock.Any(), movie.ID).Return(nil).Times(1)
+		movieRepo.EXPECT().DeleteMovie(gomock.Any(), movie, deletedBy).Return(nil).Times(1)
+
+		err := service.DeleteMovie(movie.ID, deletedBy)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("movie not found", func(t *testing.T) {
+		movieRepo.EXPECT().GetMovie(filter, false).Return(nil, nil).Times(1)
+
+		err := service.DeleteMovie(movie.ID, deletedBy)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "movie not found", err.Error())
+	})
+
+	t.Run("error getting movie", func(t *testing.T) {
+		movieRepo.EXPECT().GetMovie(filter, false).Return(nil, errors.New("error getting movie")).Times(1)
+
+		err := service.DeleteMovie(movie.ID, deletedBy)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting movie", err.Error())
+	})
+
+	t.Run("error deleting movie genres", func(t *testing.T) {
+		movieRepo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			}).Times(1)
+		movieGenreRepo.EXPECT().DeleteByMovieId(gomock.Any(), movie.ID).Return(errors.New("error deleting movie genres")).Times(1)
+
+		err := service.DeleteMovie(movie.ID, deletedBy)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error deleting movie genres", err.Error())
+	})
+
+	t.Run("error deleting movie", func(t *testing.T) {
+		movieRepo.EXPECT().GetMovie(filter, false).Return(movie, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			}).Times(1)
+		movieGenreRepo.EXPECT().DeleteByMovieId(gomock.Any(), movie.ID).Return(nil).Times(1)
+		movieRepo.EXPECT().DeleteMovie(gomock.Any(), movie, deletedBy).Return(errors.New("error deleting movie")).Times(1)
+
+		err := service.DeleteMovie(movie.ID, deletedBy)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error deleting movie", err.Error())
+	})
+}

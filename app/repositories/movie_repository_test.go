@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"regexp"
 	"testing"
@@ -326,5 +327,46 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, "error updating movie", err.Error())
+	})
+}
+
+func TestMovieRepository_DeleteMovie(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewMovieRepository(db)
+
+	movie := utils.GenerateMovie()
+	userId := uuid.New()
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "movies" SET "is_deleted"=$1,"last_updated_by"=$2,"updated_at"=$3 WHERE "id" = $4`)).
+			WithArgs(true, userId, sqlmock.AnyArg(), movie.ID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.DeleteMovie(tx, movie, userId)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error deleting movie", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "movies" SET "is_deleted"=$1,"last_updated_by"=$2,"updated_at"=$3 WHERE "id" = $4`)).
+			WithArgs(true, userId, sqlmock.AnyArg(), movie.ID).
+			WillReturnError(errors.New("error deleting movie"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.DeleteMovie(tx, movie, userId)
+		tx.Rollback()
+
+		assert.Error(t, err)
+		assert.Equal(t, "error deleting movie", err.Error())
 	})
 }

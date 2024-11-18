@@ -8,6 +8,7 @@ import (
 
 type MovieGenreRepository interface {
 	UpdateGenresOfMovie(tx *gorm.DB, movieID uuid.UUID, genreIDs []uuid.UUID) error
+	DeleteByMovieId(tx *gorm.DB, movieID uuid.UUID) error
 	DeleteByGenreId(tx *gorm.DB, genreId uuid.UUID) error
 }
 
@@ -39,6 +40,10 @@ func (r *movieGenreRepository) UpdateGenresOfMovie(tx *gorm.DB, movieID uuid.UUI
 	return tx.Create(&newGenres).Error
 }
 
+func (r *movieGenreRepository) DeleteByMovieId(tx *gorm.DB, movieID uuid.UUID) error {
+	return tx.Delete(&models.MovieGenre{}, "movie_id = ?", movieID).Error
+}
+
 func (r *movieGenreRepository) DeleteByGenreId(tx *gorm.DB, genreId uuid.UUID) error {
-	return tx.Delete(models.MovieGenre{}, "genre_id = ?", genreId).Error
+	return tx.Delete(&models.MovieGenre{}, "genre_id = ?", genreId).Error
 }

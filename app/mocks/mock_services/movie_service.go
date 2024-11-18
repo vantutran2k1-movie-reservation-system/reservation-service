@@ -71,6 +71,20 @@ func (mr *MockMovieServiceMockRecorder) CreateMovie(req, createdBy any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMovie", reflect.TypeOf((*MockMovieService)(nil).CreateMovie), req, createdBy)
 }
 
+// DeleteMovie mocks base method.
+func (m *MockMovieService) DeleteMovie(id, deletedBy uuid.UUID) *errors.ApiError {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteMovie", id, deletedBy)
+	ret0, _ := ret[0].(*errors.ApiError)
+	return ret0
+}
+
+// DeleteMovie indicates an expected call of DeleteMovie.
+func (mr *MockMovieServiceMockRecorder) DeleteMovie(id, deletedBy any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMovie", reflect.TypeOf((*MockMovieService)(nil).DeleteMovie), id, deletedBy)
+}
+
 // GetMovie mocks base method.
 func (m *MockMovieService) GetMovie(id uuid.UUID, userEmail *string, includeGenres bool) (*models.Movie, *errors.ApiError) {
 	m.ctrl.T.Helper()
