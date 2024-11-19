@@ -27,21 +27,19 @@ func TestMovieController_GetMovie(t *testing.T) {
 		MovieService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
-
 	movie := utils.GenerateMovie()
 	genre := utils.GenerateGenre()
 	session := utils.GenerateUserSession()
 	movie.Genres = []models.Genre{*genre}
 
-	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.GET("/movies/:id", controller.GetMovie)
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		context.SetRequestContext(c, context.RequestContext{UserSession: session})
+		c.Next()
+	})
+	router.GET("/movies/:id", controller.GetMovie)
 
+	t.Run("success", func(t *testing.T) {
 		service.EXPECT().GetMovie(movie.ID, &session.Email, true).Return(movie, nil).Times(1)
 
 		w := httptest.NewRecorder()
@@ -60,13 +58,6 @@ func TestMovieController_GetMovie(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.GET("/movies/:id", controller.GetMovie)
-
 		service.EXPECT().GetMovie(movie.ID, &session.Email, false).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -88,20 +79,18 @@ func TestMovieController_GetMovies(t *testing.T) {
 		MovieService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
-
 	session := utils.GenerateUserSession()
 	movies := utils.GenerateMovies(20)
 	meta := utils.GenerateResponseMeta()
 
-	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.GET("/movies", controller.GetMovies)
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		context.SetRequestContext(c, context.RequestContext{UserSession: session})
+		c.Next()
+	})
+	router.GET("/movies", controller.GetMovies)
 
+	t.Run("success", func(t *testing.T) {
 		service.EXPECT().GetMovies(10, 0, &session.Email, false).Return(movies, meta, nil).Times(1)
 
 		w := httptest.NewRecorder()
@@ -121,13 +110,6 @@ func TestMovieController_GetMovies(t *testing.T) {
 	})
 
 	t.Run("default limit and offset when receiving invalid values", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.GET("/movies", controller.GetMovies)
-
 		service.EXPECT().GetMovies(10, 0, &session.Email, false).Return(movies, meta, nil).Times(1)
 
 		w := httptest.NewRecorder()
@@ -147,13 +129,6 @@ func TestMovieController_GetMovies(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.GET("/movies", controller.GetMovies)
-
 		service.EXPECT().GetMovies(10, 0, &session.Email, false).Return(nil, nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -175,22 +150,20 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		MovieService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
-
 	session := utils.GenerateUserSession()
 	movie := utils.GenerateMovie()
 	payload := utils.GenerateCreateMovieRequest()
 
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		context.SetRequestContext(c, context.RequestContext{UserSession: session})
+		c.Next()
+	})
+	router.POST("/movies", controller.CreateMovie)
+
 	errors.RegisterCustomValidators()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.POST("/movies", controller.CreateMovie)
-
 		service.EXPECT().CreateMovie(payload, session.UserID).
 			Return(movie, nil)
 
@@ -216,13 +189,6 @@ func TestMovieController_CreateMovie(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.POST("/movies", controller.CreateMovie)
-
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
 			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, 6.0, *payload.IsActive)
 
@@ -237,8 +203,8 @@ func TestMovieController_CreateMovie(t *testing.T) {
 	})
 
 	t.Run("session error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/movies", controller.CreateMovie)
+		routerErr := gin.Default()
+		routerErr.POST("/movies", controller.CreateMovie)
 
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
 			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, *movie.Rating, *payload.IsActive)
@@ -246,7 +212,7 @@ func TestMovieController_CreateMovie(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/movies", bytes.NewBufferString(reqBody))
 		req.Header.Set(constants.ContentType, constants.ApplicationJson)
-		router.ServeHTTP(w, req)
+		routerErr.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		assert.Contains(t, w.Body.String(), "error")
@@ -254,13 +220,6 @@ func TestMovieController_CreateMovie(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.POST("/movies", controller.CreateMovie)
-
 		service.EXPECT().CreateMovie(payload, session.UserID).
 			Return(nil, errors.InternalServerError("Service error"))
 
@@ -286,22 +245,20 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 		MovieService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
-
 	session := utils.GenerateUserSession()
 	movie := utils.GenerateMovie()
 	payload := utils.GenerateUpdateMovieRequest()
 
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		context.SetRequestContext(c, context.RequestContext{UserSession: session})
+		c.Next()
+	})
+	router.PUT("/movies/:id", controller.UpdateMovie)
+
 	errors.RegisterCustomValidators()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.PUT("/movies/:id", controller.UpdateMovie)
-
 		service.EXPECT().UpdateMovie(movie.ID, session.UserID, payload).
 			Return(movie, nil)
 
@@ -325,9 +282,6 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.PUT("/movies/:id", controller.UpdateMovie)
-
 		reqBody := fmt.Sprintf(`{"title": "%s", "description": "%s", "release_date": "%s", "duration_minutes": %d, "language": "%s", "rating": %g, "is_active": %v}`,
 			payload.Title, *payload.Description, payload.ReleaseDate, payload.DurationMinutes, *payload.Language, 6.0, *payload.IsActive)
 
@@ -342,13 +296,6 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.PUT("/movies/:id", controller.UpdateMovie)
-
 		service.EXPECT().UpdateMovie(movie.ID, session.UserID, payload).
 			Return(nil, errors.InternalServerError("Service error"))
 
@@ -374,17 +321,15 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 		MovieService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
-
 	movie := utils.GenerateMovie()
 	payload := utils.GenerateUpdateMovieGenresRequest()
+
+	router := gin.Default()
+	router.PUT("/movies/:id/genres", controller.UpdateMovieGenres)
 
 	errors.RegisterCustomValidators()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.PUT("/movies/:id/genres", controller.UpdateMovieGenres)
-
 		service.EXPECT().AssignGenres(movie.ID, payload.GenreIDs).Return(nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"genre_ids": ["%s", "%s"]}`, payload.GenreIDs[0], payload.GenreIDs[1])
@@ -399,9 +344,6 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.PUT("/movies/:id/genres", controller.UpdateMovieGenres)
-
 		reqBody := fmt.Sprintf(`{"genre_ids": "%s"}`, payload.GenreIDs[0])
 
 		w := httptest.NewRecorder()
@@ -414,9 +356,6 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.PUT("/movies/:id/genres", controller.UpdateMovieGenres)
-
 		service.EXPECT().AssignGenres(movie.ID, payload.GenreIDs).Return(errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"genre_ids": ["%s", "%s"]}`, payload.GenreIDs[0], payload.GenreIDs[1])
@@ -439,8 +378,6 @@ func TestMovieController_DeleteMovie(t *testing.T) {
 	controller := MovieController{
 		MovieService: service,
 	}
-
-	gin.SetMode(gin.TestMode)
 
 	movie := utils.GenerateMovie()
 	session := utils.GenerateUserSession()

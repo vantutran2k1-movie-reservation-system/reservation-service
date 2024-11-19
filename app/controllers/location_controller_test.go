@@ -25,12 +25,10 @@ func TestLocationController_GetCountries(t *testing.T) {
 		LocationService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.GET("/countries", controller.GetCountries)
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/countries", controller.GetCountries)
-
 		countries := utils.GenerateCountries(3)
 
 		service.EXPECT().GetCountries().Return(countries, nil).Times(1)
@@ -47,9 +45,6 @@ func TestLocationController_GetCountries(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/countries", controller.GetCountries)
-
 		service.EXPECT().GetCountries().Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -70,15 +65,13 @@ func TestLocationController_CreateCountry(t *testing.T) {
 		LocationService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.POST("/countries", controller.CreateCountry)
 
 	country := utils.GenerateCountry()
 	payload := utils.GenerateCreateCountryRequest()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries", controller.CreateCountry)
-
 		service.EXPECT().CreateCountry(payload).Return(country, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, payload.Code)
@@ -94,9 +87,6 @@ func TestLocationController_CreateCountry(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries", controller.CreateCountry)
-
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, "INVALID_CODE")
 
 		w := httptest.NewRecorder()
@@ -110,9 +100,6 @@ func TestLocationController_CreateCountry(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries", controller.CreateCountry)
-
 		service.EXPECT().CreateCountry(payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, payload.Code)
@@ -137,14 +124,12 @@ func TestLocationController_GetStatesByCountry(t *testing.T) {
 		LocationService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.GET("/countries/:countryId/states", controller.GetStatesByCountry)
 
 	countryID := uuid.New()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/countries/:countryId/states", controller.GetStatesByCountry)
-
 		states := utils.GenerateStates(3)
 
 		service.EXPECT().GetStatesByCountry(countryID).Return(states, nil).Times(1)
@@ -162,9 +147,6 @@ func TestLocationController_GetStatesByCountry(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/countries/:countryId/states", controller.GetStatesByCountry)
-
 		service.EXPECT().GetStatesByCountry(countryID).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -185,15 +167,13 @@ func TestLocationController_CreateState(t *testing.T) {
 		LocationService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.POST("/countries/:countryId/states", controller.CreateState)
 
 	state := utils.GenerateState()
 	payload := utils.GenerateCreateStateRequest()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states", controller.CreateState)
-
 		service.EXPECT().CreateState(state.CountryID, payload).Return(state, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, *payload.Code)
@@ -209,9 +189,6 @@ func TestLocationController_CreateState(t *testing.T) {
 	})
 
 	t.Run("invalid country id", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states", controller.CreateState)
-
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, *payload.Code)
 
 		w := httptest.NewRecorder()
@@ -224,9 +201,6 @@ func TestLocationController_CreateState(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states", controller.CreateState)
-
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, "A")
 
 		w := httptest.NewRecorder()
@@ -239,9 +213,6 @@ func TestLocationController_CreateState(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states", controller.CreateState)
-
 		service.EXPECT().CreateState(state.CountryID, payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s", "code": "%s"}`, payload.Name, *payload.Code)
@@ -265,14 +236,12 @@ func TestLocationController_GetCitiesByState(t *testing.T) {
 		LocationService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.GET("/countries/:countryId/states/:stateId/cities", controller.GetCitiesByState)
 
 	cities := utils.GenerateCities(3)
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/countries/:countryId/states/:stateId/cities", controller.GetCitiesByState)
-
 		service.EXPECT().GetCitiesByState(gomock.Any(), gomock.Any()).Return(cities, nil).Times(1)
 
 		w := httptest.NewRecorder()
@@ -286,9 +255,6 @@ func TestLocationController_GetCitiesByState(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/countries/:countryId/states/:stateId/cities", controller.GetCitiesByState)
-
 		service.EXPECT().GetCitiesByState(gomock.Any(), gomock.Any()).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -309,16 +275,14 @@ func TestLocationController_CreateCity(t *testing.T) {
 		LocationService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.POST("/countries/:countryId/states/:stateId/cities", controller.CreateCity)
 
 	state := utils.GenerateState()
 	city := utils.GenerateCity()
 	payload := utils.GenerateCreateCityRequest()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states/:stateId/cities", controller.CreateCity)
-
 		service.EXPECT().CreateCity(state.CountryID, city.StateID, payload).Return(city, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
@@ -333,9 +297,6 @@ func TestLocationController_CreateCity(t *testing.T) {
 	})
 
 	t.Run("invalid country id", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states/:stateId/cities", controller.CreateCity)
-
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 
 		w := httptest.NewRecorder()
@@ -348,9 +309,6 @@ func TestLocationController_CreateCity(t *testing.T) {
 	})
 
 	t.Run("invalid state id", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states/:stateId/cities", controller.CreateCity)
-
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
 
 		w := httptest.NewRecorder()
@@ -363,9 +321,6 @@ func TestLocationController_CreateCity(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states/:stateId/cities", controller.CreateCity)
-
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, "A")
 
 		w := httptest.NewRecorder()
@@ -378,9 +333,6 @@ func TestLocationController_CreateCity(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/countries/:countryId/states/:stateId/cities", controller.CreateCity)
-
 		service.EXPECT().CreateCity(state.CountryID, city.StateID, payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)

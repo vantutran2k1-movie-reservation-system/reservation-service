@@ -25,14 +25,12 @@ func TestGenreController_GetGenre(t *testing.T) {
 		GenreService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.GET("/genres/:id", controller.GetGenre)
 
 	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/genres/:id", controller.GetGenre)
-
 		service.EXPECT().GetGenre(genre.ID).Return(genre, nil).Times(1)
 
 		w := httptest.NewRecorder()
@@ -45,9 +43,6 @@ func TestGenreController_GetGenre(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/genres/:id", controller.GetGenre)
-
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/genres/%s", "test id"), nil)
 		req.Header.Set(constants.ContentType, constants.ApplicationJson)
@@ -58,9 +53,6 @@ func TestGenreController_GetGenre(t *testing.T) {
 	})
 
 	t.Run("genre not found", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/genres/:id", controller.GetGenre)
-
 		service.EXPECT().GetGenre(gomock.Any()).Return(nil, errors.NotFoundError("not found")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -73,9 +65,6 @@ func TestGenreController_GetGenre(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/genres/:id", controller.GetGenre)
-
 		service.EXPECT().GetGenre(genre.ID).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -97,12 +86,10 @@ func TestGenreController_GetGenres(t *testing.T) {
 		GenreService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.GET("/genres", controller.GetGenres)
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/genres", controller.GetGenres)
-
 		genres := utils.GenerateGenres(3)
 
 		service.EXPECT().GetGenres().Return(genres, nil).Times(1)
@@ -118,9 +105,6 @@ func TestGenreController_GetGenres(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/genres", controller.GetGenres)
-
 		service.EXPECT().GetGenres().Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -141,15 +125,13 @@ func TestGenreController_CreateGenre(t *testing.T) {
 		GenreService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.POST("/genres", controller.CreateGenre)
 
 	genre := utils.GenerateGenre()
 	payload := utils.GenerateCreateGenreRequest()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/genres", controller.CreateGenre)
-
 		service.EXPECT().CreateGenre(payload).Return(genre, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
@@ -164,9 +146,6 @@ func TestGenreController_CreateGenre(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/genres", controller.CreateGenre)
-
 		reqBody := `{}`
 
 		w := httptest.NewRecorder()
@@ -179,9 +158,6 @@ func TestGenreController_CreateGenre(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/genres", controller.CreateGenre)
-
 		service.EXPECT().CreateGenre(payload).Return(nil, errors.InternalServerError("service error"))
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
@@ -206,15 +182,13 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 		GenreService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.PUT("/genres/:id", controller.UpdateGenre)
 
 	genre := utils.GenerateGenre()
 	payload := utils.GenerateUpdateGenreRequest()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.PUT("/genres/:id", controller.UpdateGenre)
-
 		service.EXPECT().UpdateGenre(genre.ID, payload).Return(genre, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
@@ -229,9 +203,6 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 	})
 
 	t.Run("error validating data", func(t *testing.T) {
-		router := gin.Default()
-		router.PUT("/genres/:id", controller.UpdateGenre)
-
 		reqBody := `{}`
 
 		w := httptest.NewRecorder()
@@ -244,9 +215,6 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 	})
 
 	t.Run("error updating genre", func(t *testing.T) {
-		router := gin.Default()
-		router.PUT("/genres/:id", controller.UpdateGenre)
-
 		service.EXPECT().UpdateGenre(genre.ID, payload).Return(nil, errors.InternalServerError("error updating genre")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
@@ -271,14 +239,12 @@ func TestGenreController_DeleteGenre(t *testing.T) {
 		GenreService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.DELETE("/genres/:id", controller.DeleteGenre)
 
 	genre := utils.GenerateGenre()
 
 	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.DELETE("/genres/:id", controller.DeleteGenre)
-
 		service.EXPECT().DeleteGenre(genre.ID).Return(nil).Times(1)
 
 		w := httptest.NewRecorder()
@@ -289,9 +255,6 @@ func TestGenreController_DeleteGenre(t *testing.T) {
 	})
 
 	t.Run("error deleting genre", func(t *testing.T) {
-		router := gin.Default()
-		router.DELETE("/genres/:id", controller.DeleteGenre)
-
 		service.EXPECT().DeleteGenre(genre.ID).Return(errors.InternalServerError("error deleting genre")).Times(1)
 
 		w := httptest.NewRecorder()

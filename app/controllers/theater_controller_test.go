@@ -24,14 +24,12 @@ func TestTheaterController_GetTheater(t *testing.T) {
 		TheaterService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
-
 	theater := utils.GenerateTheater()
 
-	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/theaters/:theaterId", controller.GetTheater)
+	router := gin.Default()
+	router.GET("/theaters/:theaterId", controller.GetTheater)
 
+	t.Run("success", func(t *testing.T) {
 		service.EXPECT().GetTheater(theater.ID, true).Return(theater, nil).Times(1)
 
 		w := httptest.NewRecorder()
@@ -43,9 +41,6 @@ func TestTheaterController_GetTheater(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.GET("/theaters/:theaterId", controller.GetTheater)
-
 		service.EXPECT().GetTheater(theater.ID, true).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		w := httptest.NewRecorder()
@@ -67,15 +62,13 @@ func TestTheaterController_CreateTheater(t *testing.T) {
 		TheaterService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
-
 	theater := utils.GenerateTheater()
 	payload := utils.GenerateCreateTheaterRequest()
 
-	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/theaters", controller.CreateTheater)
+	router := gin.Default()
+	router.POST("/theaters", controller.CreateTheater)
 
+	t.Run("success", func(t *testing.T) {
 		service.EXPECT().CreateTheater(payload).Return(theater, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
@@ -90,9 +83,6 @@ func TestTheaterController_CreateTheater(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/theaters", controller.CreateTheater)
-
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, "A")
 
 		w := httptest.NewRecorder()
@@ -105,9 +95,6 @@ func TestTheaterController_CreateTheater(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/theaters", controller.CreateTheater)
-
 		service.EXPECT().CreateTheater(payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"name": "%s"}`, payload.Name)
@@ -131,16 +118,14 @@ func TestTheaterController_CreateTheaterLocation(t *testing.T) {
 		TheaterService: service,
 	}
 
-	gin.SetMode(gin.TestMode)
-
 	theater := utils.GenerateTheater()
 	location := utils.GenerateTheaterLocation()
 	payload := utils.GenerateCreateTheaterLocationRequest()
 
-	t.Run("success", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/theaters/:theaterId/locations", controller.CreateTheaterLocation)
+	router := gin.Default()
+	router.POST("/theaters/:theaterId/locations", controller.CreateTheaterLocation)
 
+	t.Run("success", func(t *testing.T) {
 		service.EXPECT().CreateTheaterLocation(theater.ID, payload).Return(location, nil).Times(1)
 
 		reqBody := fmt.Sprintf(`{"city_id": "%s", "address": "%s", "postal_code": "%s", "latitude": %v, "longitude": %v}`, payload.CityID, payload.Address, payload.PostalCode, payload.Latitude, payload.Longitude)
@@ -156,9 +141,6 @@ func TestTheaterController_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("validation error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/theaters/:theaterId/locations", controller.CreateTheaterLocation)
-
 		reqBody := fmt.Sprintf(`{"city_id": "%s", "address": "%s", "postal_code": "%s", "latitude": %v, "longitude": %v}`, payload.CityID, "A", payload.PostalCode, payload.Latitude, payload.Longitude)
 
 		w := httptest.NewRecorder()
@@ -171,9 +153,6 @@ func TestTheaterController_CreateTheaterLocation(t *testing.T) {
 	})
 
 	t.Run("service error", func(t *testing.T) {
-		router := gin.Default()
-		router.POST("/theaters/:theaterId/locations", controller.CreateTheaterLocation)
-
 		service.EXPECT().CreateTheaterLocation(theater.ID, payload).Return(nil, errors.InternalServerError("service error")).Times(1)
 
 		reqBody := fmt.Sprintf(`{"city_id": "%s", "address": "%s", "postal_code": "%s", "latitude": %v, "longitude": %v}`, payload.CityID, payload.Address, payload.PostalCode, payload.Latitude, payload.Longitude)
