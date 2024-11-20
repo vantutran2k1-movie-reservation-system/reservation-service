@@ -1,7 +1,9 @@
 package services
 
 import (
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
@@ -13,6 +15,7 @@ import (
 
 type TheaterService interface {
 	GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError)
+	GetTheaters(limit, offset int, includeLocation bool) ([]*models.Theater, *models.ResponseMeta, *errors.ApiError)
 	CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError)
 	CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
 }
@@ -55,6 +58,24 @@ func (s *theaterService) GetTheater(id uuid.UUID, includeLocation bool) (*models
 	}
 
 	return t, nil
+}
+
+func (s *theaterService) GetTheaters(limit, offset int, includeLocation bool) ([]*models.Theater, *models.ResponseMeta, *errors.ApiError) {
+	theaters, err := s.theaterRepo.GetTheaters(filters.TheaterFilter{
+		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+	}, includeLocation)
+	if err != nil {
+		return nil, nil, errors.InternalServerError(err.Error())
+	}
+
+	count, err := s.theaterRepo.GetNumbersOfTheater(filters.TheaterFilter{
+		Filter: &filters.SingleFilter{},
+	})
+	if err != nil {
+		return nil, nil, errors.InternalServerError(err.Error())
+	}
+
+	return theaters, s.buildGetTheatersMeta(limit, offset, count, includeLocation), nil
 }
 
 func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError) {
@@ -126,4 +147,34 @@ func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads
 	}
 
 	return l, nil
+}
+
+func (s *theaterService) buildGetTheatersMeta(limit, offset, count int, includeLocation bool) *models.ResponseMeta {
+	var prevUrl, nextUrl *string
+
+	if offset > 0 {
+		prevOffset := offset - limit
+		if prevOffset < 0 {
+			prevOffset = 0
+		}
+		prevUrl = s.buildPaginationURL(limit, prevOffset, includeLocation)
+	}
+
+	if offset+limit < count {
+		nextUrlOffset := offset + limit
+		nextUrl = s.buildPaginationURL(limit, nextUrlOffset, includeLocation)
+	}
+
+	return &models.ResponseMeta{
+		Limit:   limit,
+		Offset:  offset,
+		Total:   count,
+		NextUrl: nextUrl,
+		PrevUrl: prevUrl,
+	}
+}
+
+func (s *theaterService) buildPaginationURL(limit, offset int, includeLocation bool) *string {
+	url := fmt.Sprintf("/theaters?%s=%d&%s=%d&%s=%v", constants.Limit, limit, constants.Offset, offset, constants.IncludeTheaterLocation, includeLocation)
+	return &url
 }

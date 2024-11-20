@@ -9,6 +9,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"net/http"
+	"strconv"
 )
 
 type TheaterController struct {
@@ -36,6 +37,30 @@ func (c *TheaterController) GetTheater(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(theater)})
+}
+
+func (c *TheaterController) GetTheaters(ctx *gin.Context) {
+	limitParam := ctx.DefaultQuery(constants.Limit, "10")
+	limit, e := strconv.Atoi(limitParam)
+	if e != nil || limit <= 0 {
+		limit = 10
+	}
+
+	offsetParam := ctx.DefaultQuery(constants.Offset, "0")
+	offset, e := strconv.Atoi(offsetParam)
+	if e != nil || offset < 0 {
+		offset = 0
+	}
+
+	includeLocation := ctx.Query(constants.IncludeTheaterLocation) == "true"
+
+	theaters, meta, err := c.TheaterService.GetTheaters(limit, offset, includeLocation)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.SliceToMaps(theaters), "meta": utils.StructToMap(meta)})
 }
 
 func (c *TheaterController) CreateTheater(ctx *gin.Context) {

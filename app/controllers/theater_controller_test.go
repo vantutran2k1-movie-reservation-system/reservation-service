@@ -166,3 +166,51 @@ func TestTheaterController_CreateTheaterLocation(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "service error")
 	})
 }
+
+func TestTheaterController_GetTheaters(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockTheaterService(ctrl)
+	controller := TheaterController{
+		TheaterService: service,
+	}
+
+	theaters := utils.GenerateTheaters(3)
+	meta := utils.GenerateResponseMeta()
+	includeLocation := true
+	limit := 3
+	offset := 1
+
+	router := gin.Default()
+	router.GET("/theaters", controller.GetTheaters)
+
+	t.Run("success", func(t *testing.T) {
+		service.EXPECT().GetTheaters(limit, offset, includeLocation).Return(theaters, meta, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters?%s=%d&%s=%d&%s=%v", constants.Limit, limit, constants.Offset, offset, constants.IncludeTheaterLocation, includeLocation), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), fmt.Sprint(meta.Limit))
+		assert.Contains(t, w.Body.String(), fmt.Sprint(meta.Offset))
+		assert.Contains(t, w.Body.String(), fmt.Sprint(meta.Total))
+		assert.Contains(t, w.Body.String(), *meta.NextUrl)
+		assert.Contains(t, w.Body.String(), *meta.PrevUrl)
+		for _, theater := range theaters {
+			assert.Contains(t, w.Body.String(), theater.ID.String())
+		}
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		service.EXPECT().GetTheaters(limit, offset, includeLocation).Return(nil, nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters?%s=%d&%s=%d&%s=%v", constants.Limit, limit, constants.Offset, offset, constants.IncludeTheaterLocation, includeLocation), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}

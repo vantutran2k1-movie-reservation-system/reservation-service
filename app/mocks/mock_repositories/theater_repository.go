@@ -55,6 +55,21 @@ func (mr *MockTheaterRepositoryMockRecorder) CreateTheater(tx, theater any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheater", reflect.TypeOf((*MockTheaterRepository)(nil).CreateTheater), tx, theater)
 }
 
+// GetNumbersOfTheater mocks base method.
+func (m *MockTheaterRepository) GetNumbersOfTheater(filter filters.TheaterFilter) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNumbersOfTheater", filter)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNumbersOfTheater indicates an expected call of GetNumbersOfTheater.
+func (mr *MockTheaterRepositoryMockRecorder) GetNumbersOfTheater(filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumbersOfTheater", reflect.TypeOf((*MockTheaterRepository)(nil).GetNumbersOfTheater), filter)
+}
+
 // GetTheater mocks base method.
 func (m *MockTheaterRepository) GetTheater(filter filters.TheaterFilter, includeLocation bool) (*models.Theater, error) {
 	m.ctrl.T.Helper()
@@ -68,4 +83,19 @@ func (m *MockTheaterRepository) GetTheater(filter filters.TheaterFilter, include
 func (mr *MockTheaterRepositoryMockRecorder) GetTheater(filter, includeLocation any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheater", reflect.TypeOf((*MockTheaterRepository)(nil).GetTheater), filter, includeLocation)
+}
+
+// GetTheaters mocks base method.
+func (m *MockTheaterRepository) GetTheaters(filter filters.TheaterFilter, includeLocation bool) ([]*models.Theater, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTheaters", filter, includeLocation)
+	ret0, _ := ret[0].([]*models.Theater)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTheaters indicates an expected call of GetTheaters.
+func (mr *MockTheaterRepositoryMockRecorder) GetTheaters(filter, includeLocation any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheaters", reflect.TypeOf((*MockTheaterRepository)(nil).GetTheaters), filter, includeLocation)
 }

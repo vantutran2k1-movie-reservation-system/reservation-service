@@ -138,6 +138,7 @@ func RegisterRoutes() *gin.Engine {
 		theaters := apiV1.Group("/theaters")
 		{
 			theaters.GET("/:theaterId", c.TheaterController.GetTheater)
+			theaters.GET("/", c.TheaterController.GetTheaters)
 			theaters.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),

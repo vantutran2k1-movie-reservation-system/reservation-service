@@ -9,6 +9,8 @@ import (
 
 type TheaterRepository interface {
 	GetTheater(filter filters.TheaterFilter, includeLocation bool) (*models.Theater, error)
+	GetTheaters(filter filters.TheaterFilter, includeLocation bool) ([]*models.Theater, error)
+	GetNumbersOfTheater(filter filters.TheaterFilter) (int, error)
 	CreateTheater(tx *gorm.DB, theater *models.Theater) error
 }
 
@@ -38,6 +40,29 @@ func (r *theaterRepository) GetTheater(filter filters.TheaterFilter, includeLoca
 	}
 
 	return &theater, nil
+}
+
+func (r *theaterRepository) GetTheaters(filter filters.TheaterFilter, includeLocation bool) ([]*models.Theater, error) {
+	query := filter.GetFilterQuery(r.db)
+	if includeLocation {
+		query = query.Preload("Location")
+	}
+
+	var theaters []*models.Theater
+	if err := query.Find(&theaters).Error; err != nil {
+		return nil, err
+	}
+
+	return theaters, nil
+}
+
+func (r *theaterRepository) GetNumbersOfTheater(filter filters.TheaterFilter) (int, error) {
+	var count int64
+	if err := filter.GetFilterQuery(r.db).Model(&models.Theater{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
 }
 
 func (r *theaterRepository) CreateTheater(tx *gorm.DB, theater *models.Theater) error {

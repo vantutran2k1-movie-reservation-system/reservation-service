@@ -68,6 +68,104 @@ func TestTheaterRepository_GetTheater(t *testing.T) {
 	})
 }
 
+func TestTheaterRepository_GetTheaters(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewTheaterRepository(db)
+
+	theaters := utils.GenerateTheaters(3)
+	locations := utils.GenerateTheaterLocations(3)
+	for i := range theaters {
+		theaters[i].Location = locations[i]
+		locations[i].TheaterID = theaters[i].ID
+	}
+	limit := 3
+	offset := 1
+	filter := filters.TheaterFilter{
+		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset, Sort: []filters.SortOption{{Field: "name", Direction: filters.Desc}}},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" ORDER BY name DESC LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
+			WillReturnRows(utils.GenerateSqlMockRows(theaters))
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theater_locations" WHERE "theater_locations"."theater_id" IN ($1,$2,$3)`)).
+			WithArgs(theaters[0].ID, theaters[1].ID, theaters[2].ID).
+			WillReturnRows(utils.GenerateSqlMockRows(locations))
+
+		result, err := repo.GetTheaters(filter, true)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, theaters, result)
+	})
+
+	t.Run("error getting theaters", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" ORDER BY name DESC LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
+			WillReturnError(errors.New("error getting theaters"))
+
+		result, err := repo.GetTheaters(filter, true)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting theaters", err.Error())
+	})
+
+	t.Run("error getting locations", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theaters" ORDER BY name DESC LIMIT $1 OFFSET $2`)).
+			WithArgs(limit, offset).
+			WillReturnRows(utils.GenerateSqlMockRows(theaters))
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "theater_locations" WHERE "theater_locations"."theater_id" IN ($1,$2,$3)`)).
+			WithArgs(theaters[0].ID, theaters[1].ID, theaters[2].ID).
+			WillReturnError(errors.New("error getting locations"))
+
+		result, err := repo.GetTheaters(filter, true)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting locations", err.Error())
+	})
+}
+
+func TestTheaterRepository_GetNumbersOfTheater(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewTheaterRepository(db)
+
+	filter := filters.TheaterFilter{
+		Filter: &filters.SingleFilter{},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "theaters"`)).
+			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3))
+
+		result, err := repo.GetNumbersOfTheater(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, 3, result)
+	})
+
+	t.Run("error counting theaters", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "theaters"`)).
+			WillReturnError(errors.New("error counting theaters"))
+
+		result, err := repo.GetNumbersOfTheater(filter)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, 0, result)
+		assert.Equal(t, "error counting theaters", err.Error())
+	})
+}
+
 func TestTheaterRepository_CreateTheater(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {

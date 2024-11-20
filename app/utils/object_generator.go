@@ -369,6 +369,15 @@ func GenerateTheater() *models.Theater {
 	}
 }
 
+func GenerateTheaters(count int) []*models.Theater {
+	theaters := make([]*models.Theater, count)
+	for i := 0; i < count; i++ {
+		theaters[i] = GenerateTheater()
+	}
+
+	return theaters
+}
+
 func GenerateTheaterLocation() *models.TheaterLocation {
 	return &models.TheaterLocation{
 		ID:         generateUUID(),
@@ -379,6 +388,15 @@ func GenerateTheaterLocation() *models.TheaterLocation {
 		Latitude:   generateFloat(1, 100),
 		Longitude:  generateFloat(1, 100),
 	}
+}
+
+func GenerateTheaterLocations(count int) []*models.TheaterLocation {
+	locations := make([]*models.TheaterLocation, count)
+	for i := 0; i < count; i++ {
+		locations[i] = GenerateTheaterLocation()
+	}
+
+	return locations
 }
 
 func GenerateCreateTheaterRequest() payloads.CreateTheaterRequest {
