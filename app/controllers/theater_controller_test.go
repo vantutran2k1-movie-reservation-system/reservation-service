@@ -53,6 +53,47 @@ func TestTheaterController_GetTheater(t *testing.T) {
 	})
 }
 
+func TestTheaterController_GetNearbyTheaters(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockTheaterService(ctrl)
+	controller := TheaterController{
+		TheaterService: service,
+	}
+
+	theaters := utils.GenerateTheaters(3)
+	distance := 10.0
+
+	router := gin.Default()
+	router.GET("/theaters/nearby", controller.GetNearbyTheaters)
+
+	t.Run("success", func(t *testing.T) {
+		service.EXPECT().GetNearbyTheaters(distance).Return(theaters, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters/nearby?%s=%v.0", constants.MaxDistance, distance), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		for _, theater := range theaters {
+			assert.Contains(t, w.Body.String(), theater.ID.String())
+			assert.Contains(t, w.Body.String(), theater.Name)
+		}
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		service.EXPECT().GetNearbyTheaters(distance).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/theaters/nearby?%s=%v.0", constants.MaxDistance, distance), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
+
 func TestTheaterController_CreateTheater(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

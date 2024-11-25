@@ -2,6 +2,17 @@ package payloads
 
 import "github.com/google/uuid"
 
+type GetTheaterWithLocationResult struct {
+	Id         uuid.UUID `json:"id"`
+	Name       string    `json:"name"`
+	LocationId uuid.UUID `json:"location_id"`
+	CityId     uuid.UUID `json:"city_id"`
+	Address    string    `json:"address"`
+	PostalCode string    `json:"postal_code"`
+	Latitude   float64   `json:"latitude"`
+	Longitude  float64   `json:"longitude"`
+}
+
 type CreateTheaterRequest struct {
 	Name string `json:"name" binding:"required,min=2,max=255"`
 }

@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
+	apiError "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -21,7 +24,7 @@ func TestTheaterService_GetTheater(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock_repositories.NewMockTheaterRepository(ctrl)
-	service := NewTheaterService(nil, nil, repo, nil, nil)
+	service := NewTheaterService(nil, nil, repo, nil, nil, nil)
 
 	theater := utils.GenerateTheater()
 	filter := filters.TheaterFilter{
@@ -67,7 +70,7 @@ func TestTheaterService_GetTheaters(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock_repositories.NewMockTheaterRepository(ctrl)
-	service := NewTheaterService(nil, nil, repo, nil, nil)
+	service := NewTheaterService(nil, nil, repo, nil, nil, nil)
 
 	theaters := utils.GenerateTheaters(3)
 
@@ -131,13 +134,78 @@ func TestTheaterService_GetTheaters(t *testing.T) {
 	})
 }
 
+func TestTheaterService_GetNearbyTheaters(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock_repositories.NewMockTheaterRepository(ctrl)
+	userLocService := mock_services.NewMockUserLocationService(ctrl)
+	service := NewTheaterService(nil, nil, repo, nil, nil, userLocService)
+
+	userLoc := utils.GenerateUserLocation()
+	distance := 10.0
+
+	t.Run("success", func(t *testing.T) {
+		getTheaterResults := make([]*payloads.GetTheaterWithLocationResult, 3)
+		for i := 0; i < len(getTheaterResults); i++ {
+			theater := utils.GenerateTheater()
+			location := utils.GenerateTheaterLocation()
+			getTheaterResults[i] = &payloads.GetTheaterWithLocationResult{
+				Id:         theater.ID,
+				Name:       theater.Name,
+				LocationId: location.ID,
+				CityId:     location.CityID,
+				Address:    location.Address,
+				PostalCode: location.PostalCode,
+				Latitude:   location.Latitude,
+				Longitude:  location.Longitude,
+			}
+		}
+
+		userLocService.EXPECT().GetCurrentUserLocation().Return(userLoc, nil).Times(1)
+		repo.EXPECT().GetNearbyTheatersWithLocations(userLoc.Latitude, userLoc.Longitude, distance).Return(getTheaterResults, nil).Times(1)
+
+		theaters, err := service.GetNearbyTheaters(distance)
+
+		assert.NotNil(t, theaters)
+		assert.Nil(t, err)
+		for i, theater := range theaters {
+			assert.Equal(t, getTheaterResults[i].Id, theater.ID)
+			assert.Equal(t, getTheaterResults[i].LocationId, theater.Location.ID)
+		}
+	})
+
+	t.Run("error getting current user location", func(t *testing.T) {
+		userLocService.EXPECT().GetCurrentUserLocation().Return(nil, apiError.InternalServerError("error getting current user location")).Times(1)
+
+		theaters, err := service.GetNearbyTheaters(distance)
+
+		assert.Nil(t, theaters)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting current user location", err.Error())
+	})
+
+	t.Run("error getting theaters", func(t *testing.T) {
+		userLocService.EXPECT().GetCurrentUserLocation().Return(userLoc, nil).Times(1)
+		repo.EXPECT().GetNearbyTheatersWithLocations(userLoc.Latitude, userLoc.Longitude, distance).Return(nil, errors.New("error getting theaters")).Times(1)
+
+		theaters, err := service.GetNearbyTheaters(distance)
+
+		assert.Nil(t, theaters)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting theaters", err.Error())
+	})
+}
+
 func TestTheaterService_CreateTheater(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
 	repo := mock_repositories.NewMockTheaterRepository(ctrl)
-	service := NewTheaterService(nil, transaction, repo, nil, nil)
+	service := NewTheaterService(nil, transaction, repo, nil, nil, nil)
 
 	theater := utils.GenerateTheater()
 	req := utils.GenerateCreateTheaterRequest()
@@ -210,7 +278,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	theaterRepo := mock_repositories.NewMockTheaterRepository(ctrl)
 	theaterLocationRepo := mock_repositories.NewMockTheaterLocationRepository(ctrl)
 	cityRepo := mock_repositories.NewMockCityRepository(ctrl)
-	service := NewTheaterService(nil, transaction, theaterRepo, theaterLocationRepo, cityRepo)
+	service := NewTheaterService(nil, transaction, theaterRepo, theaterLocationRepo, cityRepo, nil)
 
 	theater := utils.GenerateTheater()
 	city := utils.GenerateCity()

@@ -16,6 +16,7 @@ import (
 type TheaterService interface {
 	GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError)
 	GetTheaters(limit, offset int, includeLocation bool) ([]*models.Theater, *models.ResponseMeta, *errors.ApiError)
+	GetNearbyTheaters(distance float64) ([]*models.Theater, *errors.ApiError)
 	CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError)
 	CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
 }
@@ -26,6 +27,7 @@ func NewTheaterService(
 	theaterRepo repositories.TheaterRepository,
 	theaterLocationRepo repositories.TheaterLocationRepository,
 	cityRepo repositories.CityRepository,
+	userLocationService UserLocationService,
 ) TheaterService {
 	return &theaterService{
 		db:                  db,
@@ -33,6 +35,7 @@ func NewTheaterService(
 		theaterRepo:         theaterRepo,
 		theaterLocationRepo: theaterLocationRepo,
 		cityRepo:            cityRepo,
+		userLocationService: userLocationService,
 	}
 }
 
@@ -42,6 +45,7 @@ type theaterService struct {
 	theaterRepo         repositories.TheaterRepository
 	theaterLocationRepo repositories.TheaterLocationRepository
 	cityRepo            repositories.CityRepository
+	userLocationService UserLocationService
 }
 
 func (s *theaterService) GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError) {
@@ -76,6 +80,36 @@ func (s *theaterService) GetTheaters(limit, offset int, includeLocation bool) ([
 	}
 
 	return theaters, s.buildGetTheatersMeta(limit, offset, count, includeLocation), nil
+}
+
+func (s *theaterService) GetNearbyTheaters(distance float64) ([]*models.Theater, *errors.ApiError) {
+	userLoc, apiErr := s.userLocationService.GetCurrentUserLocation()
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
+	theaterLocations, err := s.theaterRepo.GetNearbyTheatersWithLocations(userLoc.Latitude, userLoc.Longitude, distance)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	var theaters []*models.Theater
+	for _, theaterLocation := range theaterLocations {
+		theaters = append(theaters, &models.Theater{
+			ID:   theaterLocation.Id,
+			Name: theaterLocation.Name,
+			Location: &models.TheaterLocation{
+				ID:         theaterLocation.LocationId,
+				CityID:     theaterLocation.CityId,
+				Address:    theaterLocation.Address,
+				PostalCode: theaterLocation.PostalCode,
+				Latitude:   theaterLocation.Latitude,
+				Longitude:  theaterLocation.Longitude,
+			},
+		})
+	}
+
+	return theaters, nil
 }
 
 func (s *theaterService) CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError) {
@@ -133,7 +167,7 @@ func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads
 
 	l := &models.TheaterLocation{
 		ID:         uuid.New(),
-		TheaterID:  theaterID,
+		TheaterID:  &theaterID,
 		CityID:     req.CityID,
 		Address:    req.Address,
 		PostalCode: req.PostalCode,

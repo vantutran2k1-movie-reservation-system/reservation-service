@@ -379,9 +379,10 @@ func GenerateTheaters(count int) []*models.Theater {
 }
 
 func GenerateTheaterLocation() *models.TheaterLocation {
+	theaterID := generateUUID()
 	return &models.TheaterLocation{
 		ID:         generateUUID(),
-		TheaterID:  generateUUID(),
+		TheaterID:  &theaterID,
 		CityID:     generateUUID(),
 		Address:    generateString(lowercaseChars, 50),
 		PostalCode: generateString(numberChars, 6),
@@ -397,6 +398,13 @@ func GenerateTheaterLocations(count int) []*models.TheaterLocation {
 	}
 
 	return locations
+}
+
+func GenerateUserLocation() *models.UserLocation {
+	return &models.UserLocation{
+		Latitude:  generateFloat(1, 100),
+		Longitude: generateFloat(1, 100),
+	}
 }
 
 func GenerateCreateTheaterRequest() payloads.CreateTheaterRequest {

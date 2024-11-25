@@ -130,6 +130,7 @@ func setupServices(repositories *Repositories) {
 			repositories.TheaterRepository,
 			repositories.TheaterLocationRepository,
 			repositories.CityRepository,
+			services.NewUserLocationService(),
 		),
 	}
 }

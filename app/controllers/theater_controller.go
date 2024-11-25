@@ -63,6 +63,22 @@ func (c *TheaterController) GetTheaters(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": utils.SliceToMaps(theaters), "meta": utils.StructToMap(meta)})
 }
 
+func (c *TheaterController) GetNearbyTheaters(ctx *gin.Context) {
+	distanceParam := ctx.DefaultQuery(constants.MaxDistance, "5")
+	distance, e := strconv.ParseFloat(distanceParam, 64)
+	if e != nil || distance < 0 {
+		distance = 5
+	}
+
+	theaters, err := c.TheaterService.GetNearbyTheaters(distance)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.SliceToMaps(theaters)})
+}
+
 func (c *TheaterController) CreateTheater(ctx *gin.Context) {
 	var req payloads.CreateTheaterRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {

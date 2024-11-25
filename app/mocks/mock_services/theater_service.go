@@ -72,6 +72,21 @@ func (mr *MockTheaterServiceMockRecorder) CreateTheaterLocation(theaterID, req a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheaterLocation", reflect.TypeOf((*MockTheaterService)(nil).CreateTheaterLocation), theaterID, req)
 }
 
+// GetNearbyTheaters mocks base method.
+func (m *MockTheaterService) GetNearbyTheaters(distance float64) ([]*models.Theater, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNearbyTheaters", distance)
+	ret0, _ := ret[0].([]*models.Theater)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// GetNearbyTheaters indicates an expected call of GetNearbyTheaters.
+func (mr *MockTheaterServiceMockRecorder) GetNearbyTheaters(distance any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNearbyTheaters", reflect.TypeOf((*MockTheaterService)(nil).GetNearbyTheaters), distance)
+}
+
 // GetTheater mocks base method.
 func (m *MockTheaterService) GetTheater(id uuid.UUID, includeLocation bool) (*models.Theater, *errors.ApiError) {
 	m.ctrl.T.Helper()

@@ -14,6 +14,7 @@ import (
 
 	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
 )
@@ -53,6 +54,21 @@ func (m *MockTheaterRepository) CreateTheater(tx *gorm.DB, theater *models.Theat
 func (mr *MockTheaterRepositoryMockRecorder) CreateTheater(tx, theater any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTheater", reflect.TypeOf((*MockTheaterRepository)(nil).CreateTheater), tx, theater)
+}
+
+// GetNearbyTheatersWithLocations mocks base method.
+func (m *MockTheaterRepository) GetNearbyTheatersWithLocations(lat, lon, distance float64) ([]*payloads.GetTheaterWithLocationResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNearbyTheatersWithLocations", lat, lon, distance)
+	ret0, _ := ret[0].([]*payloads.GetTheaterWithLocationResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNearbyTheatersWithLocations indicates an expected call of GetNearbyTheatersWithLocations.
+func (mr *MockTheaterRepositoryMockRecorder) GetNearbyTheatersWithLocations(lat, lon, distance any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNearbyTheatersWithLocations", reflect.TypeOf((*MockTheaterRepository)(nil).GetNearbyTheatersWithLocations), lat, lon, distance)
 }
 
 // GetNumbersOfTheater mocks base method.

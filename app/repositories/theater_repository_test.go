@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_db"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
@@ -21,7 +22,7 @@ func TestTheaterRepository_GetTheater(t *testing.T) {
 
 	theater := utils.GenerateTheater()
 	location := utils.GenerateTheaterLocation()
-	location.TheaterID = theater.ID
+	location.TheaterID = &theater.ID
 	filter := filters.TheaterFilter{
 		Filter: &filters.SingleFilter{},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: theater.ID},
@@ -80,7 +81,7 @@ func TestTheaterRepository_GetTheaters(t *testing.T) {
 	locations := utils.GenerateTheaterLocations(3)
 	for i := range theaters {
 		theaters[i].Location = locations[i]
-		locations[i].TheaterID = theaters[i].ID
+		locations[i].TheaterID = &theaters[i].ID
 	}
 	limit := 3
 	offset := 1
@@ -128,6 +129,73 @@ func TestTheaterRepository_GetTheaters(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error getting locations", err.Error())
+	})
+}
+
+func TestTheaterRepository_GetNearbyTheatersWithLocations(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewTheaterRepository(db)
+
+	lat := 100.0
+	lon := 101.0
+	distance := 10.0
+	expectedQuery := regexp.QuoteMeta(`
+		WITH data AS (
+			SELECT
+				t.id, t.name,
+				tl.id AS location_id, tl.city_id, tl.address, tl.postal_code, tl.latitude, tl.longitude,
+				(6371 * acos(cos(radians($1)) * cos(radians(tl.latitude)) * cos(radians(tl.longitude) - radians($2)) + sin(radians($3)) * sin(radians(tl.latitude)))) AS distance
+			FROM theaters t
+			JOIN theater_locations tl ON t.id = tl.theater_id
+		)
+		SELECT *
+		FROM data
+		WHERE distance < $4
+		ORDER BY distance
+	`)
+
+	t.Run("success", func(t *testing.T) {
+		expectedResult := make([]*payloads.GetTheaterWithLocationResult, 3)
+		for i := 0; i < len(expectedResult); i++ {
+			theater := utils.GenerateTheater()
+			location := utils.GenerateTheaterLocation()
+			expectedResult[i] = &payloads.GetTheaterWithLocationResult{
+				Id:         theater.ID,
+				Name:       theater.Name,
+				LocationId: location.ID,
+				CityId:     location.CityID,
+				Address:    location.Address,
+				PostalCode: location.PostalCode,
+				Latitude:   location.Latitude,
+				Longitude:  location.Longitude,
+			}
+		}
+
+		mock.ExpectQuery(expectedQuery).
+			WithArgs(lat, lon, lat, distance).
+			WillReturnRows(utils.GenerateSqlMockRows(expectedResult))
+
+		result, err := repo.GetNearbyTheatersWithLocations(lat, lon, distance)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, expectedResult, result)
+	})
+
+	t.Run("error getting theaters", func(t *testing.T) {
+		mock.ExpectQuery(expectedQuery).
+			WithArgs(lat, lon, lat, distance).
+			WillReturnError(errors.New("error getting theaters"))
+
+		result, err := repo.GetNearbyTheatersWithLocations(lat, lon, distance)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "error getting theaters", err.Error())
 	})
 }
 

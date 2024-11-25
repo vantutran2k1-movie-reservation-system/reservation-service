@@ -15,6 +15,7 @@ const (
 	IncludeUserProfile     = "includeProfile"
 	IncludeGenres          = "includeGenres"
 	IncludeTheaterLocation = "includeLocation"
+	MaxDistance            = "distance"
 
 	// Content types
 	ContentType     = "Content-Type"

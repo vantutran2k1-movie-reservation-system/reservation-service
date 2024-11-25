@@ -139,6 +139,7 @@ func RegisterRoutes() *gin.Engine {
 		{
 			theaters.GET("/:theaterId", c.TheaterController.GetTheater)
 			theaters.GET("/", c.TheaterController.GetTheaters)
+			theaters.GET("/nearby", c.TheaterController.GetNearbyTheaters)
 			theaters.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),
