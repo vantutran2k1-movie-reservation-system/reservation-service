@@ -69,3 +69,17 @@ func (mr *MockTheaterLocationRepositoryMockRecorder) GetLocation(filter any) *go
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocation", reflect.TypeOf((*MockTheaterLocationRepository)(nil).GetLocation), filter)
 }
+
+// UpdateTheaterLocation mocks base method.
+func (m *MockTheaterLocationRepository) UpdateTheaterLocation(tx *gorm.DB, location *models.TheaterLocation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTheaterLocation", tx, location)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTheaterLocation indicates an expected call of UpdateTheaterLocation.
+func (mr *MockTheaterLocationRepositoryMockRecorder) UpdateTheaterLocation(tx, location any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTheaterLocation", reflect.TypeOf((*MockTheaterLocationRepository)(nil).UpdateTheaterLocation), tx, location)
+}

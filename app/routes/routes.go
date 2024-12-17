@@ -155,6 +155,12 @@ func RegisterRoutes() *gin.Engine {
 					m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyTheaters),
 					c.TheaterController.CreateTheaterLocation,
 				)
+				theaterLocations.PUT(
+					"/",
+					m.AuthMiddleware.RequireAuthMiddleware(),
+					m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyTheaters),
+					c.TheaterController.UpdateTheaterLocation,
+				)
 			}
 		}
 	}

@@ -116,3 +116,25 @@ func (c *TheaterController) CreateTheaterLocation(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, gin.H{"data": utils.StructToMap(location)})
 }
+
+func (c *TheaterController) UpdateTheaterLocation(ctx *gin.Context) {
+	theaterID, e := uuid.Parse(ctx.Param("theaterId"))
+	if e != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid theater id"})
+		return
+	}
+
+	var req payloads.UpdateTheaterLocationRequest
+	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errs})
+		return
+	}
+
+	location, err := c.TheaterService.UpdateTheaterLocation(theaterID, req)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(location)})
+}

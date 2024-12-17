@@ -390,3 +390,102 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 		assert.Equal(t, "error creating location", err.Error())
 	})
 }
+
+func TestTheaterService_UpdateTheaterLocation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	transaction := mock_transaction.NewMockTransactionManager(ctrl)
+	theaterRepo := mock_repositories.NewMockTheaterRepository(ctrl)
+	theaterLocationRepo := mock_repositories.NewMockTheaterLocationRepository(ctrl)
+	cityRepo := mock_repositories.NewMockCityRepository(ctrl)
+	service := NewTheaterService(nil, transaction, theaterRepo, theaterLocationRepo, cityRepo, nil)
+
+	theater := utils.GenerateTheater()
+	location := utils.GenerateTheaterLocation()
+	location.TheaterID = &theater.ID
+	theater.Location = location
+	city := utils.GenerateCity()
+	req := utils.GenerateUpdateTheaterLocationRequest()
+	cityFilter := filters.CityFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: req.CityID},
+	}
+	theaterFilter := filters.TheaterFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: theater.ID},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, true).Return(theater, nil).Times(1)
+		cityRepo.EXPECT().GetCity(cityFilter).Return(city, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		theaterLocationRepo.EXPECT().UpdateTheaterLocation(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+
+		l, err := service.UpdateTheaterLocation(theater.ID, req)
+
+		assert.NotNil(t, l)
+		assert.Nil(t, err)
+		assert.Equal(t, req.CityID, l.CityID)
+		assert.Equal(t, req.Address, l.Address)
+		assert.Equal(t, req.PostalCode, l.PostalCode)
+		assert.Equal(t, req.Latitude, l.Latitude)
+		assert.Equal(t, req.Longitude, l.Longitude)
+	})
+
+	t.Run("theater not found", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, true).Return(nil, nil).Times(1)
+
+		l, err := service.UpdateTheaterLocation(theater.ID, req)
+
+		assert.Nil(t, l)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "theater not found", err.Error())
+	})
+
+	t.Run("error getting theater", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, true).Return(nil, errors.New("error getting theater")).Times(1)
+
+		l, err := service.UpdateTheaterLocation(theater.ID, req)
+
+		assert.Nil(t, l)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting theater", err.Error())
+	})
+
+	t.Run("theater location not found", func(t *testing.T) {
+		th := utils.GenerateTheater()
+		theaterRepo.EXPECT().GetTheater(theaterFilter, true).Return(th, nil).Times(1)
+
+		l, err := service.UpdateTheaterLocation(theater.ID, req)
+
+		assert.Nil(t, l)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "location not found", err.Error())
+	})
+
+	t.Run("error updating location", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, true).Return(theater, nil).Times(1)
+		cityRepo.EXPECT().GetCity(cityFilter).Return(city, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		theaterLocationRepo.EXPECT().UpdateTheaterLocation(gomock.Any(), gomock.Any()).Return(errors.New("error updating location")).Times(1)
+
+		l, err := service.UpdateTheaterLocation(theater.ID, req)
+
+		assert.Nil(t, l)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error updating location", err.Error())
+	})
+}

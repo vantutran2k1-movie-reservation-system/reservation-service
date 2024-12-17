@@ -100,3 +100,45 @@ func TestTheaterLocationRepository_CreateTheaterLocation(t *testing.T) {
 		assert.Equal(t, "error creating location", err.Error())
 	})
 }
+
+func TestTheaterLocationRepository_UpdateTheaterLocation(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewTheaterLocationRepository(db)
+
+	theater := utils.GenerateTheater()
+	location := utils.GenerateTheaterLocation()
+	location.TheaterID = &theater.ID
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "theater_locations" SET "theater_id"=$1,"city_id"=$2,"address"=$3,"postal_code"=$4,"latitude"=$5,"longitude"=$6 WHERE "id" = $7`)).
+			WithArgs(location.TheaterID, location.CityID, location.Address, location.PostalCode, location.Latitude, location.Longitude, location.ID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.UpdateTheaterLocation(tx, location)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error updating location", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "theater_locations" SET "theater_id"=$1,"city_id"=$2,"address"=$3,"postal_code"=$4,"latitude"=$5,"longitude"=$6 WHERE "id" = $7`)).
+			WithArgs(location.TheaterID, location.CityID, location.Address, location.PostalCode, location.Latitude, location.Longitude, location.ID).
+			WillReturnError(errors.New("error updating location"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.UpdateTheaterLocation(tx, location)
+		tx.Rollback()
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "error updating location", err.Error())
+	})
+}

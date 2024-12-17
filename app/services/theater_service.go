@@ -19,6 +19,7 @@ type TheaterService interface {
 	GetNearbyTheaters(distance float64) ([]*models.Theater, *errors.ApiError)
 	CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError)
 	CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
+	UpdateTheaterLocation(theaterId uuid.UUID, req payloads.UpdateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
 }
 
 func NewTheaterService(
@@ -153,16 +154,8 @@ func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads
 		return nil, errors.BadRequestError("duplicate location for this theater")
 	}
 
-	cityFilter := filters.CityFilter{
-		Filter: &filters.SingleFilter{Logic: filters.And},
-		ID:     &filters.Condition{Operator: filters.OpEqual, Value: req.CityID},
-	}
-	c, err := s.cityRepo.GetCity(cityFilter)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-	if c == nil {
-		return nil, errors.BadRequestError("invalid city id")
+	if _, apiErr := s.getCityById(req.CityID); apiErr != nil {
+		return nil, apiErr
 	}
 
 	l := &models.TheaterLocation{
@@ -181,6 +174,53 @@ func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads
 	}
 
 	return l, nil
+}
+
+func (s *theaterService) UpdateTheaterLocation(theaterId uuid.UUID, req payloads.UpdateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError) {
+	t, apiErr := s.GetTheater(theaterId, true)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+	if t.Location == nil {
+		return nil, errors.BadRequestError("location not found")
+	}
+
+	if _, apiErr := s.getCityById(req.CityID); apiErr != nil {
+		return nil, apiErr
+	}
+
+	loc := &models.TheaterLocation{
+		ID:         t.Location.ID,
+		TheaterID:  &theaterId,
+		CityID:     req.CityID,
+		Address:    req.Address,
+		PostalCode: req.PostalCode,
+		Latitude:   req.Latitude,
+		Longitude:  req.Longitude,
+	}
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.theaterLocationRepo.UpdateTheaterLocation(tx, loc)
+	}); err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return loc, nil
+}
+
+func (s *theaterService) getCityById(cityId uuid.UUID) (*models.City, *errors.ApiError) {
+	cityFilter := filters.CityFilter{
+		Filter: &filters.SingleFilter{Logic: filters.And},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: cityId},
+	}
+	c, err := s.cityRepo.GetCity(cityFilter)
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if c == nil {
+		return nil, errors.BadRequestError("invalid city id")
+	}
+
+	return c, nil
 }
 
 func (s *theaterService) buildGetTheatersMeta(limit, offset, count int, includeLocation bool) *models.ResponseMeta {

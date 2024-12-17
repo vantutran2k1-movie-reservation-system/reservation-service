@@ -10,6 +10,7 @@ import (
 type TheaterLocationRepository interface {
 	GetLocation(filter filters.TheaterLocationFilter) (*models.TheaterLocation, error)
 	CreateTheaterLocation(tx *gorm.DB, location *models.TheaterLocation) error
+	UpdateTheaterLocation(tx *gorm.DB, location *models.TheaterLocation) error
 }
 
 func NewTheaterLocationRepository(db *gorm.DB) TheaterLocationRepository {
@@ -37,4 +38,8 @@ func (r *theaterLocationRepository) GetLocation(filter filters.TheaterLocationFi
 
 func (r *theaterLocationRepository) CreateTheaterLocation(tx *gorm.DB, location *models.TheaterLocation) error {
 	return tx.Create(location).Error
+}
+
+func (r *theaterLocationRepository) UpdateTheaterLocation(tx *gorm.DB, location *models.TheaterLocation) error {
+	return tx.Save(location).Error
 }

@@ -423,6 +423,16 @@ func GenerateCreateTheaterLocationRequest() payloads.CreateTheaterLocationReques
 	}
 }
 
+func GenerateUpdateTheaterLocationRequest() payloads.UpdateTheaterLocationRequest {
+	return payloads.UpdateTheaterLocationRequest{
+		CityID:     generateUUID(),
+		Address:    generateString(lowercaseChars, 50),
+		PostalCode: generateString(numberChars, 6),
+		Latitude:   generateFloat(1.0, 100.0),
+		Longitude:  generateFloat(1.0, 100.0),
+	}
+}
+
 // Helpers
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
 const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
