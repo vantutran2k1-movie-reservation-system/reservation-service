@@ -82,116 +82,6 @@ func TestUserProfileController_GetProfileByUserID(t *testing.T) {
 	})
 }
 
-func TestUserProfileController_CreateUserProfile(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	service := mock_services.NewMockUserProfileService(ctrl)
-	controller := UserProfileController{
-		UserProfileService: service,
-	}
-
-	gin.SetMode(gin.TestMode)
-
-	session := utils.GenerateUserSession()
-	profile := utils.GenerateUserProfile()
-	payload := utils.GenerateCreateUserProfileRequest()
-
-	t.Run("successful profile creation", func(t *testing.T) {
-		errors.RegisterCustomValidators()
-
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.POST("/profiles", controller.CreateUserProfile)
-
-		service.EXPECT().
-			CreateUserProfile(session.UserID, payload).
-			Return(profile, nil)
-
-		reqBody := fmt.Sprintf(`{"first_name": "%s", "last_name": "%s", "phone_number": "%s","date_of_birth": "%s"}`,
-			payload.FirstName, payload.LastName, *payload.PhoneNumber, *payload.DateOfBirth)
-
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, "/profiles", bytes.NewBufferString(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusCreated, w.Code)
-		assert.Contains(t, w.Body.String(), profile.FirstName)
-		assert.Contains(t, w.Body.String(), profile.LastName)
-	})
-
-	t.Run("validation error", func(t *testing.T) {
-		errors.RegisterCustomValidators()
-
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.POST("/profiles", controller.CreateUserProfile)
-
-		reqBody := fmt.Sprintf(`{"first_name": "", "last_name": "%s", "phone_number": "%s","date_of_birth": "2024-13-01"}`,
-			payload.LastName, *payload.PhoneNumber)
-
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, "/profiles", bytes.NewBufferString(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "This field is required")
-		assert.Contains(t, w.Body.String(), "Should be a valid date with format YYYY-MM-DD")
-	})
-
-	t.Run("session retrieval error", func(t *testing.T) {
-		errors.RegisterCustomValidators()
-
-		router := gin.Default()
-		router.POST("/profiles", controller.CreateUserProfile)
-
-		reqBody := fmt.Sprintf(`{"first_name": "%s", "last_name": "%s", "phone_number": "%s","date_of_birth": "%s"}`,
-			payload.FirstName, payload.LastName, *payload.PhoneNumber, *payload.DateOfBirth)
-
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, "/profiles", bytes.NewBufferString(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-	})
-
-	t.Run("service error", func(t *testing.T) {
-		errors.RegisterCustomValidators()
-
-		router := gin.Default()
-		router.Use(func(c *gin.Context) {
-			context.SetRequestContext(c, context.RequestContext{UserSession: session})
-			c.Next()
-		})
-		router.POST("/profiles", controller.CreateUserProfile)
-
-		reqBody := fmt.Sprintf(`{"first_name": "%s", "last_name": "%s", "phone_number": "%s","date_of_birth": "%s"}`,
-			payload.FirstName, payload.LastName, *payload.PhoneNumber, *payload.DateOfBirth)
-
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, "/profiles", bytes.NewBufferString(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		service.EXPECT().
-			CreateUserProfile(session.UserID, payload).
-			Return(nil, errors.InternalServerError("Failed to create profile"))
-
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.Contains(t, w.Body.String(), "Failed to create profile")
-	})
-}
-
 func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -242,7 +132,7 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 			context.SetRequestContext(c, context.RequestContext{UserSession: session})
 			c.Next()
 		})
-		router.PUT("/profiles", controller.CreateUserProfile)
+		router.PUT("/profiles", controller.UpdateUserProfile)
 
 		reqBody := fmt.Sprintf(`{"first_name": "", "last_name": "%s", "phone_number": "%s","date_of_birth": "2024-13-01"}`,
 			payload.LastName, *payload.PhoneNumber)
@@ -261,7 +151,7 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 		errors.RegisterCustomValidators()
 
 		router := gin.Default()
-		router.PUT("/profiles", controller.CreateUserProfile)
+		router.PUT("/profiles", controller.UpdateUserProfile)
 
 		reqBody := fmt.Sprintf(`{"first_name": "%s", "last_name": "%s", "phone_number": "%s","date_of_birth": "%s"}`,
 			payload.FirstName, payload.LastName, *payload.PhoneNumber, *payload.DateOfBirth)

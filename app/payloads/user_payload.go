@@ -1,8 +1,9 @@
 package payloads
 
 type CreateUserRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8,max=32"`
+	Email    string                   `json:"email" binding:"required,email"`
+	Password string                   `json:"password" binding:"required,min=8,max=32"`
+	Profile  CreateUserProfileRequest `json:"profile" binding:"required"`
 }
 
 type LoginUserRequest struct {

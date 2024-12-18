@@ -33,6 +33,7 @@ type userService struct {
 	authenticator          auth.Authenticator
 	transactionManager     transaction.TransactionManager
 	userRepo               repositories.UserRepository
+	userProfileRepo        repositories.UserProfileRepository
 	loginTokenRepo         repositories.LoginTokenRepository
 	userSessionRepo        repositories.UserSessionRepository
 	passwordResetTokenRepo repositories.PasswordResetTokenRepository
@@ -44,6 +45,7 @@ func NewUserService(
 	authenticator auth.Authenticator,
 	transactionManager transaction.TransactionManager,
 	userRepo repositories.UserRepository,
+	userProfileRepo repositories.UserProfileRepository,
 	loginTokenRepo repositories.LoginTokenRepository,
 	userSessionRepo repositories.UserSessionRepository,
 	passwordResetTokenRepo repositories.PasswordResetTokenRepository,
@@ -54,6 +56,7 @@ func NewUserService(
 		authenticator:          authenticator,
 		transactionManager:     transactionManager,
 		userRepo:               userRepo,
+		userProfileRepo:        userProfileRepo,
 		loginTokenRepo:         loginTokenRepo,
 		userSessionRepo:        userSessionRepo,
 		passwordResetTokenRepo: passwordResetTokenRepo,
@@ -86,15 +89,30 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 		return nil, errors.InternalServerError(err.Error())
 	}
 
+	userId := uuid.New()
+	currentTime := time.Now().UTC()
 	u = &models.User{
-		ID:           uuid.New(),
+		ID:           userId,
 		Email:        req.Email,
 		PasswordHash: hashedPassword,
-		CreatedAt:    time.Now().UTC(),
-		UpdatedAt:    time.Now().UTC(),
+		CreatedAt:    currentTime,
+		UpdatedAt:    currentTime,
+	}
+	p := &models.UserProfile{
+		ID:          uuid.New(),
+		UserID:      userId,
+		FirstName:   req.Profile.FirstName,
+		LastName:    req.Profile.LastName,
+		PhoneNumber: req.Profile.PhoneNumber,
+		DateOfBirth: req.Profile.DateOfBirth,
+		CreatedAt:   currentTime,
+		UpdatedAt:   currentTime,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.userRepo.CreateUser(tx, u)
+		if err := s.userRepo.CreateUser(tx, u); err != nil {
+			return err
+		}
+		return s.userProfileRepo.CreateUserProfile(tx, p)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}

@@ -43,21 +43,6 @@ func (m *MockUserProfileService) EXPECT() *MockUserProfileServiceMockRecorder {
 	return m.recorder
 }
 
-// CreateUserProfile mocks base method.
-func (m *MockUserProfileService) CreateUserProfile(userID uuid.UUID, req payloads.CreateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUserProfile", userID, req)
-	ret0, _ := ret[0].(*models.UserProfile)
-	ret1, _ := ret[1].(*errors.ApiError)
-	return ret0, ret1
-}
-
-// CreateUserProfile indicates an expected call of CreateUserProfile.
-func (mr *MockUserProfileServiceMockRecorder) CreateUserProfile(userID, req any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserProfile", reflect.TypeOf((*MockUserProfileService)(nil).CreateUserProfile), userID, req)
-}
-
 // DeleteProfilePicture mocks base method.
 func (m *MockUserProfileService) DeleteProfilePicture(userID uuid.UUID) *errors.ApiError {
 	m.ctrl.T.Helper()

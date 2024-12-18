@@ -18,7 +18,6 @@ import (
 
 type UserProfileService interface {
 	GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError)
-	CreateUserProfile(userID uuid.UUID, req payloads.CreateUserProfileRequest) (*models.UserProfile, *errors.ApiError)
 	UpdateUserProfile(userID uuid.UUID, req payloads.UpdateUserProfileRequest) (*models.UserProfile, *errors.ApiError)
 	UpdateProfilePicture(userID uuid.UUID, file *multipart.FileHeader) (*models.UserProfile, *errors.ApiError)
 	DeleteProfilePicture(userID uuid.UUID) *errors.ApiError
@@ -50,37 +49,6 @@ func NewUserProfileService(
 
 func (s *userProfileService) GetProfileByUserID(userID uuid.UUID) (*models.UserProfile, *errors.ApiError) {
 	return s.getUserProfileAndVerifyExist(userID)
-}
-
-func (s *userProfileService) CreateUserProfile(userID uuid.UUID, req payloads.CreateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {
-	u, err := s.getUser(userID)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-	if u == nil {
-		return nil, errors.NotFoundError("user does not exist")
-	}
-	if u.Profile != nil {
-		return nil, errors.BadRequestError("user profile already exists")
-	}
-
-	p := &models.UserProfile{
-		ID:          uuid.New(),
-		UserID:      userID,
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		PhoneNumber: req.PhoneNumber,
-		DateOfBirth: req.DateOfBirth,
-		CreatedAt:   time.Now().UTC(),
-		UpdatedAt:   time.Now().UTC(),
-	}
-	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		return s.userProfileRepo.CreateUserProfile(tx, p)
-	}); err != nil {
-		return nil, errors.InternalServerError(err.Error())
-	}
-
-	return p, nil
 }
 
 func (s *userProfileService) UpdateUserProfile(userID uuid.UUID, req payloads.UpdateUserProfileRequest) (*models.UserProfile, *errors.ApiError) {

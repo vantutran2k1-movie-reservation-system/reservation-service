@@ -127,7 +127,7 @@ func TestUserController_CreateUser(t *testing.T) {
 	t.Run("successful user creation", func(t *testing.T) {
 		service.EXPECT().CreateUser(payload).Return(&models.User{Email: payload.Email}, nil)
 
-		reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, payload.Email, payload.Password)
+		reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s", "profile": {"first_name": "%s", "last_name": "%s", "phone_number": "%s", "date_of_birth": "%s"}}`, payload.Email, payload.Password, payload.Profile.FirstName, payload.Profile.LastName, *payload.Profile.PhoneNumber, *payload.Profile.DateOfBirth)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/user", bytes.NewBufferString(reqBody))
@@ -153,8 +153,7 @@ func TestUserController_CreateUser(t *testing.T) {
 	t.Run("service error", func(t *testing.T) {
 		service.EXPECT().CreateUser(payload).Return(nil, errors.InternalServerError("Service error"))
 
-		reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, payload.Email, payload.Password)
-
+		reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s", "profile": {"first_name": "%s", "last_name": "%s", "phone_number": "%s", "date_of_birth": "%s"}}`, payload.Email, payload.Password, payload.Profile.FirstName, payload.Profile.LastName, *payload.Profile.PhoneNumber, *payload.Profile.DateOfBirth)
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/user", bytes.NewBufferString(reqBody))
 		req.Header.Set("Content-Type", "application/json")

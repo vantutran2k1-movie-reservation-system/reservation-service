@@ -35,7 +35,6 @@ func RegisterRoutes() *gin.Engine {
 		profiles.Use(m.AuthMiddleware.RequireAuthMiddleware())
 		{
 			profiles.GET("/me", c.UserProfileController.GetProfileByUserID)
-			profiles.POST("/", c.UserProfileController.CreateUserProfile)
 			profiles.PUT("/", c.UserProfileController.UpdateUserProfile)
 
 			profiles.PUT(

@@ -92,6 +92,7 @@ func setupServices(repositories *Repositories) {
 			authenticator,
 			transactionManager,
 			repositories.UserRepository,
+			repositories.UserProfileRepository,
 			repositories.LoginTokenRepository,
 			repositories.UserSessionRepository,
 			repositories.PasswordResetTokenRepository,

@@ -55,6 +55,7 @@ func GenerateCreateUserRequest() payloads.CreateUserRequest {
 	return payloads.CreateUserRequest{
 		Email:    generateEmail(),
 		Password: generatePassword(),
+		Profile:  GenerateCreateUserProfileRequest(),
 	}
 }
 
