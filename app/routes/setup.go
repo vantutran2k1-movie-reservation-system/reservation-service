@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
@@ -162,6 +163,13 @@ func setupRouter() {
 	}
 
 	router = gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{os.Getenv("PLATFORM_UI_ENDPOINT")},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 }
 
 func setupRoutes() {
