@@ -6,6 +6,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -107,6 +108,54 @@ func TestUserController_GetCurrentUser(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assert.Contains(t, w.Body.String(), "user not found")
+	})
+}
+
+func TestUserController_UserExistsByEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockUserService(ctrl)
+	controller := UserController{
+		UserService: service,
+	}
+
+	user := utils.GenerateUser()
+
+	router := gin.Default()
+	router.GET("/users/exists", controller.UserExistsByEmail)
+
+	t.Run("success", func(t *testing.T) {
+		service.EXPECT().UserExistsByEmail(user.Email).Return(true, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/exists?%s=%s", constants.Email, user.Email), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), strconv.FormatBool(true))
+	})
+
+	t.Run("user not exists", func(t *testing.T) {
+		service.EXPECT().UserExistsByEmail(user.Email).Return(false, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/exists?%s=%s", constants.Email, user.Email), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), strconv.FormatBool(false))
+	})
+
+	t.Run("error getting user", func(t *testing.T) {
+		service.EXPECT().UserExistsByEmail(user.Email).Return(false, errors.InternalServerError("error getting user")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/users/exists?%s=%s", constants.Email, user.Email), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "error getting user")
 	})
 }
 

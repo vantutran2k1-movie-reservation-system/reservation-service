@@ -143,3 +143,18 @@ func (mr *MockUserServiceMockRecorder) UpdateUserPassword(userID, req any) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockUserService)(nil).UpdateUserPassword), userID, req)
 }
+
+// UserExistsByEmail mocks base method.
+func (m *MockUserService) UserExistsByEmail(email string) (bool, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserExistsByEmail", email)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// UserExistsByEmail indicates an expected call of UserExistsByEmail.
+func (mr *MockUserServiceMockRecorder) UserExistsByEmail(email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserExistsByEmail", reflect.TypeOf((*MockUserService)(nil).UserExistsByEmail), email)
+}

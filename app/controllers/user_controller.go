@@ -59,6 +59,22 @@ func (c *UserController) GetCurrentUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(u)})
 }
 
+func (c *UserController) UserExistsByEmail(ctx *gin.Context) {
+	email := ctx.Query(constants.Email)
+	if email == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid email"})
+		return
+	}
+
+	exists, err := c.UserService.UserExistsByEmail(email)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": exists})
+}
+
 func (c *UserController) CreateUser(ctx *gin.Context) {
 	var req payloads.CreateUserRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {

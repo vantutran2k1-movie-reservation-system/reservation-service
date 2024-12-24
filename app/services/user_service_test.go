@@ -63,6 +63,41 @@ func TestUserService_GetUser(t *testing.T) {
 	})
 }
 
+func TestUserService_UserExistsByEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock_repositories.NewMockUserRepository(ctrl)
+	service := NewUserService(nil, nil, nil, nil, repo, nil, nil, nil, nil)
+
+	user := utils.GenerateUser()
+	filter := filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		Email:  &filters.Condition{Operator: filters.OpEqual, Value: user.Email},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		repo.EXPECT().UserExists(filter).Return(true, nil).Times(1)
+
+		result, err := service.UserExistsByEmail(user.Email)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("error checking user", func(t *testing.T) {
+		repo.EXPECT().UserExists(filter).Return(false, errors.New("error checking user")).Times(1)
+
+		result, err := service.UserExistsByEmail(user.Email)
+
+		assert.NotNil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error checking user", err.Error())
+	})
+}
+
 func TestUserService_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

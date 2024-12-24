@@ -69,6 +69,58 @@ func TestUserRepository_GetUser(t *testing.T) {
 	})
 }
 
+func TestUserRepository_UserExists(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewUserRepository(db)
+
+	user := utils.GenerateUser()
+	filter := filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		Email:  &filters.Condition{Operator: filters.OpEqual, Value: user.Email},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
+			WithArgs(filter.Email.Value, 1).
+			WillReturnRows(utils.GenerateSqlMockRow(user))
+
+		result, err := repo.UserExists(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("user not found", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
+			WithArgs(filter.Email.Value, 1).
+			WillReturnRows(sqlmock.NewRows(nil))
+
+		result, err := repo.UserExists(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, false, result)
+	})
+
+	t.Run("error getting user", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta(`SELECT "id" FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
+			WithArgs(filter.Email.Value, 1).
+			WillReturnError(errors.New("error getting user"))
+
+		result, err := repo.UserExists(filter)
+
+		assert.NotNil(t, result)
+		assert.Error(t, err)
+		assert.Equal(t, false, result)
+		assert.Equal(t, "error getting user", err.Error())
+	})
+}
+
 func TestUserRepository_CreateUser(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {

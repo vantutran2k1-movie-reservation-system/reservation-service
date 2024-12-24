@@ -19,6 +19,7 @@ import (
 
 type UserService interface {
 	GetUser(id uuid.UUID, includeProfile bool) (*models.User, *errors.ApiError)
+	UserExistsByEmail(email string) (bool, *errors.ApiError)
 	CreateUser(req payloads.CreateUserRequest) (*models.User, *errors.ApiError)
 	LoginUser(req payloads.LoginUserRequest) (*models.LoginToken, *errors.ApiError)
 	LogoutUser(tokenValue string) *errors.ApiError
@@ -73,6 +74,17 @@ func (s *userService) GetUser(id uuid.UUID, includeProfile bool) (*models.User, 
 	}
 
 	return u, nil
+}
+
+func (s *userService) UserExistsByEmail(email string) (bool, *errors.ApiError) {
+	exist, err := s.userRepo.UserExists(filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		Email:  &filters.Condition{Operator: filters.OpEqual, Value: email},
+	})
+	if err != nil {
+		return false, errors.InternalServerError(err.Error())
+	}
+	return exist, nil
 }
 
 func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, *errors.ApiError) {

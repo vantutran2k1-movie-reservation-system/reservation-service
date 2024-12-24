@@ -11,6 +11,7 @@ import (
 
 type UserRepository interface {
 	GetUser(filter filters.UserFilter, includeProfile bool) (*models.User, error)
+	UserExists(filter filters.UserFilter) (bool, error)
 	CreateUser(tx *gorm.DB, user *models.User) error
 	UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error)
 }
@@ -39,6 +40,20 @@ func (r *userRepository) GetUser(filter filters.UserFilter, includeProfile bool)
 	}
 
 	return &u, nil
+}
+
+func (r *userRepository) UserExists(filter filters.UserFilter) (bool, error) {
+	query := filter.GetFilterQuery(r.db)
+	var u models.User
+	if err := query.Select("id").First(&u).Error; err != nil {
+		if errors.IsRecordNotFoundError(err) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (r *userRepository) CreateUser(tx *gorm.DB, user *models.User) error {

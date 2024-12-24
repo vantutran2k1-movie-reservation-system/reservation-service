@@ -16,6 +16,7 @@ const (
 	IncludeGenres          = "includeGenres"
 	IncludeTheaterLocation = "includeLocation"
 	MaxDistance            = "distance"
+	Email                  = "email"
 
 	// Content types
 	ContentType     = "Content-Type"

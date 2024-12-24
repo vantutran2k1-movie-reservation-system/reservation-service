@@ -21,6 +21,7 @@ func RegisterRoutes() *gin.Engine {
 				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyUsers),
 				c.UserController.GetUser,
 			)
+			users.GET("/exists", c.UserController.UserExistsByEmail)
 			users.POST("/", c.UserController.CreateUser)
 
 			users.POST("/login", c.UserController.LoginUser)
