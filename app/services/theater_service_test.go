@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	apiError "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
@@ -142,7 +143,10 @@ func TestTheaterService_GetNearbyTheaters(t *testing.T) {
 	userLocService := mock_services.NewMockUserLocationService(ctrl)
 	service := NewTheaterService(nil, nil, repo, nil, nil, userLocService)
 
-	userLoc := utils.GenerateUserLocation()
+	userLoc := &models.UserLocation{
+		Latitude:  20.0,
+		Longitude: 30.0,
+	}
 	distance := 10.0
 
 	t.Run("success", func(t *testing.T) {
@@ -208,7 +212,9 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 	service := NewTheaterService(nil, transaction, repo, nil, nil, nil)
 
 	theater := utils.GenerateTheater()
-	req := utils.GenerateCreateTheaterRequest()
+	req := payloads.CreateTheaterRequest{
+		Name: theater.Name,
+	}
 	filter := filters.TheaterFilter{
 		Filter: &filters.SingleFilter{},
 		Name:   &filters.Condition{Operator: filters.OpEqual, Value: &req.Name},
@@ -282,7 +288,13 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 
 	theater := utils.GenerateTheater()
 	city := utils.GenerateCity()
-	req := utils.GenerateCreateTheaterLocationRequest()
+	req := payloads.CreateTheaterLocationRequest{
+		CityID:     uuid.New(),
+		Address:    "address",
+		PostalCode: "700000",
+		Latitude:   50.0,
+		Longitude:  100.0,
+	}
 	cityFilter := filters.CityFilter{
 		Filter: &filters.SingleFilter{Logic: filters.And},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: req.CityID},
@@ -406,7 +418,13 @@ func TestTheaterService_UpdateTheaterLocation(t *testing.T) {
 	location.TheaterID = &theater.ID
 	theater.Location = location
 	city := utils.GenerateCity()
-	req := utils.GenerateUpdateTheaterLocationRequest()
+	req := payloads.UpdateTheaterLocationRequest{
+		CityID:     uuid.New(),
+		Address:    "address",
+		PostalCode: "700000",
+		Latitude:   50.0,
+		Longitude:  100.0,
+	}
 	cityFilter := filters.CityFilter{
 		Filter: &filters.SingleFilter{Logic: filters.And},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: req.CityID},

@@ -2,45 +2,20 @@ package utils
 
 import (
 	"fmt"
-	"mime/multipart"
 	"time"
 
 	"math/rand"
 
 	"github.com/google/uuid"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
-	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Common generated fields
-func GenerateResponseMeta() *models.ResponseMeta {
-	prevUrl := GenerateURL()
-	nextUrl := GenerateURL()
-
-	return &models.ResponseMeta{
-		Limit:   generateInt(1, 10),
-		Offset:  generateInt(0, 5),
-		Total:   generateInt(20, 30),
-		NextUrl: &nextUrl,
-		PrevUrl: &prevUrl,
-	}
+func GetPointerOf[T any](value T) *T {
+	return &value
 }
 
-func GenerateURL() string {
-	protocol := urlProtocols[rand.Intn(len(urlProtocols))]
-	subdomain := generateString(lowercaseChars, rand.Intn(5)+3)
-	domain := urlDomains[rand.Intn(len(urlDomains))]
-	path := generateString(lowercaseChars+"/", rand.Intn(10)+5)
-	queryParams := generateString(lowercaseChars, rand.Intn(3)+3) + "=value"
-
-	return fmt.Sprintf("%s://%s.%s/%s?%s", protocol, subdomain, domain, path, queryParams)
-}
-
-// Models and payloads
-//
-// User
+// Models
 func GenerateUser() *models.User {
 	return &models.User{
 		ID:           generateUUID(),
@@ -51,38 +26,10 @@ func GenerateUser() *models.User {
 	}
 }
 
-func GenerateCreateUserRequest() payloads.CreateUserRequest {
-	return payloads.CreateUserRequest{
-		Email:    generateEmail(),
-		Password: generatePassword(),
-		Profile:  GenerateCreateUserProfileRequest(),
-	}
-}
-
-func GenerateUpdatePasswordRequest() payloads.UpdatePasswordRequest {
-	return payloads.UpdatePasswordRequest{
-		Password: generatePassword(),
-	}
-}
-
-func GenerateLoginUserRequest() payloads.LoginUserRequest {
-	return payloads.LoginUserRequest{
-		Email:    generateEmail(),
-		Password: generatePassword(),
-	}
-}
-
-func GenerateResetUserPasswordRequest() payloads.ResetPasswordRequest {
-	return payloads.ResetPasswordRequest{
-		Password: generatePassword(),
-	}
-}
-
-// User profile
 func GenerateUserProfile() *models.UserProfile {
 	phoneNumber := generatePhoneNumber()
 	dateOfBirth := generateDate()
-	profilePictureUrl := GenerateURL()
+	profilePictureUrl := generateURL()
 	bio := generateString(allChars, 50)
 
 	return &models.UserProfile{
@@ -99,31 +46,6 @@ func GenerateUserProfile() *models.UserProfile {
 	}
 }
 
-func GenerateCreateUserProfileRequest() payloads.CreateUserProfileRequest {
-	phoneNumber := generatePhoneNumber()
-	dateOfBirth := generateDate()
-
-	return payloads.CreateUserProfileRequest{
-		FirstName:   generateName(),
-		LastName:    generateName(),
-		PhoneNumber: &phoneNumber,
-		DateOfBirth: &dateOfBirth,
-	}
-}
-
-func GenerateUpdateUserProfileRequest() payloads.UpdateUserProfileRequest {
-	phoneNumber := generatePhoneNumber()
-	dateOfBirth := generateDate()
-
-	return payloads.UpdateUserProfileRequest{
-		FirstName:   generateName(),
-		LastName:    generateName(),
-		PhoneNumber: &phoneNumber,
-		DateOfBirth: &dateOfBirth,
-	}
-}
-
-// Login token
 func GenerateLoginToken() *models.LoginToken {
 	return &models.LoginToken{
 		ID:         generateUUID(),
@@ -134,7 +56,6 @@ func GenerateLoginToken() *models.LoginToken {
 	}
 }
 
-// User session
 func GenerateUserSession() *models.UserSession {
 	return &models.UserSession{
 		UserID: generateUUID(),
@@ -142,20 +63,6 @@ func GenerateUserSession() *models.UserSession {
 	}
 }
 
-func GenerateSessionID() string {
-	return uuid.NewString()
-}
-
-// File
-func GenerateFileHeader() *multipart.FileHeader {
-	return &multipart.FileHeader{
-		Filename: generateName(),
-		Size:     100,
-		Header:   map[string][]string{constants.ContentType: {constants.ImagePng}},
-	}
-}
-
-// Movie
 func GenerateMovie() *models.Movie {
 	description := generateString(letterChars, 100)
 	language := generateString(letterChars, 10)
@@ -187,47 +94,6 @@ func GenerateMovies(count int) []*models.Movie {
 	return movies
 }
 
-func GenerateCreateMovieRequest() payloads.CreateMovieRequest {
-	description := generateString(allChars, 100)
-	language := generateString(lowercaseChars, 10)
-	rating := generateFloat(0, 5)
-	isActive := generateBool()
-
-	return payloads.CreateMovieRequest{
-		Title:           generateString(allChars, 10),
-		Description:     &description,
-		ReleaseDate:     generateDate(),
-		DurationMinutes: generateInt(100, 200),
-		Language:        &language,
-		Rating:          &rating,
-		IsActive:        &isActive,
-	}
-}
-
-func GenerateUpdateMovieRequest() payloads.UpdateMovieRequest {
-	description := generateString(allChars, 100)
-	language := generateString(lowercaseChars, 10)
-	rating := generateFloat(0, 5)
-	isActive := generateBool()
-
-	return payloads.UpdateMovieRequest{
-		Title:           generateString(allChars, 10),
-		Description:     &description,
-		ReleaseDate:     generateDate(),
-		DurationMinutes: generateInt(100, 200),
-		Language:        &language,
-		Rating:          &rating,
-		IsActive:        &isActive,
-	}
-}
-
-func GenerateUpdateMovieGenresRequest() *payloads.UpdateMovieGenresRequest {
-	return &payloads.UpdateMovieGenresRequest{
-		GenreIDs: []uuid.UUID{generateUUID(), generateUUID()},
-	}
-}
-
-// Genre
 func GenerateGenre() *models.Genre {
 	return &models.Genre{
 		ID:   generateUUID(),
@@ -244,19 +110,6 @@ func GenerateGenres(count int) []*models.Genre {
 	return genres
 }
 
-func GenerateCreateGenreRequest() payloads.CreateGenreRequest {
-	return payloads.CreateGenreRequest{
-		Name: generateString(letterChars, 10),
-	}
-}
-
-func GenerateUpdateGenreRequest() payloads.UpdateGenreRequest {
-	return payloads.UpdateGenreRequest{
-		Name: generateString(letterChars, 10),
-	}
-}
-
-// Password reset token
 func GeneratePasswordResetToken() *models.PasswordResetToken {
 	return &models.PasswordResetToken{
 		ID:         generateUUID(),
@@ -277,13 +130,6 @@ func GeneratePasswordResetTokens(count int) []*models.PasswordResetToken {
 	return tokens
 }
 
-func GenerateCreatePasswordResetTokenRequest() payloads.CreatePasswordResetTokenRequest {
-	return payloads.CreatePasswordResetTokenRequest{
-		Email: generateEmail(),
-	}
-}
-
-// Country
 func GenerateCountry() *models.Country {
 	return &models.Country{
 		ID:   generateUUID(),
@@ -301,14 +147,6 @@ func GenerateCountries(count int) []*models.Country {
 	return countries
 }
 
-func GenerateCreateCountryRequest() payloads.CreateCountryRequest {
-	return payloads.CreateCountryRequest{
-		Name: generateString(lowercaseChars, 10),
-		Code: generateString(uppercaseChars, 2),
-	}
-}
-
-// State
 func GenerateState() *models.State {
 	code := generateString(uppercaseChars, 2)
 
@@ -329,16 +167,6 @@ func GenerateStates(count int) []*models.State {
 	return states
 }
 
-func GenerateCreateStateRequest() payloads.CreateStateRequest {
-	code := generateString(uppercaseChars, 2)
-
-	return payloads.CreateStateRequest{
-		Name: generateString(lowercaseChars, 10),
-		Code: &code,
-	}
-}
-
-// City
 func GenerateCity() *models.City {
 	return &models.City{
 		ID:      generateUUID(),
@@ -356,13 +184,6 @@ func GenerateCities(count int) []*models.City {
 	return cities
 }
 
-func GenerateCreateCityRequest() payloads.CreateCityRequest {
-	return payloads.CreateCityRequest{
-		Name: generateString(lowercaseChars, 10),
-	}
-}
-
-// Theater
 func GenerateTheater() *models.Theater {
 	return &models.Theater{
 		ID:   generateUUID(),
@@ -399,39 +220,6 @@ func GenerateTheaterLocations(count int) []*models.TheaterLocation {
 	}
 
 	return locations
-}
-
-func GenerateUserLocation() *models.UserLocation {
-	return &models.UserLocation{
-		Latitude:  generateFloat(1, 100),
-		Longitude: generateFloat(1, 100),
-	}
-}
-
-func GenerateCreateTheaterRequest() payloads.CreateTheaterRequest {
-	return payloads.CreateTheaterRequest{
-		Name: generateString(letterChars, 10),
-	}
-}
-
-func GenerateCreateTheaterLocationRequest() payloads.CreateTheaterLocationRequest {
-	return payloads.CreateTheaterLocationRequest{
-		CityID:     generateUUID(),
-		Address:    generateString(lowercaseChars, 50),
-		PostalCode: generateString(numberChars, 6),
-		Latitude:   generateFloat(1.0, 100.0),
-		Longitude:  generateFloat(1.0, 100.0),
-	}
-}
-
-func GenerateUpdateTheaterLocationRequest() payloads.UpdateTheaterLocationRequest {
-	return payloads.UpdateTheaterLocationRequest{
-		CityID:     generateUUID(),
-		Address:    generateString(lowercaseChars, 50),
-		PostalCode: generateString(numberChars, 6),
-		Latitude:   generateFloat(1.0, 100.0),
-		Longitude:  generateFloat(1.0, 100.0),
-	}
 }
 
 // Helpers
@@ -508,4 +296,14 @@ func generateDate() string {
 	date := start.AddDate(0, 0, int(days)-1)
 
 	return date.Format("2006-01-02")
+}
+
+func generateURL() string {
+	protocol := urlProtocols[rand.Intn(len(urlProtocols))]
+	subdomain := generateString(lowercaseChars, rand.Intn(5)+3)
+	domain := urlDomains[rand.Intn(len(urlDomains))]
+	path := generateString(lowercaseChars+"/", rand.Intn(10)+5)
+	queryParams := generateString(lowercaseChars, rand.Intn(3)+3) + "=value"
+
+	return fmt.Sprintf("%s://%s.%s/%s?%s", protocol, subdomain, domain, path, queryParams)
 }

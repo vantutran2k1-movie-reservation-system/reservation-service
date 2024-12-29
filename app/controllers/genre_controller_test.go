@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -129,7 +130,9 @@ func TestGenreController_CreateGenre(t *testing.T) {
 	router.POST("/genres", controller.CreateGenre)
 
 	genre := utils.GenerateGenre()
-	payload := utils.GenerateCreateGenreRequest()
+	payload := payloads.CreateGenreRequest{
+		Name: "genre name",
+	}
 
 	t.Run("success", func(t *testing.T) {
 		service.EXPECT().CreateGenre(payload).Return(genre, nil).Times(1)
@@ -186,7 +189,9 @@ func TestGenreController_UpdateGenre(t *testing.T) {
 	router.PUT("/genres/:id", controller.UpdateGenre)
 
 	genre := utils.GenerateGenre()
-	payload := utils.GenerateUpdateGenreRequest()
+	payload := payloads.UpdateGenreRequest{
+		Name: "genre name",
+	}
 
 	t.Run("success", func(t *testing.T) {
 		service.EXPECT().UpdateGenre(genre.ID, payload).Return(genre, nil).Times(1)

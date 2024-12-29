@@ -9,6 +9,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -109,7 +110,16 @@ func TestUserService_CreateUser(t *testing.T) {
 	service := NewUserService(nil, nil, auth, transaction, userRepo, profileRepo, nil, nil, nil)
 
 	user := utils.GenerateUser()
-	req := utils.GenerateCreateUserRequest()
+	req := payloads.CreateUserRequest{
+		Email:    "example@example.com",
+		Password: "password",
+		Profile: payloads.CreateUserProfileRequest{
+			FirstName:   "First",
+			LastName:    "Last",
+			PhoneNumber: utils.GetPointerOf("0000000000"),
+			DateOfBirth: utils.GetPointerOf("1970-01-01"),
+		},
+	}
 	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
 		Email:  &filters.Condition{Operator: filters.OpEqual, Value: req.Email},
@@ -220,7 +230,10 @@ func TestUserService_LoginUser(t *testing.T) {
 
 	user := utils.GenerateUser()
 	token := utils.GenerateLoginToken()
-	req := utils.GenerateLoginUserRequest()
+	req := payloads.LoginUserRequest{
+		Email:    "example@example.com",
+		Password: "test password",
+	}
 	userFilter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
 		Email:  &filters.Condition{Operator: filters.OpEqual, Value: req.Email},
@@ -482,7 +495,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, loginTokenRepo, userSessionRepo, nil)
 
 	user := utils.GenerateUser()
-	req := utils.GenerateUpdatePasswordRequest()
+	req := payloads.UpdatePasswordRequest{Password: "example password"}
 	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
@@ -630,7 +643,9 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 
 	user := utils.GenerateUser()
 	token := utils.GeneratePasswordResetToken()
-	req := utils.GenerateCreatePasswordResetTokenRequest()
+	req := payloads.CreatePasswordResetTokenRequest{
+		Email: "example@example.com",
+	}
 	userFilter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
 		Email:  &filters.Condition{Operator: filters.OpEqual, Value: req.Email},
@@ -762,7 +777,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	user := utils.GenerateUser()
 	allResetTokens := utils.GeneratePasswordResetTokens(3)
 	allResetTokens[len(allResetTokens)-1] = resetToken
-	req := utils.GenerateResetUserPasswordRequest()
+	req := payloads.ResetPasswordRequest{Password: "test password"}
 
 	userFilter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},

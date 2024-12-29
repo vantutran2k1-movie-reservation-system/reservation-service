@@ -151,7 +151,7 @@ func TestUserRepository_UpdateProfilePicture(t *testing.T) {
 	repo := NewUserProfileRepository(db)
 
 	profile := utils.GenerateUserProfile()
-	url := utils.GenerateURL()
+	url := "https://test.com"
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()

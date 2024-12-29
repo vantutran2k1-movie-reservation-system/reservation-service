@@ -2,10 +2,13 @@ package services
 
 import (
 	"errors"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"gorm.io/gorm"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"testing"
@@ -84,7 +87,12 @@ func TestUserProfileService_UpdateUserProfile(t *testing.T) {
 	service := NewUserProfileService(nil, transaction, userRepo, profileRepo, nil)
 
 	user, profile := setupUserWithProfile()
-	req := utils.GenerateUpdateUserProfileRequest()
+	req := payloads.UpdateUserProfileRequest{
+		FirstName:   "John",
+		LastName:    "Doe",
+		PhoneNumber: utils.GetPointerOf("0000000000"),
+		DateOfBirth: utils.GetPointerOf("1970-01-01"),
+	}
 	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
@@ -175,7 +183,11 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 	service := NewUserProfileService(nil, transaction, userRepo, profileRepo, profilePictureRepo)
 
 	user, profile := setupUserWithProfile()
-	file := utils.GenerateFileHeader()
+	file := &multipart.FileHeader{
+		Filename: "file name",
+		Size:     100,
+		Header:   map[string][]string{constants.ContentType: {constants.ImagePng}},
+	}
 	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},

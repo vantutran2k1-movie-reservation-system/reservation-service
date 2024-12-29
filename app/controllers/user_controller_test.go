@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -168,7 +169,16 @@ func TestUserController_CreateUser(t *testing.T) {
 		UserService: service,
 	}
 
-	payload := utils.GenerateCreateUserRequest()
+	payload := payloads.CreateUserRequest{
+		Email:    "example@example.com",
+		Password: "password",
+		Profile: payloads.CreateUserProfileRequest{
+			FirstName:   "First",
+			LastName:    "Last",
+			PhoneNumber: utils.GetPointerOf("0000000000"),
+			DateOfBirth: utils.GetPointerOf("1970-01-01"),
+		},
+	}
 
 	router := gin.Default()
 	router.POST("/user", controller.CreateUser)
@@ -224,7 +234,10 @@ func TestUserController_LoginUser(t *testing.T) {
 	}
 
 	token := utils.GenerateLoginToken()
-	payload := utils.GenerateLoginUserRequest()
+	payload := payloads.LoginUserRequest{
+		Email:    "example@example.com",
+		Password: "test password",
+	}
 
 	router := gin.Default()
 	router.POST("/login", userController.LoginUser)
@@ -281,7 +294,7 @@ func TestUserController_UpdateUserPassword(t *testing.T) {
 	}
 
 	session := utils.GenerateUserSession()
-	payload := utils.GenerateUpdatePasswordRequest()
+	payload := payloads.UpdatePasswordRequest{Password: "example password"}
 
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
@@ -357,7 +370,9 @@ func TestUserController_CreatePasswordResetToken(t *testing.T) {
 	}
 
 	token := utils.GeneratePasswordResetToken()
-	payload := utils.GenerateCreatePasswordResetTokenRequest()
+	payload := payloads.CreatePasswordResetTokenRequest{
+		Email: "example@example.com",
+	}
 
 	router := gin.Default()
 	router.POST("/users/password-reset-token", controller.CreatePasswordResetToken)
@@ -410,7 +425,7 @@ func TestUserController_ResetPassword(t *testing.T) {
 	}
 
 	token := utils.GeneratePasswordResetToken()
-	payload := utils.GenerateResetUserPasswordRequest()
+	payload := payloads.ResetPasswordRequest{Password: "test password"}
 
 	router := gin.Default()
 	router.POST("/users/password-reset", controller.ResetPassword)

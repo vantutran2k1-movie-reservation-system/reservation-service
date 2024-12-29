@@ -9,6 +9,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"net/http"
@@ -69,7 +70,10 @@ func TestLocationController_CreateCountry(t *testing.T) {
 	router.POST("/countries", controller.CreateCountry)
 
 	country := utils.GenerateCountry()
-	payload := utils.GenerateCreateCountryRequest()
+	payload := payloads.CreateCountryRequest{
+		Name: country.Name,
+		Code: country.Code,
+	}
 
 	t.Run("success", func(t *testing.T) {
 		service.EXPECT().CreateCountry(payload).Return(country, nil).Times(1)
@@ -171,7 +175,10 @@ func TestLocationController_CreateState(t *testing.T) {
 	router.POST("/countries/:countryId/states", controller.CreateState)
 
 	state := utils.GenerateState()
-	payload := utils.GenerateCreateStateRequest()
+	payload := payloads.CreateStateRequest{
+		Name: state.Name,
+		Code: state.Code,
+	}
 
 	t.Run("success", func(t *testing.T) {
 		service.EXPECT().CreateState(state.CountryID, payload).Return(state, nil).Times(1)
@@ -280,7 +287,9 @@ func TestLocationController_CreateCity(t *testing.T) {
 
 	state := utils.GenerateState()
 	city := utils.GenerateCity()
-	payload := utils.GenerateCreateCityRequest()
+	payload := payloads.CreateCityRequest{
+		Name: city.Name,
+	}
 
 	t.Run("success", func(t *testing.T) {
 		service.EXPECT().CreateCity(state.CountryID, city.StateID, payload).Return(city, nil).Times(1)

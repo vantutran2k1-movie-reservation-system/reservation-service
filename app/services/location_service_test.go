@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
@@ -52,7 +53,10 @@ func TestLocationService_CreateCountry(t *testing.T) {
 	service := NewLocationService(nil, transaction, repo, nil, nil)
 
 	country := utils.GenerateCountry()
-	req := utils.GenerateCreateCountryRequest()
+	req := payloads.CreateCountryRequest{
+		Name: country.Name,
+		Code: country.Code,
+	}
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetCountry(gomock.Any()).Return(nil, nil).Times(1)
@@ -180,7 +184,10 @@ func TestLocationService_CreateState(t *testing.T) {
 
 	country := utils.GenerateCountry()
 	state := utils.GenerateState()
-	req := utils.GenerateCreateStateRequest()
+	req := payloads.CreateStateRequest{
+		Name: state.Name,
+		Code: state.Code,
+	}
 
 	t.Run("success", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(gomock.Any()).Return(country, nil).Times(1)
@@ -364,7 +371,9 @@ func TestLocationService_CreateCity(t *testing.T) {
 	country := utils.GenerateCountry()
 	state := utils.GenerateState()
 	city := utils.GenerateCity()
-	req := utils.GenerateCreateCityRequest()
+	req := payloads.CreateCityRequest{
+		Name: city.Name,
+	}
 
 	t.Run("success", func(t *testing.T) {
 		countryRepo.EXPECT().GetCountry(gomock.Any()).Return(country, nil).Times(1)

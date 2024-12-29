@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"net/http"
 	"testing"
 
@@ -209,7 +210,15 @@ func TestMovieService_CreateMovie(t *testing.T) {
 	service := NewMovieService(nil, transaction, repo, nil, nil, nil)
 
 	movie := utils.GenerateMovie()
-	req := utils.GenerateCreateMovieRequest()
+	req := payloads.CreateMovieRequest{
+		Title:           "movie title",
+		Description:     utils.GetPointerOf("movie description"),
+		ReleaseDate:     "1970-01-01",
+		DurationMinutes: 120,
+		Language:        utils.GetPointerOf("en"),
+		Rating:          utils.GetPointerOf(4.5),
+		IsActive:        utils.GetPointerOf(true),
+	}
 
 	t.Run("success", func(t *testing.T) {
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -259,7 +268,15 @@ func TestMovieService_UpdateMovie(t *testing.T) {
 	service := NewMovieService(nil, transaction, repo, nil, nil, nil)
 
 	movie := utils.GenerateMovie()
-	req := utils.GenerateUpdateMovieRequest()
+	req := payloads.UpdateMovieRequest{
+		Title:           "movie title",
+		Description:     utils.GetPointerOf("movie description"),
+		ReleaseDate:     "1970-01-01",
+		DurationMinutes: 120,
+		Language:        utils.GetPointerOf("en"),
+		Rating:          utils.GetPointerOf(4.5),
+		IsActive:        utils.GetPointerOf(true),
+	}
 	filter := filters.MovieFilter{
 		Filter:    &filters.SingleFilter{},
 		ID:        &filters.Condition{Operator: filters.OpEqual, Value: movie.ID},

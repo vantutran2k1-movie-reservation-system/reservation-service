@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -95,7 +96,12 @@ func TestUserProfileController_UpdateUserProfile(t *testing.T) {
 
 	session := utils.GenerateUserSession()
 	profile := utils.GenerateUserProfile()
-	payload := utils.GenerateUpdateUserProfileRequest()
+	payload := payloads.UpdateUserProfileRequest{
+		FirstName:   "John",
+		LastName:    "Doe",
+		PhoneNumber: utils.GetPointerOf("0000000000"),
+		DateOfBirth: utils.GetPointerOf("1970-01-01"),
+	}
 
 	t.Run("successful profile update", func(t *testing.T) {
 		errors.RegisterCustomValidators()

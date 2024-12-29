@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"net/http"
 	"testing"
 
@@ -104,7 +105,9 @@ func TestGenreService_CreateGenre(t *testing.T) {
 	service := NewGenreService(nil, transaction, repo, nil)
 
 	genre := utils.GenerateGenre()
-	req := utils.GenerateCreateGenreRequest()
+	req := payloads.CreateGenreRequest{
+		Name: "genre name",
+	}
 
 	t.Run("success", func(t *testing.T) {
 		repo.EXPECT().GetGenre(gomock.Any()).Return(nil, nil).Times(1)
@@ -171,7 +174,9 @@ func TestGenreService_UpdateGenre(t *testing.T) {
 	service := NewGenreService(nil, transaction, repo, nil)
 
 	genre := utils.GenerateGenre()
-	req := utils.GenerateUpdateGenreRequest()
+	req := payloads.UpdateGenreRequest{
+		Name: "genre name",
+	}
 	idFilter := filters.GenreFilter{
 		Filter: &filters.SingleFilter{Logic: filters.And},
 		ID:     &filters.Condition{Operator: filters.OpEqual, Value: genre.ID},

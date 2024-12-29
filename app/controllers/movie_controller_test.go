@@ -3,7 +3,9 @@ package controllers
 import (
 	"bytes"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -81,7 +83,13 @@ func TestMovieController_GetMovies(t *testing.T) {
 
 	session := utils.GenerateUserSession()
 	movies := utils.GenerateMovies(20)
-	meta := utils.GenerateResponseMeta()
+	meta := &models.ResponseMeta{
+		Limit:   10,
+		Offset:  0,
+		Total:   20,
+		NextUrl: utils.GetPointerOf("/movies"),
+		PrevUrl: utils.GetPointerOf("/movies"),
+	}
 
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
@@ -152,7 +160,15 @@ func TestMovieController_CreateMovie(t *testing.T) {
 
 	session := utils.GenerateUserSession()
 	movie := utils.GenerateMovie()
-	payload := utils.GenerateCreateMovieRequest()
+	payload := payloads.CreateMovieRequest{
+		Title:           "movie title",
+		Description:     utils.GetPointerOf("movie description"),
+		ReleaseDate:     "1970-01-01",
+		DurationMinutes: 120,
+		Language:        utils.GetPointerOf("en"),
+		Rating:          utils.GetPointerOf(4.5),
+		IsActive:        utils.GetPointerOf(true),
+	}
 
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
@@ -247,7 +263,15 @@ func TestMovieController_UpdateMovie(t *testing.T) {
 
 	session := utils.GenerateUserSession()
 	movie := utils.GenerateMovie()
-	payload := utils.GenerateUpdateMovieRequest()
+	payload := payloads.UpdateMovieRequest{
+		Title:           "movie title",
+		Description:     utils.GetPointerOf("movie description"),
+		ReleaseDate:     "1970-01-01",
+		DurationMinutes: 120,
+		Language:        utils.GetPointerOf("en"),
+		Rating:          utils.GetPointerOf(4.5),
+		IsActive:        utils.GetPointerOf(true),
+	}
 
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
@@ -322,7 +346,9 @@ func TestMovieController_UpdateMovieGenres(t *testing.T) {
 	}
 
 	movie := utils.GenerateMovie()
-	payload := utils.GenerateUpdateMovieGenresRequest()
+	payload := &payloads.UpdateMovieGenresRequest{
+		GenreIDs: []uuid.UUID{uuid.New(), uuid.New()},
+	}
 
 	router := gin.Default()
 	router.PUT("/movies/:id/genres", controller.UpdateMovieGenres)

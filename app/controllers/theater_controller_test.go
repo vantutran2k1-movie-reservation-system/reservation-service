@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
 	"net/http"
@@ -104,7 +107,7 @@ func TestTheaterController_CreateTheater(t *testing.T) {
 	}
 
 	theater := utils.GenerateTheater()
-	payload := utils.GenerateCreateTheaterRequest()
+	payload := payloads.CreateTheaterRequest{Name: theater.Name}
 
 	router := gin.Default()
 	router.POST("/theaters", controller.CreateTheater)
@@ -161,7 +164,13 @@ func TestTheaterController_CreateTheaterLocation(t *testing.T) {
 
 	theater := utils.GenerateTheater()
 	location := utils.GenerateTheaterLocation()
-	payload := utils.GenerateCreateTheaterLocationRequest()
+	payload := payloads.CreateTheaterLocationRequest{
+		CityID:     uuid.New(),
+		Address:    "address",
+		PostalCode: "700000",
+		Latitude:   50.0,
+		Longitude:  100.0,
+	}
 
 	router := gin.Default()
 	router.POST("/theaters/:theaterId/locations", controller.CreateTheaterLocation)
@@ -219,7 +228,13 @@ func TestTheaterController_UpdateTheaterLocation(t *testing.T) {
 
 	theater := utils.GenerateTheater()
 	location := utils.GenerateTheaterLocation()
-	payload := utils.GenerateUpdateTheaterLocationRequest()
+	payload := payloads.UpdateTheaterLocationRequest{
+		CityID:     uuid.New(),
+		Address:    "address",
+		PostalCode: "700000",
+		Latitude:   50.0,
+		Longitude:  100.0,
+	}
 
 	router := gin.Default()
 	router.PUT("/theaters/:theaterId/locations", controller.UpdateTheaterLocation)
@@ -276,7 +291,13 @@ func TestTheaterController_GetTheaters(t *testing.T) {
 	}
 
 	theaters := utils.GenerateTheaters(3)
-	meta := utils.GenerateResponseMeta()
+	meta := &models.ResponseMeta{
+		Limit:   10,
+		Offset:  0,
+		Total:   20,
+		NextUrl: utils.GetPointerOf("/theaters"),
+		PrevUrl: utils.GetPointerOf("/theaters"),
+	}
 	includeLocation := true
 	limit := 3
 	offset := 1
