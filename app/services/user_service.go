@@ -107,6 +107,7 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 		ID:           userId,
 		Email:        req.Email,
 		PasswordHash: hashedPassword,
+		IsActive:     false,
 		CreatedAt:    currentTime,
 		UpdatedAt:    currentTime,
 	}

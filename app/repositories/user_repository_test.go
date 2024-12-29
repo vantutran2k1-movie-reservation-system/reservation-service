@@ -131,8 +131,8 @@ func TestUserRepository_CreateUser(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users" ("id","email","password_hash","created_at","updated_at") VALUES ($1,$2,$3,$4,$5)`)).
-			WithArgs(user.ID, user.Email, user.PasswordHash, sqlmock.AnyArg(), sqlmock.AnyArg()).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users" ("id","email","password_hash","is_active","created_at","updated_at") VALUES ($1,$2,$3,$4,$5,$6)`)).
+			WithArgs(user.ID, user.Email, user.PasswordHash, false, sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -145,8 +145,8 @@ func TestUserRepository_CreateUser(t *testing.T) {
 
 	t.Run("db error", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users" ("id","email","password_hash","created_at","updated_at") VALUES ($1,$2,$3,$4,$5)`)).
-			WithArgs(user.ID, user.Email, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users" ("id","email","password_hash","is_active","created_at","updated_at") VALUES ($1,$2,$3,$4,$5,$6)`)).
+			WithArgs(user.ID, user.Email, user.PasswordHash, false, sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnError(errors.New("db error"))
 		mock.ExpectRollback()
 
