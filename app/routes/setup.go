@@ -24,21 +24,23 @@ var authenticator = auth.NewAuthenticator()
 var transactionManager = transaction.NewTransactionManager()
 
 type Repositories struct {
-	UserRepository               repositories.UserRepository
-	LoginTokenRepository         repositories.LoginTokenRepository
-	UserSessionRepository        repositories.UserSessionRepository
-	UserProfileRepository        repositories.UserProfileRepository
-	ProfilePictureRepository     repositories.ProfilePictureRepository
-	MovieRepository              repositories.MovieRepository
-	FeatureFlagRepository        repositories.FeatureFlagRepository
-	GenreRepository              repositories.GenreRepository
-	PasswordResetTokenRepository repositories.PasswordResetTokenRepository
-	MovieGenreRepository         repositories.MovieGenreRepository
-	CountryRepository            repositories.CountryRepository
-	StateRepository              repositories.StateRepository
-	CityRepository               repositories.CityRepository
-	TheaterRepository            repositories.TheaterRepository
-	TheaterLocationRepository    repositories.TheaterLocationRepository
+	UserRepository                  repositories.UserRepository
+	UserRegistrationTokenRepository repositories.UserRegistrationTokenRepository
+	LoginTokenRepository            repositories.LoginTokenRepository
+	UserSessionRepository           repositories.UserSessionRepository
+	UserProfileRepository           repositories.UserProfileRepository
+	ProfilePictureRepository        repositories.ProfilePictureRepository
+	MovieRepository                 repositories.MovieRepository
+	FeatureFlagRepository           repositories.FeatureFlagRepository
+	GenreRepository                 repositories.GenreRepository
+	PasswordResetTokenRepository    repositories.PasswordResetTokenRepository
+	MovieGenreRepository            repositories.MovieGenreRepository
+	CountryRepository               repositories.CountryRepository
+	StateRepository                 repositories.StateRepository
+	CityRepository                  repositories.CityRepository
+	TheaterRepository               repositories.TheaterRepository
+	TheaterLocationRepository       repositories.TheaterLocationRepository
+	NotificationRepository          repositories.NotificationRepository
 }
 
 type Services struct {
@@ -67,21 +69,23 @@ type Middlewares struct {
 
 func setupRepositories() {
 	r = &Repositories{
-		UserRepository:               repositories.NewUserRepository(config.DB),
-		LoginTokenRepository:         repositories.NewLoginTokenRepository(config.DB),
-		UserSessionRepository:        repositories.NewUserSessionRepository(config.RedisClient),
-		UserProfileRepository:        repositories.NewUserProfileRepository(config.DB),
-		ProfilePictureRepository:     repositories.NewProfilePictureRepository(config.MinioClient),
-		MovieRepository:              repositories.NewMovieRepository(config.DB),
-		FeatureFlagRepository:        repositories.NewFeatureFlagRepository(config.ConfigcatClient),
-		GenreRepository:              repositories.NewGenreRepository(config.DB),
-		PasswordResetTokenRepository: repositories.NewPasswordResetTokenRepository(config.DB),
-		MovieGenreRepository:         repositories.NewMovieGenreRepository(config.DB),
-		CountryRepository:            repositories.NewCountryRepository(config.DB),
-		StateRepository:              repositories.NewStateRepository(config.DB),
-		CityRepository:               repositories.NewCityRepository(config.DB),
-		TheaterRepository:            repositories.NewTheaterRepository(config.DB),
-		TheaterLocationRepository:    repositories.NewTheaterLocationRepository(config.DB),
+		UserRepository:                  repositories.NewUserRepository(config.DB),
+		UserRegistrationTokenRepository: repositories.NewUserRegistrationTokenRepository(config.DB),
+		LoginTokenRepository:            repositories.NewLoginTokenRepository(config.DB),
+		UserSessionRepository:           repositories.NewUserSessionRepository(config.RedisClient),
+		UserProfileRepository:           repositories.NewUserProfileRepository(config.DB),
+		ProfilePictureRepository:        repositories.NewProfilePictureRepository(config.MinioClient),
+		MovieRepository:                 repositories.NewMovieRepository(config.DB),
+		FeatureFlagRepository:           repositories.NewFeatureFlagRepository(config.ConfigcatClient),
+		GenreRepository:                 repositories.NewGenreRepository(config.DB),
+		PasswordResetTokenRepository:    repositories.NewPasswordResetTokenRepository(config.DB),
+		MovieGenreRepository:            repositories.NewMovieGenreRepository(config.DB),
+		CountryRepository:               repositories.NewCountryRepository(config.DB),
+		StateRepository:                 repositories.NewStateRepository(config.DB),
+		CityRepository:                  repositories.NewCityRepository(config.DB),
+		TheaterRepository:               repositories.NewTheaterRepository(config.DB),
+		TheaterLocationRepository:       repositories.NewTheaterLocationRepository(config.DB),
+		NotificationRepository:          repositories.NewNotificationRepository(config.KafkaProducerClient),
 	}
 }
 
@@ -97,6 +101,8 @@ func setupServices(repositories *Repositories) {
 			repositories.LoginTokenRepository,
 			repositories.UserSessionRepository,
 			repositories.PasswordResetTokenRepository,
+			repositories.UserRegistrationTokenRepository,
+			repositories.NotificationRepository,
 		),
 		UserProfileService: services.NewUserProfileService(
 			config.DB,

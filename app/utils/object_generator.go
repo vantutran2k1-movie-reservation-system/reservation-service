@@ -121,6 +121,17 @@ func GeneratePasswordResetToken() *models.PasswordResetToken {
 	}
 }
 
+func GenerateUserRegistrationToken() *models.UserRegistrationToken {
+	return &models.UserRegistrationToken{
+		ID:         generateUUID(),
+		UserID:     generateUUID(),
+		TokenValue: uuid.NewString(),
+		IsUsed:     generateBool(),
+		CreatedAt:  generateCurrentTime(),
+		ExpiresAt:  generateCurrentTime().Add(60 * time.Minute),
+	}
+}
+
 func GeneratePasswordResetTokens(count int) []*models.PasswordResetToken {
 	tokens := make([]*models.PasswordResetToken, count)
 	for i := 0; i < count; i++ {

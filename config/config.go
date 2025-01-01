@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/IBM/sarama"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"gorm.io/gorm/logger"
 	"log"
@@ -21,6 +22,7 @@ var DB *gorm.DB
 var RedisClient *redis.Client
 var MinioClient *minio.Client
 var ConfigcatClient *configcat.Client
+var KafkaProducerClient sarama.SyncProducer
 
 func InitDB() {
 	l := logger.Default.LogMode(logger.Silent)
@@ -75,11 +77,10 @@ func InitMinio() {
 	minioPort := os.Getenv("MINIO_PORT")
 	minioAccessKey := os.Getenv("MINIO_ACCESS_KEY")
 	minioSecretKey := os.Getenv("MINIO_SECRET_KEY")
-	useSSL := false
 
 	minioClient, err := minio.New(fmt.Sprintf("%s:%s", minioHost, minioPort), &minio.Options{
 		Creds:  credentials.NewStaticV4(minioAccessKey, minioSecretKey, ""),
-		Secure: useSSL,
+		Secure: false,
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to Minio: %v", err)
@@ -93,4 +94,17 @@ func InitConfigcat() {
 	client := configcat.NewClient(sdkKey)
 
 	ConfigcatClient = client
+}
+
+func InitKafkaProducer() {
+	config := sarama.NewConfig()
+	config.Producer.Return.Successes = true
+
+	brokers := []string{os.Getenv("KAFKA_BROKER")}
+	producer, err := sarama.NewSyncProducer(brokers, config)
+	if err != nil {
+		log.Fatalf("Failed to create Kafka producer: %v", err)
+	}
+
+	KafkaProducerClient = producer
 }

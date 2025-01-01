@@ -25,6 +25,7 @@ func InitApp() *App {
 	config.InitRedis()
 	config.InitMinio()
 	config.InitConfigcat()
+	config.InitKafkaProducer()
 
 	router := routes.RegisterRoutes()
 	return &App{

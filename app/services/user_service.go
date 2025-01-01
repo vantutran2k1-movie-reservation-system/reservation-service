@@ -29,15 +29,17 @@ type UserService interface {
 }
 
 type userService struct {
-	db                     *gorm.DB
-	rdb                    *redis.Client
-	authenticator          auth.Authenticator
-	transactionManager     transaction.TransactionManager
-	userRepo               repositories.UserRepository
-	userProfileRepo        repositories.UserProfileRepository
-	loginTokenRepo         repositories.LoginTokenRepository
-	userSessionRepo        repositories.UserSessionRepository
-	passwordResetTokenRepo repositories.PasswordResetTokenRepository
+	db                        *gorm.DB
+	rdb                       *redis.Client
+	authenticator             auth.Authenticator
+	transactionManager        transaction.TransactionManager
+	userRepo                  repositories.UserRepository
+	userProfileRepo           repositories.UserProfileRepository
+	loginTokenRepo            repositories.LoginTokenRepository
+	userSessionRepo           repositories.UserSessionRepository
+	passwordResetTokenRepo    repositories.PasswordResetTokenRepository
+	userRegistrationTokenRepo repositories.UserRegistrationTokenRepository
+	notificationRepo          repositories.NotificationRepository
 }
 
 func NewUserService(
@@ -50,17 +52,21 @@ func NewUserService(
 	loginTokenRepo repositories.LoginTokenRepository,
 	userSessionRepo repositories.UserSessionRepository,
 	passwordResetTokenRepo repositories.PasswordResetTokenRepository,
+	userRegistrationTokenRepo repositories.UserRegistrationTokenRepository,
+	notificationRepo repositories.NotificationRepository,
 ) UserService {
 	return &userService{
-		db:                     db,
-		rdb:                    rdb,
-		authenticator:          authenticator,
-		transactionManager:     transactionManager,
-		userRepo:               userRepo,
-		userProfileRepo:        userProfileRepo,
-		loginTokenRepo:         loginTokenRepo,
-		userSessionRepo:        userSessionRepo,
-		passwordResetTokenRepo: passwordResetTokenRepo,
+		db:                        db,
+		rdb:                       rdb,
+		authenticator:             authenticator,
+		transactionManager:        transactionManager,
+		userRepo:                  userRepo,
+		userProfileRepo:           userProfileRepo,
+		loginTokenRepo:            loginTokenRepo,
+		userSessionRepo:           userSessionRepo,
+		passwordResetTokenRepo:    passwordResetTokenRepo,
+		userRegistrationTokenRepo: userRegistrationTokenRepo,
+		notificationRepo:          notificationRepo,
 	}
 }
 
@@ -121,12 +127,35 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 		CreatedAt:   currentTime,
 		UpdatedAt:   currentTime,
 	}
+	t := &models.UserRegistrationToken{
+		ID:         uuid.New(),
+		UserID:     userId,
+		TokenValue: s.authenticator.GenerateRegistrationToken(),
+		IsUsed:     false,
+		CreatedAt:  currentTime,
+		ExpiresAt:  currentTime,
+	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		if err := s.userRepo.CreateUser(tx, u); err != nil {
 			return err
 		}
-		return s.userProfileRepo.CreateUserProfile(tx, p)
+		if err := s.userProfileRepo.CreateUserProfile(tx, p); err != nil {
+			return err
+		}
+
+		return s.userRegistrationTokenRepo.CreateToken(tx, t)
 	}); err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	e := payloads.UserRegistrationEvent{
+		Email:             req.Email,
+		FirstName:         req.Profile.FirstName,
+		LastName:          req.Profile.LastName,
+		VerificationToken: t.TokenValue,
+		CreatedAt:         currentTime,
+	}
+	if err := s.notificationRepo.SendUserRegistrationEvent(e); err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 

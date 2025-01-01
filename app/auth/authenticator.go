@@ -10,6 +10,7 @@ type Authenticator interface {
 	DoPasswordsMatch(hashedPassword, rawPassword string) bool
 	GenerateLoginToken() string
 	GeneratePasswordResetToken() string
+	GenerateRegistrationToken() string
 }
 
 func NewAuthenticator() Authenticator {
@@ -40,3 +41,5 @@ func (a *authenticator) GenerateLoginToken() string {
 }
 
 func (a *authenticator) GeneratePasswordResetToken() string { return uuid.NewString() }
+
+func (a *authenticator) GenerateRegistrationToken() string { return uuid.NewString() }

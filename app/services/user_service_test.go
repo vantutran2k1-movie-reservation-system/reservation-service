@@ -23,7 +23,7 @@ func TestUserService_GetUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock_repositories.NewMockUserRepository(ctrl)
-	service := NewUserService(nil, nil, nil, nil, repo, nil, nil, nil, nil)
+	service := NewUserService(nil, nil, nil, nil, repo, nil, nil, nil, nil, nil, nil)
 
 	user := utils.GenerateUser()
 	filter := filters.UserFilter{
@@ -69,7 +69,7 @@ func TestUserService_UserExistsByEmail(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock_repositories.NewMockUserRepository(ctrl)
-	service := NewUserService(nil, nil, nil, nil, repo, nil, nil, nil, nil)
+	service := NewUserService(nil, nil, nil, nil, repo, nil, nil, nil, nil, nil, nil)
 
 	user := utils.GenerateUser()
 	filter := filters.UserFilter{
@@ -107,7 +107,9 @@ func TestUserService_CreateUser(t *testing.T) {
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
 	userRepo := mock_repositories.NewMockUserRepository(ctrl)
 	profileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
-	service := NewUserService(nil, nil, auth, transaction, userRepo, profileRepo, nil, nil, nil)
+	userRegisRepo := mock_repositories.NewMockUserRegistrationTokenRepository(ctrl)
+	notificationRepo := mock_repositories.NewMockNotificationRepository(ctrl)
+	service := NewUserService(nil, nil, auth, transaction, userRepo, profileRepo, nil, nil, nil, userRegisRepo, notificationRepo)
 
 	user := utils.GenerateUser()
 	req := payloads.CreateUserRequest{
@@ -128,6 +130,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
+		auth.EXPECT().GenerateRegistrationToken().Return("token value").Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -135,6 +138,8 @@ func TestUserService_CreateUser(t *testing.T) {
 		).Times(1)
 		userRepo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		profileRepo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		userRegisRepo.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		notificationRepo.EXPECT().SendUserRegistrationEvent(gomock.Any()).Return(nil).Times(1)
 
 		result, err := service.CreateUser(req)
 
@@ -181,6 +186,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	t.Run("error creating user", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil)
+		auth.EXPECT().GenerateRegistrationToken().Return("token value").Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -199,6 +205,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	t.Run("error creating profile", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
+		auth.EXPECT().GenerateRegistrationToken().Return("token value").Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -214,6 +221,27 @@ func TestUserService_CreateUser(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
 		assert.Equal(t, "error creating profile", err.Error())
 	})
+
+	t.Run("error creating token", func(t *testing.T) {
+		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
+		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
+		auth.EXPECT().GenerateRegistrationToken().Return("token value").Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		userRepo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		profileRepo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		userRegisRepo.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(errors.New("error creating token")).Times(1)
+
+		result, err := service.CreateUser(req)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error creating token", err.Error())
+	})
 }
 
 func TestUserService_LoginUser(t *testing.T) {
@@ -226,7 +254,7 @@ func TestUserService_LoginUser(t *testing.T) {
 	loginTokenRepo := mock_repositories.NewMockLoginTokenRepository(ctrl)
 	userSessionRepo := mock_repositories.NewMockUserSessionRepository(ctrl)
 
-	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, loginTokenRepo, userSessionRepo, nil)
+	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, loginTokenRepo, userSessionRepo, nil, nil, nil)
 
 	user := utils.GenerateUser()
 	token := utils.GenerateLoginToken()
@@ -397,7 +425,7 @@ func TestUserService_LogoutUser(t *testing.T) {
 	userSessionRepo := mock_repositories.NewMockUserSessionRepository(ctrl)
 	loginTokenRepo := mock_repositories.NewMockLoginTokenRepository(ctrl)
 
-	service := NewUserService(nil, nil, nil, transaction, nil, nil, loginTokenRepo, userSessionRepo, nil)
+	service := NewUserService(nil, nil, nil, transaction, nil, nil, loginTokenRepo, userSessionRepo, nil, nil, nil)
 
 	token := utils.GenerateLoginToken()
 
@@ -492,7 +520,7 @@ func TestUserService_UpdateUserPassword(t *testing.T) {
 	loginTokenRepo := mock_repositories.NewMockLoginTokenRepository(ctrl)
 	userSessionRepo := mock_repositories.NewMockUserSessionRepository(ctrl)
 
-	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, loginTokenRepo, userSessionRepo, nil)
+	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, loginTokenRepo, userSessionRepo, nil, nil, nil)
 
 	user := utils.GenerateUser()
 	req := payloads.UpdatePasswordRequest{Password: "example password"}
@@ -639,7 +667,7 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 	userRepo := mock_repositories.NewMockUserRepository(ctrl)
 	tokenRepo := mock_repositories.NewMockPasswordResetTokenRepository(ctrl)
 
-	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, nil, nil, tokenRepo)
+	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, nil, nil, tokenRepo, nil, nil)
 
 	user := utils.GenerateUser()
 	token := utils.GeneratePasswordResetToken()
@@ -771,7 +799,7 @@ func TestUserService_ResetUserPassword(t *testing.T) {
 	loginTokenRepo := mock_repositories.NewMockLoginTokenRepository(ctrl)
 	resetTokenRepo := mock_repositories.NewMockPasswordResetTokenRepository(ctrl)
 
-	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, loginTokenRepo, sessionRepo, resetTokenRepo)
+	service := NewUserService(nil, nil, auth, transaction, userRepo, nil, loginTokenRepo, sessionRepo, resetTokenRepo, nil, nil)
 
 	resetToken := utils.GeneratePasswordResetToken()
 	user := utils.GenerateUser()

@@ -94,3 +94,17 @@ func (mr *MockAuthenticatorMockRecorder) GeneratePasswordResetToken() *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GeneratePasswordResetToken", reflect.TypeOf((*MockAuthenticator)(nil).GeneratePasswordResetToken))
 }
+
+// GenerateRegistrationToken mocks base method.
+func (m *MockAuthenticator) GenerateRegistrationToken() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateRegistrationToken")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GenerateRegistrationToken indicates an expected call of GenerateRegistrationToken.
+func (mr *MockAuthenticatorMockRecorder) GenerateRegistrationToken() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateRegistrationToken", reflect.TypeOf((*MockAuthenticator)(nil).GenerateRegistrationToken))
+}
