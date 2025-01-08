@@ -13,6 +13,7 @@ type UserProfileRepository interface {
 	GetProfile(filter filters.UserProfileFilter) (*models.UserProfile, error)
 	CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
 	UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
+	CreateOrUpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error
 	UpdateProfilePicture(tx *gorm.DB, profile *models.UserProfile, url *string) (*models.UserProfile, error)
 }
 
@@ -43,6 +44,30 @@ func (r *userProfileRepository) CreateUserProfile(tx *gorm.DB, profile *models.U
 
 func (r *userProfileRepository) UpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
 	return tx.Save(profile).Error
+}
+
+func (r *userProfileRepository) CreateOrUpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
+	filter := filters.UserProfileFilter{
+		Filter: &filters.SingleFilter{},
+		UserID: &filters.Condition{Operator: filters.OpEqual, Value: profile.UserID},
+	}
+	p, err := r.GetProfile(filter)
+	if err != nil {
+		return err
+	}
+	if p != nil {
+		return tx.Model(p).Updates(map[string]any{
+			"first_name":          profile.FirstName,
+			"last_name":           profile.LastName,
+			"phone_number":        profile.PhoneNumber,
+			"date_of_birth":       profile.DateOfBirth,
+			"profile_picture_url": profile.ProfilePictureUrl,
+			"bio":                 profile.Bio,
+			"updated_at":          time.Now().UTC(),
+		}).Error
+	}
+
+	return tx.Create(profile).Error
 }
 
 func (r *userProfileRepository) UpdateProfilePicture(tx *gorm.DB, profile *models.UserProfile, url *string) (*models.UserProfile, error) {

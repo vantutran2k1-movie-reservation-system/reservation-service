@@ -41,6 +41,20 @@ func (m *MockUserProfileRepository) EXPECT() *MockUserProfileRepositoryMockRecor
 	return m.recorder
 }
 
+// CreateOrUpdateUserProfile mocks base method.
+func (m *MockUserProfileRepository) CreateOrUpdateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrUpdateUserProfile", tx, profile)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateOrUpdateUserProfile indicates an expected call of CreateOrUpdateUserProfile.
+func (mr *MockUserProfileRepositoryMockRecorder) CreateOrUpdateUserProfile(tx, profile any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateUserProfile", reflect.TypeOf((*MockUserProfileRepository)(nil).CreateOrUpdateUserProfile), tx, profile)
+}
+
 // CreateUserProfile mocks base method.
 func (m *MockUserProfileRepository) CreateUserProfile(tx *gorm.DB, profile *models.UserProfile) error {
 	m.ctrl.T.Helper()

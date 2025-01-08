@@ -13,6 +13,7 @@ type UserRepository interface {
 	GetUser(filter filters.UserFilter, includeProfile bool) (*models.User, error)
 	UserExists(filter filters.UserFilter) (bool, error)
 	CreateUser(tx *gorm.DB, user *models.User) error
+	CreateOrUpdateUser(tx *gorm.DB, user *models.User) error
 	UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error)
 }
 
@@ -57,6 +58,27 @@ func (r *userRepository) UserExists(filter filters.UserFilter) (bool, error) {
 }
 
 func (r *userRepository) CreateUser(tx *gorm.DB, user *models.User) error {
+	return tx.Create(user).Error
+}
+
+func (r *userRepository) CreateOrUpdateUser(tx *gorm.DB, user *models.User) error {
+	filter := filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		Email:  &filters.Condition{Operator: filters.OpEqual, Value: user.Email},
+	}
+	u, err := r.GetUser(filter, false)
+	if err != nil {
+		return err
+	}
+	if u != nil {
+		return tx.Model(u).Updates(map[string]any{
+			"password_hash": user.PasswordHash,
+			"is_active":     user.IsActive,
+			"is_verified":   user.IsVerified,
+			"updated_at":    time.Now().UTC(),
+		}).Error
+	}
+
 	return tx.Create(user).Error
 }
 

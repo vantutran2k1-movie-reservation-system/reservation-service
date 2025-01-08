@@ -73,8 +73,9 @@ func TestUserService_UserExistsByEmail(t *testing.T) {
 
 	user := utils.GenerateUser()
 	filter := filters.UserFilter{
-		Filter: &filters.SingleFilter{},
-		Email:  &filters.Condition{Operator: filters.OpEqual, Value: user.Email},
+		Filter:     &filters.SingleFilter{},
+		Email:      &filters.Condition{Operator: filters.OpEqual, Value: user.Email},
+		IsVerified: &filters.Condition{Operator: filters.OpEqual, Value: true},
 	}
 
 	t.Run("success", func(t *testing.T) {
@@ -123,12 +124,13 @@ func TestUserService_CreateUser(t *testing.T) {
 		},
 	}
 	filter := filters.UserFilter{
-		Filter: &filters.SingleFilter{},
-		Email:  &filters.Condition{Operator: filters.OpEqual, Value: req.Email},
+		Filter:     &filters.SingleFilter{},
+		Email:      &filters.Condition{Operator: filters.OpEqual, Value: req.Email},
+		IsVerified: &filters.Condition{Operator: filters.OpEqual, Value: true},
 	}
 
 	t.Run("success", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
+		userRepo.EXPECT().UserExists(filter).Return(false, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		auth.EXPECT().GenerateRegistrationToken().Return("token value").Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -136,8 +138,8 @@ func TestUserService_CreateUser(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-		profileRepo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		profileRepo.EXPECT().CreateOrUpdateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		userRegisRepo.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		notificationRepo.EXPECT().SendUserRegistrationEvent(gomock.Any()).Return(nil).Times(1)
 
@@ -150,7 +152,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("duplicate email", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter, false).Return(user, nil).Times(1)
+		userRepo.EXPECT().UserExists(filter).Return(true, nil).Times(1)
 
 		result, err := service.CreateUser(req)
 
@@ -161,7 +163,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("error getting user", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter, false).Return(nil, errors.New("error getting user")).Times(1)
+		userRepo.EXPECT().UserExists(filter).Return(false, errors.New("error getting user")).Times(1)
 
 		result, err := service.CreateUser(req)
 
@@ -172,7 +174,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("error generating password hash", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
+		userRepo.EXPECT().UserExists(filter).Return(false, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return("", errors.New("error generating password hash"))
 
 		result, err := service.CreateUser(req)
@@ -184,7 +186,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("error creating user", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
+		userRepo.EXPECT().UserExists(filter).Return(false, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil)
 		auth.EXPECT().GenerateRegistrationToken().Return("token value").Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -192,7 +194,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(errors.New("error creating user")).Times(1)
+		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(errors.New("error creating user")).Times(1)
 
 		result, err := service.CreateUser(req)
 
@@ -203,7 +205,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("error creating profile", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
+		userRepo.EXPECT().UserExists(filter).Return(false, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		auth.EXPECT().GenerateRegistrationToken().Return("token value").Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -211,8 +213,8 @@ func TestUserService_CreateUser(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-		profileRepo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error creating profile")).Times(1)
+		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		profileRepo.EXPECT().CreateOrUpdateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error creating profile")).Times(1)
 
 		result, err := service.CreateUser(req)
 
@@ -223,7 +225,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	})
 
 	t.Run("error creating token", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(filter, false).Return(nil, nil).Times(1)
+		userRepo.EXPECT().UserExists(filter).Return(false, nil).Times(1)
 		auth.EXPECT().GenerateHashedPassword(req.Password).Return(user.PasswordHash, nil).Times(1)
 		auth.EXPECT().GenerateRegistrationToken().Return("token value").Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -231,8 +233,8 @@ func TestUserService_CreateUser(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-		profileRepo.EXPECT().CreateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		profileRepo.EXPECT().CreateOrUpdateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		userRegisRepo.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(errors.New("error creating token")).Times(1)
 
 		result, err := service.CreateUser(req)

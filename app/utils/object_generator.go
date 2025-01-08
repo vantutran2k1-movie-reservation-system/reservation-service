@@ -21,26 +21,23 @@ func GenerateUser() *models.User {
 		ID:           generateUUID(),
 		Email:        generateEmail(),
 		PasswordHash: generateHashedPassword(),
+		IsActive:     generateBool(),
+		IsVerified:   generateBool(),
 		CreatedAt:    generateCurrentTime(),
 		UpdatedAt:    generateCurrentTime(),
 	}
 }
 
 func GenerateUserProfile() *models.UserProfile {
-	phoneNumber := generatePhoneNumber()
-	dateOfBirth := generateDate()
-	profilePictureUrl := generateURL()
-	bio := generateString(allChars, 50)
-
 	return &models.UserProfile{
 		ID:                generateUUID(),
 		UserID:            generateUUID(),
 		FirstName:         generateName(),
 		LastName:          generateName(),
-		PhoneNumber:       &phoneNumber,
-		DateOfBirth:       &dateOfBirth,
-		ProfilePictureUrl: &profilePictureUrl,
-		Bio:               &bio,
+		PhoneNumber:       GetPointerOf(generatePhoneNumber()),
+		DateOfBirth:       GetPointerOf(generateDate()),
+		ProfilePictureUrl: GetPointerOf(generateURL()),
+		Bio:               GetPointerOf(generateString(allChars, 50)),
 		CreatedAt:         generateCurrentTime(),
 		UpdatedAt:         generateCurrentTime(),
 	}
@@ -64,18 +61,14 @@ func GenerateUserSession() *models.UserSession {
 }
 
 func GenerateMovie() *models.Movie {
-	description := generateString(letterChars, 100)
-	language := generateString(letterChars, 10)
-	rating := generateFloat(0, 5)
-
 	return &models.Movie{
 		ID:              generateUUID(),
 		Title:           generateString(letterChars, 10),
-		Description:     &description,
+		Description:     GetPointerOf(generateString(letterChars, 100)),
 		ReleaseDate:     generateDate(),
 		DurationMinutes: generateInt(100, 200),
-		Language:        &language,
-		Rating:          &rating,
+		Language:        GetPointerOf(generateString(letterChars, 10)),
+		Rating:          GetPointerOf(generateFloat(0, 5)),
 		IsActive:        generateBool(),
 		CreatedAt:       generateCurrentTime(),
 		UpdatedAt:       generateCurrentTime(),
@@ -159,12 +152,10 @@ func GenerateCountries(count int) []*models.Country {
 }
 
 func GenerateState() *models.State {
-	code := generateString(uppercaseChars, 2)
-
 	return &models.State{
 		ID:        generateUUID(),
 		Name:      generateString(lowercaseChars, 10),
-		Code:      &code,
+		Code:      GetPointerOf(generateString(uppercaseChars, 2)),
 		CountryID: generateUUID(),
 	}
 }
@@ -212,10 +203,9 @@ func GenerateTheaters(count int) []*models.Theater {
 }
 
 func GenerateTheaterLocation() *models.TheaterLocation {
-	theaterID := generateUUID()
 	return &models.TheaterLocation{
 		ID:         generateUUID(),
-		TheaterID:  &theaterID,
+		TheaterID:  GetPointerOf(generateUUID()),
 		CityID:     generateUUID(),
 		Address:    generateString(lowercaseChars, 50),
 		PostalCode: generateString(numberChars, 6),

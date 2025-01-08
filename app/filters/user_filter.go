@@ -4,8 +4,9 @@ import "gorm.io/gorm"
 
 type UserFilter struct {
 	Filter
-	ID    *Condition
-	Email *Condition
+	ID         *Condition
+	Email      *Condition
+	IsVerified *Condition
 }
 
 func (f *UserFilter) GetConditions() []FilterCondition {
@@ -17,6 +18,10 @@ func (f *UserFilter) GetConditions() []FilterCondition {
 
 	if f.Email != nil {
 		conditions = append(conditions, f.Email.ToFilterCondition("email"))
+	}
+
+	if f.IsVerified != nil {
+		conditions = append(conditions, f.IsVerified.ToFilterCondition("is_verified"))
 	}
 
 	return conditions

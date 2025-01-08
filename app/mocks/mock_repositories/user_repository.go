@@ -41,6 +41,20 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// CreateOrUpdateUser mocks base method.
+func (m *MockUserRepository) CreateOrUpdateUser(tx *gorm.DB, user *models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrUpdateUser", tx, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateOrUpdateUser indicates an expected call of CreateOrUpdateUser.
+func (mr *MockUserRepositoryMockRecorder) CreateOrUpdateUser(tx, user any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateOrUpdateUser), tx, user)
+}
+
 // CreateUser mocks base method.
 func (m *MockUserRepository) CreateUser(tx *gorm.DB, user *models.User) error {
 	m.ctrl.T.Helper()

@@ -84,8 +84,9 @@ func (s *userService) GetUser(id uuid.UUID, includeProfile bool) (*models.User, 
 
 func (s *userService) UserExistsByEmail(email string) (bool, *errors.ApiError) {
 	exist, err := s.userRepo.UserExists(filters.UserFilter{
-		Filter: &filters.SingleFilter{},
-		Email:  &filters.Condition{Operator: filters.OpEqual, Value: email},
+		Filter:     &filters.SingleFilter{},
+		Email:      &filters.Condition{Operator: filters.OpEqual, Value: email},
+		IsVerified: &filters.Condition{Operator: filters.OpEqual, Value: true},
 	})
 	if err != nil {
 		return false, errors.InternalServerError(err.Error())
@@ -94,11 +95,11 @@ func (s *userService) UserExistsByEmail(email string) (bool, *errors.ApiError) {
 }
 
 func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, *errors.ApiError) {
-	u, err := s.getUserByEmail(req.Email, false)
-	if err != nil {
-		return nil, errors.InternalServerError(err.Error())
+	exists, apiErr := s.UserExistsByEmail(req.Email)
+	if apiErr != nil {
+		return nil, apiErr
 	}
-	if u != nil {
+	if exists {
 		return nil, errors.BadRequestError("email %s already exists", req.Email)
 	}
 
@@ -109,11 +110,12 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 
 	userId := uuid.New()
 	currentTime := time.Now().UTC()
-	u = &models.User{
+	u := &models.User{
 		ID:           userId,
 		Email:        req.Email,
 		PasswordHash: hashedPassword,
-		IsActive:     false,
+		IsActive:     true,
+		IsVerified:   false,
 		CreatedAt:    currentTime,
 		UpdatedAt:    currentTime,
 	}
@@ -136,10 +138,10 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 		ExpiresAt:  currentTime,
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		if err := s.userRepo.CreateUser(tx, u); err != nil {
+		if err := s.userRepo.CreateOrUpdateUser(tx, u); err != nil {
 			return err
 		}
-		if err := s.userProfileRepo.CreateUserProfile(tx, p); err != nil {
+		if err := s.userProfileRepo.CreateOrUpdateUserProfile(tx, p); err != nil {
 			return err
 		}
 
