@@ -298,3 +298,43 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 		assert.Equal(t, "db error", err.Error())
 	})
 }
+
+func TestUserRepository_VerifyUser(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewUserRepository(db)
+
+	user := utils.GenerateUser()
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "is_verified"=$1,"updated_at"=$2 WHERE "id" = $3`)).
+			WithArgs(true, sqlmock.AnyArg(), user.ID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.VerifyUser(tx, user)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error updating user", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "is_verified"=$1,"updated_at"=$2 WHERE "id" = $3`)).
+			WithArgs(true, sqlmock.AnyArg(), user.ID).
+			WillReturnError(errors.New("error updating user"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.VerifyUser(tx, user)
+		tx.Rollback()
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error updating user")
+	})
+}

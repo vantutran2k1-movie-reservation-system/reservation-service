@@ -113,3 +113,17 @@ func (mr *MockUserRepositoryMockRecorder) UserExists(filter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserExists", reflect.TypeOf((*MockUserRepository)(nil).UserExists), filter)
 }
+
+// VerifyUser mocks base method.
+func (m *MockUserRepository) VerifyUser(tx *gorm.DB, user *models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyUser", tx, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyUser indicates an expected call of VerifyUser.
+func (mr *MockUserRepositoryMockRecorder) VerifyUser(tx, user any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyUser", reflect.TypeOf((*MockUserRepository)(nil).VerifyUser), tx, user)
+}

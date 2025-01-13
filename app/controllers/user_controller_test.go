@@ -284,6 +284,44 @@ func TestUserController_LoginUser(t *testing.T) {
 	})
 }
 
+func TestUserController_VerifyUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockUserService(ctrl)
+	controller := UserController{
+		UserService: service,
+	}
+
+	token := utils.GenerateUserRegistrationToken()
+
+	router := gin.Default()
+	router.POST("/users/verify", controller.VerifyUser)
+
+	t.Run("success", func(t *testing.T) {
+		service.EXPECT().VerifyUser(token.TokenValue).Return(nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/users/verify", nil)
+		req.Header.Set(constants.UserVerificationToken, token.TokenValue)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		service.EXPECT().VerifyUser(token.TokenValue).Return(errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/users/verify", nil)
+		req.Header.Set(constants.UserVerificationToken, token.TokenValue)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
+
 func TestUserController_UpdateUserPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

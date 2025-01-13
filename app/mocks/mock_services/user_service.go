@@ -158,3 +158,17 @@ func (mr *MockUserServiceMockRecorder) UserExistsByEmail(email any) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserExistsByEmail", reflect.TypeOf((*MockUserService)(nil).UserExistsByEmail), email)
 }
+
+// VerifyUser mocks base method.
+func (m *MockUserService) VerifyUser(token string) *errors.ApiError {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyUser", token)
+	ret0, _ := ret[0].(*errors.ApiError)
+	return ret0
+}
+
+// VerifyUser indicates an expected call of VerifyUser.
+func (mr *MockUserServiceMockRecorder) VerifyUser(token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyUser", reflect.TypeOf((*MockUserService)(nil).VerifyUser), token)
+}

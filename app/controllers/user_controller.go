@@ -117,6 +117,16 @@ func (c *UserController) LogoutUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": "Logout user successfully"})
 }
 
+func (c *UserController) VerifyUser(ctx *gin.Context) {
+	token := ctx.Request.Header.Get(constants.UserVerificationToken)
+	if err := c.UserService.VerifyUser(token); err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": "Verify user successfully"})
+}
+
 func (c *UserController) UpdateUserPassword(ctx *gin.Context) {
 	var req payloads.UpdatePasswordRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {

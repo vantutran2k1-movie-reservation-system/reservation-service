@@ -12,6 +12,7 @@ package mock_repositories
 import (
 	reflect "reflect"
 
+	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
 	gorm "gorm.io/gorm"
@@ -52,4 +53,33 @@ func (m *MockUserRegistrationTokenRepository) CreateToken(tx *gorm.DB, token *mo
 func (mr *MockUserRegistrationTokenRepositoryMockRecorder) CreateToken(tx, token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockUserRegistrationTokenRepository)(nil).CreateToken), tx, token)
+}
+
+// GetToken mocks base method.
+func (m *MockUserRegistrationTokenRepository) GetToken(filter filters.UserRegistrationTokenFilter) (*models.UserRegistrationToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetToken", filter)
+	ret0, _ := ret[0].(*models.UserRegistrationToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetToken indicates an expected call of GetToken.
+func (mr *MockUserRegistrationTokenRepositoryMockRecorder) GetToken(filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockUserRegistrationTokenRepository)(nil).GetToken), filter)
+}
+
+// UseToken mocks base method.
+func (m *MockUserRegistrationTokenRepository) UseToken(tx *gorm.DB, token *models.UserRegistrationToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UseToken", tx, token)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UseToken indicates an expected call of UseToken.
+func (mr *MockUserRegistrationTokenRepositoryMockRecorder) UseToken(tx, token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseToken", reflect.TypeOf((*MockUserRegistrationTokenRepository)(nil).UseToken), tx, token)
 }

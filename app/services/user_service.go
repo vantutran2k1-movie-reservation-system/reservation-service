@@ -23,6 +23,7 @@ type UserService interface {
 	CreateUser(req payloads.CreateUserRequest) (*models.User, *errors.ApiError)
 	LoginUser(req payloads.LoginUserRequest) (*models.LoginToken, *errors.ApiError)
 	LogoutUser(tokenValue string) *errors.ApiError
+	VerifyUser(token string) *errors.ApiError
 	UpdateUserPassword(userID uuid.UUID, req payloads.UpdatePasswordRequest) *errors.ApiError
 	CreatePasswordResetToken(req payloads.CreatePasswordResetTokenRequest) (*models.PasswordResetToken, *errors.ApiError)
 	ResetUserPassword(resetToken string, request payloads.ResetPasswordRequest) *errors.ApiError
@@ -129,13 +130,14 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 		CreatedAt:   currentTime,
 		UpdatedAt:   currentTime,
 	}
+	// TODO: Use config file to parse env
 	t := &models.UserRegistrationToken{
 		ID:         uuid.New(),
 		UserID:     userId,
 		TokenValue: s.authenticator.GenerateRegistrationToken(),
 		IsUsed:     false,
 		CreatedAt:  currentTime,
-		ExpiresAt:  currentTime,
+		ExpiresAt:  currentTime.Add(24 * time.Hour),
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		if err := s.userRepo.CreateOrUpdateUser(tx, u); err != nil {
@@ -244,6 +246,47 @@ func (s *userService) LogoutUser(tokenValue string) *errors.ApiError {
 
 	if err := s.transactionManager.ExecuteInRedisTransaction(s.rdb, func(tx *redis.Tx) error {
 		return s.userSessionRepo.DeleteUserSession(s.userSessionRepo.GetUserSessionID(token.TokenValue))
+	}); err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+
+	return nil
+}
+
+func (s *userService) VerifyUser(token string) *errors.ApiError {
+	t, err := s.userRegistrationTokenRepo.GetToken(filters.UserRegistrationTokenFilter{
+		Filter:     &filters.SingleFilter{},
+		TokenValue: &filters.Condition{Operator: filters.OpEqual, Value: token},
+		IsUsed:     &filters.Condition{Operator: filters.OpEqual, Value: false},
+		ExpiresAt:  &filters.Condition{Operator: filters.OpGreater, Value: time.Now().UTC()},
+	})
+	if err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+	if t == nil {
+		return errors.BadRequestError("invalid or expired token")
+	}
+
+	u, err := s.userRepo.GetUser(filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: t.UserID},
+	}, false)
+	if err != nil {
+		return errors.InternalServerError(err.Error())
+	}
+	if u == nil {
+		return errors.InternalServerError("user not found")
+	}
+	if u.IsVerified {
+		return errors.BadRequestError("user is already verified")
+	}
+
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		if err := s.userRepo.VerifyUser(tx, u); err != nil {
+			return err
+		}
+
+		return s.userRegistrationTokenRepo.UseToken(tx, t)
 	}); err != nil {
 		return errors.InternalServerError(err.Error())
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_auth"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"go.uber.org/mock/gomock"
@@ -509,6 +510,130 @@ func TestUserService_LogoutUser(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
 		assert.Equal(t, "error deleting session", err.Error())
+	})
+}
+
+func TestUserService_VerifyUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	transaction := mock_transaction.NewMockTransactionManager(ctrl)
+	userRepo := mock_repositories.NewMockUserRepository(ctrl)
+	tokenRepo := mock_repositories.NewMockUserRegistrationTokenRepository(ctrl)
+
+	service := NewUserService(nil, nil, nil, transaction, userRepo, nil, nil, nil, nil, tokenRepo, nil)
+
+	user := utils.GenerateUser()
+	user.IsVerified = false
+	token := utils.GenerateUserRegistrationToken()
+	token.UserID = user.ID
+	userFilter := filters.UserFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: user.ID},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		tokenRepo.EXPECT().GetToken(gomock.Any()).Return(token, nil).Times(1)
+		userRepo.EXPECT().GetUser(gomock.Eq(userFilter), false).Return(user, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		userRepo.EXPECT().VerifyUser(gomock.Any(), user).Return(nil).Times(1)
+		tokenRepo.EXPECT().UseToken(gomock.Any(), token).Return(nil).Times(1)
+
+		err := service.VerifyUser(token.TokenValue)
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error getting token", func(t *testing.T) {
+		tokenRepo.EXPECT().GetToken(gomock.Any()).Return(nil, errors.New("error getting token")).Times(1)
+
+		err := service.VerifyUser(token.TokenValue)
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error getting token")
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+	})
+
+	t.Run("token not found", func(t *testing.T) {
+		tokenRepo.EXPECT().GetToken(gomock.Any()).Return(nil, nil).Times(1)
+
+		err := service.VerifyUser(token.TokenValue)
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "invalid or expired token")
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("error getting user", func(t *testing.T) {
+		tokenRepo.EXPECT().GetToken(gomock.Any()).Return(token, nil).Times(1)
+		userRepo.EXPECT().GetUser(gomock.Eq(userFilter), false).Return(nil, errors.New("error getting user")).Times(1)
+
+		err := service.VerifyUser(user.Email)
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error getting user")
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+	})
+
+	t.Run("user not found", func(t *testing.T) {
+		tokenRepo.EXPECT().GetToken(gomock.Any()).Return(token, nil).Times(1)
+		userRepo.EXPECT().GetUser(gomock.Eq(userFilter), false).Return(nil, nil).Times(1)
+
+		err := service.VerifyUser(user.Email)
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "user not found")
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+	})
+
+	t.Run("user is verified", func(t *testing.T) {
+		tokenRepo.EXPECT().GetToken(gomock.Any()).Return(token, nil).Times(1)
+		userRepo.EXPECT().GetUser(gomock.Eq(userFilter), false).Return(&models.User{IsVerified: true}, nil).Times(1)
+
+		err := service.VerifyUser(user.Email)
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "user is already verified")
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("error updating user", func(t *testing.T) {
+		tokenRepo.EXPECT().GetToken(gomock.Any()).Return(token, nil).Times(1)
+		userRepo.EXPECT().GetUser(gomock.Eq(userFilter), false).Return(user, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		userRepo.EXPECT().VerifyUser(gomock.Any(), user).Return(errors.New("error updating user")).Times(1)
+
+		err := service.VerifyUser(user.Email)
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error updating user")
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+	})
+
+	t.Run("error updating token", func(t *testing.T) {
+		tokenRepo.EXPECT().GetToken(gomock.Any()).Return(token, nil).Times(1)
+		userRepo.EXPECT().GetUser(gomock.Eq(userFilter), false).Return(user, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		userRepo.EXPECT().VerifyUser(gomock.Any(), user).Return(nil).Times(1)
+		tokenRepo.EXPECT().UseToken(gomock.Any(), token).Return(errors.New("error updating token")).Times(1)
+
+		err := service.VerifyUser(user.Email)
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error updating token")
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
 	})
 }
 

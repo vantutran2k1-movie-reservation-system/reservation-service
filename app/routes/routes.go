@@ -27,6 +27,8 @@ func RegisterRoutes() *gin.Engine {
 			users.POST("/login", c.UserController.LoginUser)
 			users.POST("/logout", m.AuthMiddleware.RequireAuthMiddleware(), c.UserController.LogoutUser)
 
+			users.POST("/verify", c.UserController.VerifyUser)
+
 			users.PUT("/password", m.AuthMiddleware.RequireAuthMiddleware(), c.UserController.UpdateUserPassword)
 			users.POST("/password-reset-token", c.UserController.CreatePasswordResetToken)
 			users.POST("/password-reset", c.UserController.ResetPassword)

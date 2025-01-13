@@ -15,6 +15,7 @@ type UserRepository interface {
 	CreateUser(tx *gorm.DB, user *models.User) error
 	CreateOrUpdateUser(tx *gorm.DB, user *models.User) error
 	UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error)
+	VerifyUser(tx *gorm.DB, user *models.User) error
 }
 
 type userRepository struct {
@@ -88,4 +89,12 @@ func (r *userRepository) UpdatePassword(tx *gorm.DB, user *models.User, password
 	}
 
 	return user, nil
+}
+
+func (r *userRepository) VerifyUser(tx *gorm.DB, user *models.User) error {
+	if err := tx.Model(user).Updates(map[string]any{"is_verified": true, "updated_at": time.Now().UTC()}).Error; err != nil {
+		return err
+	}
+
+	return nil
 }

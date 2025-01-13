@@ -8,6 +8,7 @@ const (
 	// Request headers
 	ProfilePictureRequestFormKey = "profile_picture"
 	ResetToken                   = "Reset-Token"
+	UserVerificationToken        = "Verification-Token"
 
 	// Request query params
 	Limit                  = "limit"
