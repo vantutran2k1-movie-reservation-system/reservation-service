@@ -476,7 +476,7 @@ func TestUserController_ResetPassword(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset", bytes.NewBufferString(reqBody))
 		req.Header.Set(constants.ContentType, constants.ApplicationJson)
-		req.Header.Set(constants.ResetToken, token.TokenValue)
+		req.Header.Set(constants.UserPasswordResetToken, token.TokenValue)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -488,7 +488,7 @@ func TestUserController_ResetPassword(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset", bytes.NewBufferString(reqBody))
 		req.Header.Set(constants.ContentType, constants.ApplicationJson)
-		req.Header.Set(constants.ResetToken, token.TokenValue)
+		req.Header.Set(constants.UserPasswordResetToken, token.TokenValue)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -503,7 +503,7 @@ func TestUserController_ResetPassword(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/users/password-reset", bytes.NewBufferString(reqBody))
 		req.Header.Set(constants.ContentType, constants.ApplicationJson)
-		req.Header.Set(constants.ResetToken, token.TokenValue)
+		req.Header.Set(constants.UserPasswordResetToken, token.TokenValue)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)

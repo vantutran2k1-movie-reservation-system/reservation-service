@@ -2,14 +2,11 @@ package middlewares
 
 import (
 	"fmt"
-	"mime/multipart"
-	"net/http"
-	"os"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
+	"mime/multipart"
+	"net/http"
 )
 
 var DefaultImageFileTypes = map[string]bool{
@@ -92,15 +89,6 @@ func GetUploadedFiles(ctx *gin.Context, formKey string) ([]*multipart.FileHeader
 	}
 
 	return files.([]*multipart.FileHeader), nil
-}
-
-func GetMaxProfilePictureFileSize() int {
-	maxFileSize, err := strconv.Atoi(os.Getenv("MAX_PROFILE_PICTURE_FILE_SIZE"))
-	if err != nil {
-		return 0
-	}
-
-	return maxFileSize
 }
 
 func (m *FilesUploadMiddleware) getFilesFromRequest(ctx *gin.Context, formKey string) ([]*multipart.FileHeader, error) {

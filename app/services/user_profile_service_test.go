@@ -10,7 +10,6 @@ import (
 	"gorm.io/gorm"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -172,10 +171,6 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	bucketName := "test-bucket"
-	os.Setenv("MINIO_PROFILE_PICTURE_BUCKET_NAME", bucketName)
-	defer os.Unsetenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
-
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
 	userRepo := mock_repositories.NewMockUserRepository(ctrl)
 	profileRepo := mock_repositories.NewMockUserProfileRepository(ctrl)
@@ -195,7 +190,7 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
-		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, gomock.Any()).Return(nil).Times(1)
+		profilePictureRepo.EXPECT().CreateProfilePicture(file, gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -244,7 +239,7 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 
 	t.Run("error creating picture", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
-		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, gomock.Any()).Return(errors.New("error creating picture")).Times(1)
+		profilePictureRepo.EXPECT().CreateProfilePicture(file, gomock.Any(), gomock.Any()).Return(errors.New("error creating picture")).Times(1)
 
 		result, err := service.UpdateProfilePicture(profile.UserID, file)
 
@@ -256,7 +251,7 @@ func TestUserProfileService_UpdateProfilePicture(t *testing.T) {
 
 	t.Run("error updating profile", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(filter, true).Return(user, nil).Times(1)
-		profilePictureRepo.EXPECT().CreateProfilePicture(file, bucketName, gomock.Any()).Return(nil).Times(1)
+		profilePictureRepo.EXPECT().CreateProfilePicture(file, gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)

@@ -1,15 +1,14 @@
 package main
 
 import (
-	"log"
-	"os"
-
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
+	"log"
 )
 
 func main() {
-	app := app.InitApp()
-	if err := app.Router.Run(":" + os.Getenv("APP_PORT")); err != nil {
+	a := app.InitApp()
+	if err := a.Router.Run(":" + config.AppEnv.AppPort); err != nil {
 		log.Fatal(err)
 		return
 	}

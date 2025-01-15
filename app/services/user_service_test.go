@@ -15,7 +15,6 @@ import (
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
 	"net/http"
-	"os"
 	"testing"
 )
 
@@ -279,8 +278,6 @@ func TestUserService_LoginUser(t *testing.T) {
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
-		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
-		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -354,27 +351,11 @@ func TestUserService_LoginUser(t *testing.T) {
 		assert.Equal(t, "token value already exists", err.Error())
 	})
 
-	t.Run("error getting expiry time", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
-		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
-		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
-		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
-
-		result, err := service.LoginUser(req)
-
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
-		assert.Equal(t, "invalid token expiry time: strconv.Atoi: parsing \"\": invalid syntax", err.Error())
-	})
-
 	t.Run("error creating token", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
-		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
-		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -395,8 +376,6 @@ func TestUserService_LoginUser(t *testing.T) {
 		auth.EXPECT().DoPasswordsMatch(user.PasswordHash, req.Password).Return(true).Times(1)
 		auth.EXPECT().GenerateLoginToken().Return(token.TokenValue).Times(1)
 		loginTokenRepo.EXPECT().GetLoginToken(gomock.Eq(tokenFilter)).Return(nil, nil).Times(1)
-		os.Setenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", "60")
-		defer os.Unsetenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES")
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 				return fn(db)
@@ -819,8 +798,6 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		os.Setenv("PASSWORD_RESET_TOKEN_EXPIRES_AFTER_MINUTES", "60")
-		defer os.Unsetenv("PASSWORD_RESET_TOKEN_EXPIRES_AFTER_MINUTES")
 		tokenRepo.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
 		result, err := service.CreatePasswordResetToken(req)
@@ -880,19 +857,6 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 		assert.Equal(t, "token value already exists", err.Error())
 	})
 
-	t.Run("error getting expire time", func(t *testing.T) {
-		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
-		auth.EXPECT().GeneratePasswordResetToken().Return(token.TokenValue).Times(1)
-		tokenRepo.EXPECT().GetToken(tokenFilter).Return(nil, nil).Times(1)
-
-		result, err := service.CreatePasswordResetToken(req)
-
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
-		assert.Contains(t, err.Error(), "invalid token expiry time")
-	})
-
 	t.Run("error creating token", func(t *testing.T) {
 		userRepo.EXPECT().GetUser(userFilter, false).Return(user, nil).Times(1)
 		auth.EXPECT().GeneratePasswordResetToken().Return(token.TokenValue).Times(1)
@@ -902,8 +866,6 @@ func TestUserService_CreatePasswordResetToken(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		os.Setenv("PASSWORD_RESET_TOKEN_EXPIRES_AFTER_MINUTES", "60")
-		defer os.Unsetenv("PASSWORD_RESET_TOKEN_EXPIRES_AFTER_MINUTES")
 		tokenRepo.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(errors.New("error creating token")).Times(1)
 
 		result, err := service.CreatePasswordResetToken(req)

@@ -5,19 +5,12 @@ import (
 	"go.uber.org/mock/gomock"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
 
 func TestUserLocationService_GetCurrentUserLocation(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	os.Setenv("USER_LOCATION_API_TIMEOUT_SECONDS", "10")
-	defer os.Unsetenv("USER_LOCATION_API_TIMEOUT_SECONDS")
-
-	os.Setenv("USER_LOCATION_API_URL", "https://example.com")
-	defer os.Unsetenv("USER_LOCATION_API_URL")
 
 	t.Run("success", func(t *testing.T) {
 		mockResponse := `{"lat": 10.8231, "lon": 106.6297}`
@@ -27,10 +20,7 @@ func TestUserLocationService_GetCurrentUserLocation(t *testing.T) {
 		}))
 		defer mockServer.Close()
 
-		os.Setenv("USER_LOCATION_API_URL", mockServer.URL)
-		defer os.Unsetenv("USER_LOCATION_API_URL")
-
-		service := NewUserLocationService()
+		service := NewUserLocationService(mockServer.URL, 10)
 
 		location, apiErr := service.GetCurrentUserLocation()
 
@@ -46,10 +36,7 @@ func TestUserLocationService_GetCurrentUserLocation(t *testing.T) {
 		}))
 		defer mockServer.Close()
 
-		os.Setenv("USER_LOCATION_API_URL", mockServer.URL)
-		defer os.Unsetenv("USER_LOCATION_API_URL")
-
-		service := NewUserLocationService()
+		service := NewUserLocationService(mockServer.URL, 10)
 
 		location, apiErr := service.GetCurrentUserLocation()
 
@@ -66,10 +53,7 @@ func TestUserLocationService_GetCurrentUserLocation(t *testing.T) {
 		}))
 		defer mockServer.Close()
 
-		os.Setenv("USER_LOCATION_API_URL", mockServer.URL)
-		defer os.Unsetenv("USER_LOCATION_API_URL")
-
-		service := NewUserLocationService()
+		service := NewUserLocationService(mockServer.URL, 10)
 
 		location, apiErr := service.GetCurrentUserLocation()
 

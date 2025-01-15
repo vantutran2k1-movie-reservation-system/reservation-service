@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/middlewares"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
 func RegisterRoutes() *gin.Engine {
@@ -44,7 +45,7 @@ func RegisterRoutes() *gin.Engine {
 				"/profile-picture",
 				m.FilesUploadMiddleware.RequireNumberOfUploadedFilesMiddleware(constants.ProfilePictureRequestFormKey, 1),
 				m.FilesUploadMiddleware.IsAllowedFileTypeMiddleware(constants.ProfilePictureRequestFormKey, middlewares.DefaultImageFileTypes),
-				m.FilesUploadMiddleware.NotExceedMaxSizeLimitMiddleware(constants.ProfilePictureRequestFormKey, middlewares.GetMaxProfilePictureFileSize()),
+				m.FilesUploadMiddleware.NotExceedMaxSizeLimitMiddleware(constants.ProfilePictureRequestFormKey, config.AppEnv.MaxProfilePictureFileSize),
 				c.UserProfileController.UpdateProfilePicture,
 			)
 			profiles.DELETE("/profile-picture", c.UserProfileController.DeleteProfilePicture)

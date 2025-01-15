@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 	"mime/multipart"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -79,8 +79,7 @@ func (s *userProfileService) UpdateProfilePicture(userID uuid.UUID, file *multip
 
 	objectName := fmt.Sprintf("%s/%d", userID, time.Now().Unix())
 
-	bucketName := os.Getenv("MINIO_PROFILE_PICTURE_BUCKET_NAME")
-	if err := s.profilePictureRepo.CreateProfilePicture(file, bucketName, objectName); err != nil {
+	if err := s.profilePictureRepo.CreateProfilePicture(file, config.AppEnv.MinioProfilePictureBucket, objectName); err != nil {
 		return nil, errors.InternalServerError(err.Error())
 	}
 

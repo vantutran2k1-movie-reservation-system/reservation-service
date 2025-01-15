@@ -3,8 +3,7 @@ package services
 import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
-	"os"
-	"strconv"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 	"time"
 
 	"github.com/google/uuid"
@@ -130,14 +129,13 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 		CreatedAt:   currentTime,
 		UpdatedAt:   currentTime,
 	}
-	// TODO: Use config file to parse env
 	t := &models.UserRegistrationToken{
 		ID:         uuid.New(),
 		UserID:     userId,
 		TokenValue: s.authenticator.GenerateRegistrationToken(),
 		IsUsed:     false,
 		CreatedAt:  currentTime,
-		ExpiresAt:  currentTime.Add(24 * time.Hour),
+		ExpiresAt:  currentTime.Add(time.Duration(config.AppEnv.UserRegistrationTokenExpireTime) * time.Minute),
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		if err := s.userRepo.CreateOrUpdateUser(tx, u); err != nil {
@@ -193,12 +191,7 @@ func (s *userService) LoginUser(req payloads.LoginUserRequest) (*models.LoginTok
 	}
 
 	now := time.Now().UTC()
-	tokenExpiresAfter, err := strconv.Atoi(os.Getenv("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES"))
-	if err != nil {
-		return nil, errors.InternalServerError("invalid token expiry time: %v", err)
-	}
-	validDuration := time.Duration(tokenExpiresAfter) * time.Minute
-
+	validDuration := time.Duration(config.AppEnv.LoginTokenExpireTime) * time.Minute
 	t = &models.LoginToken{
 		ID:         uuid.New(),
 		UserID:     u.ID,
@@ -349,11 +342,6 @@ func (s *userService) CreatePasswordResetToken(req payloads.CreatePasswordResetT
 		return nil, errors.InternalServerError("token value already exists")
 	}
 
-	tokenExpiresAfter, err := strconv.Atoi(os.Getenv("PASSWORD_RESET_TOKEN_EXPIRES_AFTER_MINUTES"))
-	if err != nil {
-		return nil, errors.InternalServerError("invalid token expiry time: %v", err)
-	}
-
 	now := time.Now().UTC()
 	t = &models.PasswordResetToken{
 		ID:         uuid.New(),
@@ -361,7 +349,7 @@ func (s *userService) CreatePasswordResetToken(req payloads.CreatePasswordResetT
 		TokenValue: token,
 		IsUsed:     false,
 		CreatedAt:  now,
-		ExpiresAt:  now.Add(time.Duration(tokenExpiresAfter) * time.Minute),
+		ExpiresAt:  now.Add(time.Duration(config.AppEnv.PassResetTokenExpireTime) * time.Minute),
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
 		return s.passwordResetTokenRepo.CreateToken(tx, t)

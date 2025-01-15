@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/IBM/sarama"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
-	"os"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
 )
 
 type NotificationRepository interface {
@@ -28,7 +28,7 @@ func (r *notificationRepository) SendUserRegistrationEvent(event payloads.UserRe
 	}
 
 	_, _, err = r.kafkaProducer.SendMessage(&sarama.ProducerMessage{
-		Topic: os.Getenv("KAFKA_USER_REGISTRATION_TOPIC"),
+		Topic: config.AppEnv.KafkaUserRegistrationTopic,
 		Value: sarama.ByteEncoder(messageBytes),
 	})
 	if err != nil {

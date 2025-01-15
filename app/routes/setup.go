@@ -11,7 +11,6 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
-	"os"
 )
 
 var r *Repositories
@@ -138,7 +137,7 @@ func setupServices(repositories *Repositories) {
 			repositories.TheaterRepository,
 			repositories.TheaterLocationRepository,
 			repositories.CityRepository,
-			services.NewUserLocationService(),
+			services.NewUserLocationService(config.AppEnv.UserLocationApiUrl, config.AppEnv.UserLocationApiTimeout),
 		),
 	}
 }
@@ -163,15 +162,14 @@ func setupMiddlewares(repositories *Repositories) {
 }
 
 func setupRouter() {
-	ginMode := os.Getenv("GIN_MODE")
-	if ginMode == constants.GinReleaseMode {
+	if config.AppEnv.GinMode == constants.GinReleaseMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	router = gin.Default()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{os.Getenv("PLATFORM_UI_ENDPOINT")},
+		AllowOrigins:     []string{config.AppEnv.PlatformUiEndpoint},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,

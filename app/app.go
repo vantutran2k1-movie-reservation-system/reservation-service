@@ -21,6 +21,7 @@ func InitApp() *App {
 
 	errors.RegisterCustomValidators()
 
+	config.InitAppEnv()
 	config.InitDB()
 	config.InitRedis()
 	config.InitMinio()

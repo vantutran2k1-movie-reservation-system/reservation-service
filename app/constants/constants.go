@@ -6,8 +6,8 @@ const (
 	GinDebugMode   = "debug"
 
 	// Request headers
-	ProfilePictureRequestFormKey = "profile_picture"
-	ResetToken                   = "Reset-Token"
+	ProfilePictureRequestFormKey = "Profile-Picture"
+	UserPasswordResetToken       = "Reset-Token"
 	UserVerificationToken        = "Verification-Token"
 
 	// Request query params

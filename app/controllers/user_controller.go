@@ -175,7 +175,7 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.UserService.ResetUserPassword(ctx.GetHeader(constants.ResetToken), req); err != nil {
+	if err := c.UserService.ResetUserPassword(ctx.GetHeader(constants.UserPasswordResetToken), req); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
 		return
 	}
