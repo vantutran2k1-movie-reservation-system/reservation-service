@@ -42,6 +42,21 @@ func (m *MockTheaterService) EXPECT() *MockTheaterServiceMockRecorder {
 	return m.recorder
 }
 
+// CreateSeat mocks base method.
+func (m *MockTheaterService) CreateSeat(theaterId uuid.UUID, req payloads.CreateSeatPayload) (*models.Seat, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSeat", theaterId, req)
+	ret0, _ := ret[0].(*models.Seat)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// CreateSeat indicates an expected call of CreateSeat.
+func (mr *MockTheaterServiceMockRecorder) CreateSeat(theaterId, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSeat", reflect.TypeOf((*MockTheaterService)(nil).CreateSeat), theaterId, req)
+}
+
 // CreateTheater mocks base method.
 func (m *MockTheaterService) CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError) {
 	m.ctrl.T.Helper()

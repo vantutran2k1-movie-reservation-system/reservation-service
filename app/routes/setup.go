@@ -39,6 +39,7 @@ type Repositories struct {
 	CityRepository                  repositories.CityRepository
 	TheaterRepository               repositories.TheaterRepository
 	TheaterLocationRepository       repositories.TheaterLocationRepository
+	SeatRepository                  repositories.SeatRepository
 	NotificationRepository          repositories.NotificationRepository
 }
 
@@ -84,6 +85,7 @@ func setupRepositories() {
 		CityRepository:                  repositories.NewCityRepository(config.DB),
 		TheaterRepository:               repositories.NewTheaterRepository(config.DB),
 		TheaterLocationRepository:       repositories.NewTheaterLocationRepository(config.DB),
+		SeatRepository:                  repositories.NewSeatRepository(config.DB),
 		NotificationRepository:          repositories.NewNotificationRepository(config.KafkaProducerClient),
 	}
 }
@@ -136,6 +138,7 @@ func setupServices(repositories *Repositories) {
 			transactionManager,
 			repositories.TheaterRepository,
 			repositories.TheaterLocationRepository,
+			repositories.SeatRepository,
 			repositories.CityRepository,
 			services.NewUserLocationService(config.AppEnv.UserLocationApiUrl, config.AppEnv.UserLocationApiTimeout),
 		),

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"time"
 
 	"math/rand"
@@ -221,6 +222,16 @@ func GenerateTheaterLocations(count int) []*models.TheaterLocation {
 	}
 
 	return locations
+}
+
+func GenerateSeat() *models.Seat {
+	return &models.Seat{
+		Id:        generateUUID(),
+		TheaterId: GetPointerOf(generateUUID()),
+		Row:       generateString(uppercaseChars, 1),
+		Number:    generateInt(1, 30),
+		Type:      constants.Regular,
+	}
 }
 
 // Helpers

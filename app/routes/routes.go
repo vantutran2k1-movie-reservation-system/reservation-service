@@ -165,6 +165,16 @@ func RegisterRoutes() *gin.Engine {
 					c.TheaterController.UpdateTheaterLocation,
 				)
 			}
+
+			seats := theaters.Group("/:theaterId/seats")
+			{
+				seats.POST(
+					"/",
+					m.AuthMiddleware.RequireAuthMiddleware(),
+					m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyTheaters),
+					c.TheaterController.CreateSeat,
+				)
+			}
 		}
 	}
 

@@ -19,6 +19,7 @@ type TheaterService interface {
 	GetNearbyTheaters(distance float64) ([]*models.Theater, *errors.ApiError)
 	CreateTheater(req payloads.CreateTheaterRequest) (*models.Theater, *errors.ApiError)
 	CreateTheaterLocation(theaterID uuid.UUID, req payloads.CreateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
+	CreateSeat(theaterId uuid.UUID, req payloads.CreateSeatPayload) (*models.Seat, *errors.ApiError)
 	UpdateTheaterLocation(theaterId uuid.UUID, req payloads.UpdateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError)
 }
 
@@ -27,6 +28,7 @@ func NewTheaterService(
 	transactionManager transaction.TransactionManager,
 	theaterRepo repositories.TheaterRepository,
 	theaterLocationRepo repositories.TheaterLocationRepository,
+	seatRepo repositories.SeatRepository,
 	cityRepo repositories.CityRepository,
 	userLocationService UserLocationService,
 ) TheaterService {
@@ -35,6 +37,7 @@ func NewTheaterService(
 		transactionManager:  transactionManager,
 		theaterRepo:         theaterRepo,
 		theaterLocationRepo: theaterLocationRepo,
+		seatRepo:            seatRepo,
 		cityRepo:            cityRepo,
 		userLocationService: userLocationService,
 	}
@@ -45,6 +48,7 @@ type theaterService struct {
 	transactionManager  transaction.TransactionManager
 	theaterRepo         repositories.TheaterRepository
 	theaterLocationRepo repositories.TheaterLocationRepository
+	seatRepo            repositories.SeatRepository
 	cityRepo            repositories.CityRepository
 	userLocationService UserLocationService
 }
@@ -174,6 +178,41 @@ func (s *theaterService) CreateTheaterLocation(theaterID uuid.UUID, req payloads
 	}
 
 	return l, nil
+}
+
+func (s *theaterService) CreateSeat(theaterId uuid.UUID, req payloads.CreateSeatPayload) (*models.Seat, *errors.ApiError) {
+	_, apiErr := s.GetTheater(theaterId, false)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
+	seat, err := s.seatRepo.GetSeat(filters.SeatFilter{
+		Filter:    &filters.SingleFilter{},
+		TheaterId: &filters.Condition{Operator: filters.OpEqual, Value: theaterId},
+		Row:       &filters.Condition{Operator: filters.OpEqual, Value: req.Row},
+		Number:    &filters.Condition{Operator: filters.OpEqual, Value: req.Number},
+	})
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if seat != nil {
+		return nil, errors.BadRequestError("duplicate seat for this theater")
+	}
+
+	se := &models.Seat{
+		Id:        uuid.New(),
+		TheaterId: &theaterId,
+		Row:       req.Row,
+		Number:    req.Number,
+		Type:      req.Type,
+	}
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		return s.seatRepo.CreateSeat(tx, se)
+	}); err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return se, nil
 }
 
 func (s *theaterService) UpdateTheaterLocation(theaterId uuid.UUID, req payloads.UpdateTheaterLocationRequest) (*models.TheaterLocation, *errors.ApiError) {

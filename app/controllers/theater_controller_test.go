@@ -15,6 +15,7 @@ import (
 	"go.uber.org/mock/gomock"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -209,6 +210,69 @@ func TestTheaterController_CreateTheaterLocation(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/theaters/%s/locations", theater.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
+
+func TestTheaterController_CreateSeat(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockTheaterService(ctrl)
+	controller := TheaterController{
+		TheaterService: service,
+	}
+
+	theater := utils.GenerateTheater()
+	seat := utils.GenerateSeat()
+	payload := payloads.CreateSeatPayload{
+		Row:    seat.Row,
+		Number: seat.Number,
+		Type:   seat.Type,
+	}
+
+	router := gin.Default()
+	router.POST("/theaters/:theaterId/seats", controller.CreateSeat)
+
+	t.Run("success", func(t *testing.T) {
+		service.EXPECT().CreateSeat(theater.ID, payload).Return(seat, nil).Times(1)
+
+		reqBody := fmt.Sprintf(`{"row": "%s", "number": %d, "type": "%s"}`, seat.Row, seat.Number, seat.Type)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/theaters/%s/seats", theater.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Contains(t, w.Body.String(), seat.Row)
+		assert.Contains(t, w.Body.String(), fmt.Sprintf(strconv.Itoa(seat.Number)))
+		assert.Contains(t, w.Body.String(), seat.Type)
+	})
+
+	t.Run("validation error", func(t *testing.T) {
+		reqBody := fmt.Sprintf(`{"row": "%s", "number": %d, "type": "%s"}`, seat.Row, seat.Number, "INVALID TYPE")
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/theaters/%s/seats", theater.ID), bytes.NewBufferString(reqBody))
+		req.Header.Set(constants.ContentType, constants.ApplicationJson)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), fmt.Sprintf("Should be one of %s, %s", constants.Regular, constants.Vip))
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		service.EXPECT().CreateSeat(theater.ID, payload).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		reqBody := fmt.Sprintf(`{"row": "%s", "number": %d, "type": "%s"}`, seat.Row, seat.Number, seat.Type)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/theaters/%s/seats", theater.ID), bytes.NewBufferString(reqBody))
 		req.Header.Set(constants.ContentType, constants.ApplicationJson)
 		router.ServeHTTP(w, req)
 

@@ -25,7 +25,7 @@ func TestTheaterService_GetTheater(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock_repositories.NewMockTheaterRepository(ctrl)
-	service := NewTheaterService(nil, nil, repo, nil, nil, nil)
+	service := NewTheaterService(nil, nil, repo, nil, nil, nil, nil)
 
 	theater := utils.GenerateTheater()
 	filter := filters.TheaterFilter{
@@ -71,7 +71,7 @@ func TestTheaterService_GetTheaters(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock_repositories.NewMockTheaterRepository(ctrl)
-	service := NewTheaterService(nil, nil, repo, nil, nil, nil)
+	service := NewTheaterService(nil, nil, repo, nil, nil, nil, nil)
 
 	theaters := utils.GenerateTheaters(3)
 
@@ -141,7 +141,7 @@ func TestTheaterService_GetNearbyTheaters(t *testing.T) {
 
 	repo := mock_repositories.NewMockTheaterRepository(ctrl)
 	userLocService := mock_services.NewMockUserLocationService(ctrl)
-	service := NewTheaterService(nil, nil, repo, nil, nil, userLocService)
+	service := NewTheaterService(nil, nil, repo, nil, nil, nil, userLocService)
 
 	userLoc := &models.UserLocation{
 		Latitude:  20.0,
@@ -209,7 +209,7 @@ func TestTheaterService_CreateTheater(t *testing.T) {
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
 	repo := mock_repositories.NewMockTheaterRepository(ctrl)
-	service := NewTheaterService(nil, transaction, repo, nil, nil, nil)
+	service := NewTheaterService(nil, transaction, repo, nil, nil, nil, nil)
 
 	theater := utils.GenerateTheater()
 	req := payloads.CreateTheaterRequest{
@@ -284,7 +284,7 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	theaterRepo := mock_repositories.NewMockTheaterRepository(ctrl)
 	theaterLocationRepo := mock_repositories.NewMockTheaterLocationRepository(ctrl)
 	cityRepo := mock_repositories.NewMockCityRepository(ctrl)
-	service := NewTheaterService(nil, transaction, theaterRepo, theaterLocationRepo, cityRepo, nil)
+	service := NewTheaterService(nil, transaction, theaterRepo, theaterLocationRepo, nil, cityRepo, nil)
 
 	theater := utils.GenerateTheater()
 	city := utils.GenerateCity()
@@ -403,6 +403,120 @@ func TestTheaterService_CreateTheaterLocation(t *testing.T) {
 	})
 }
 
+func TestTheaterService_CreateSeat(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	transaction := mock_transaction.NewMockTransactionManager(ctrl)
+	theaterRepo := mock_repositories.NewMockTheaterRepository(ctrl)
+	seatRepo := mock_repositories.NewMockSeatRepository(ctrl)
+
+	service := NewTheaterService(nil, transaction, theaterRepo, nil, seatRepo, nil, nil)
+
+	theater := utils.GenerateTheater()
+	seat := utils.GenerateSeat()
+	seat.TheaterId = &theater.ID
+	req := payloads.CreateSeatPayload{
+		Row:    seat.Row,
+		Number: seat.Number,
+		Type:   seat.Type,
+	}
+	theaterFilter := filters.TheaterFilter{
+		Filter: &filters.SingleFilter{},
+		ID:     &filters.Condition{Operator: filters.OpEqual, Value: theater.ID},
+	}
+	seatFilter := filters.SeatFilter{
+		Filter:    &filters.SingleFilter{},
+		TheaterId: &filters.Condition{Operator: filters.OpEqual, Value: theater.ID},
+		Row:       &filters.Condition{Operator: filters.OpEqual, Value: req.Row},
+		Number:    &filters.Condition{Operator: filters.OpEqual, Value: req.Number},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, false).Return(theater, nil).Times(1)
+		seatRepo.EXPECT().GetSeat(seatFilter).Return(nil, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		seatRepo.EXPECT().CreateSeat(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+
+		result, err := service.CreateSeat(theater.ID, req)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, seat.TheaterId, result.TheaterId)
+		assert.Equal(t, seat.Row, result.Row)
+		assert.Equal(t, seat.Number, result.Number)
+		assert.Equal(t, seat.Type, result.Type)
+	})
+
+	t.Run("theater not found", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, false).Return(nil, nil).Times(1)
+
+		result, err := service.CreateSeat(theater.ID, req)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.EqualError(t, err, "theater not found")
+	})
+
+	t.Run("error getting theater", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, false).Return(nil, errors.New("error getting theater")).Times(1)
+
+		result, err := service.CreateSeat(theater.ID, req)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.EqualError(t, err, "error getting theater")
+	})
+
+	t.Run("duplicate seat", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, false).Return(theater, nil).Times(1)
+		seatRepo.EXPECT().GetSeat(seatFilter).Return(seat, nil).Times(1)
+
+		result, err := service.CreateSeat(theater.ID, req)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.EqualError(t, err, "duplicate seat for this theater")
+	})
+
+	t.Run("error getting seat", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, false).Return(theater, nil).Times(1)
+		seatRepo.EXPECT().GetSeat(seatFilter).Return(nil, errors.New("error getting seat")).Times(1)
+
+		result, err := service.CreateSeat(theater.ID, req)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.EqualError(t, err, "error getting seat")
+	})
+
+	t.Run("error creating seat", func(t *testing.T) {
+		theaterRepo.EXPECT().GetTheater(theaterFilter, false).Return(theater, nil).Times(1)
+		seatRepo.EXPECT().GetSeat(seatFilter).Return(nil, nil).Times(1)
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		seatRepo.EXPECT().CreateSeat(gomock.Any(), gomock.Any()).Return(errors.New("error creating seat")).Times(1)
+
+		result, err := service.CreateSeat(theater.ID, req)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.EqualError(t, err, "error creating seat")
+	})
+}
+
 func TestTheaterService_UpdateTheaterLocation(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -411,7 +525,7 @@ func TestTheaterService_UpdateTheaterLocation(t *testing.T) {
 	theaterRepo := mock_repositories.NewMockTheaterRepository(ctrl)
 	theaterLocationRepo := mock_repositories.NewMockTheaterLocationRepository(ctrl)
 	cityRepo := mock_repositories.NewMockCityRepository(ctrl)
-	service := NewTheaterService(nil, transaction, theaterRepo, theaterLocationRepo, cityRepo, nil)
+	service := NewTheaterService(nil, transaction, theaterRepo, theaterLocationRepo, nil, cityRepo, nil)
 
 	theater := utils.GenerateTheater()
 	location := utils.GenerateTheaterLocation()

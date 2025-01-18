@@ -32,3 +32,10 @@ const (
 	CanModifyLocations = "canModifyLocations"
 	CanModifyTheaters  = "canModifyTheaters"
 )
+
+type SeatType string
+
+const (
+	Regular SeatType = "REGULAR"
+	Vip     SeatType = "VIP"
+)
