@@ -174,7 +174,7 @@ func setupRouter() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{config.AppEnv.PlatformUiEndpoint},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Verification-Token"},
 		AllowCredentials: true,
 	}))
 }
