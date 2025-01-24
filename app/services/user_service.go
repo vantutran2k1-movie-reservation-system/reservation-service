@@ -121,7 +121,6 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 	}
 	p := &models.UserProfile{
 		ID:          uuid.New(),
-		UserID:      userId,
 		FirstName:   req.Profile.FirstName,
 		LastName:    req.Profile.LastName,
 		PhoneNumber: req.Profile.PhoneNumber,
@@ -131,20 +130,23 @@ func (s *userService) CreateUser(req payloads.CreateUserRequest) (*models.User, 
 	}
 	t := &models.UserRegistrationToken{
 		ID:         uuid.New(),
-		UserID:     userId,
 		TokenValue: s.authenticator.GenerateRegistrationToken(),
 		IsUsed:     false,
 		CreatedAt:  currentTime,
 		ExpiresAt:  currentTime.Add(time.Duration(config.AppEnv.UserRegistrationTokenExpireTime) * time.Minute),
 	}
 	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
-		if err := s.userRepo.CreateOrUpdateUser(tx, u); err != nil {
+		dbUser, err := s.userRepo.CreateOrUpdateUser(tx, u)
+		if err != nil {
 			return err
 		}
+
+		p.UserID = dbUser.ID
 		if err := s.userProfileRepo.CreateOrUpdateUserProfile(tx, p); err != nil {
 			return err
 		}
 
+		t.UserID = dbUser.ID
 		return s.userRegistrationTokenRepo.CreateToken(tx, t)
 	}); err != nil {
 		return nil, errors.InternalServerError(err.Error())

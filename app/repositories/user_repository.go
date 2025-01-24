@@ -13,7 +13,7 @@ type UserRepository interface {
 	GetUser(filter filters.UserFilter, includeProfile bool) (*models.User, error)
 	UserExists(filter filters.UserFilter) (bool, error)
 	CreateUser(tx *gorm.DB, user *models.User) error
-	CreateOrUpdateUser(tx *gorm.DB, user *models.User) error
+	CreateOrUpdateUser(tx *gorm.DB, user *models.User) (*models.User, error)
 	UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error)
 	VerifyUser(tx *gorm.DB, user *models.User) error
 }
@@ -62,25 +62,30 @@ func (r *userRepository) CreateUser(tx *gorm.DB, user *models.User) error {
 	return tx.Create(user).Error
 }
 
-func (r *userRepository) CreateOrUpdateUser(tx *gorm.DB, user *models.User) error {
+func (r *userRepository) CreateOrUpdateUser(tx *gorm.DB, user *models.User) (*models.User, error) {
 	filter := filters.UserFilter{
 		Filter: &filters.SingleFilter{},
 		Email:  &filters.Condition{Operator: filters.OpEqual, Value: user.Email},
 	}
-	u, err := r.GetUser(filter, false)
+	dbUser, err := r.GetUser(filter, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if u != nil {
-		return tx.Model(u).Updates(map[string]any{
-			"password_hash": user.PasswordHash,
-			"is_active":     user.IsActive,
-			"is_verified":   user.IsVerified,
-			"updated_at":    time.Now().UTC(),
-		}).Error
+	if dbUser == nil {
+		if err := tx.Create(user).Error; err != nil {
+			return nil, err
+		}
+		return user, nil
 	}
 
-	return tx.Create(user).Error
+	dbUser.PasswordHash = user.PasswordHash
+	dbUser.IsActive = user.IsActive
+	dbUser.IsVerified = user.IsVerified
+	dbUser.UpdatedAt = time.Now().UTC()
+	if err := tx.Save(dbUser).Error; err != nil {
+		return nil, err
+	}
+	return dbUser, nil
 }
 
 func (r *userRepository) UpdatePassword(tx *gorm.DB, user *models.User, password string) (*models.User, error) {

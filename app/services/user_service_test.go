@@ -138,7 +138,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(&models.User{}, nil).Times(1)
 		profileRepo.EXPECT().CreateOrUpdateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		userRegisRepo.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		notificationRepo.EXPECT().SendUserRegistrationEvent(gomock.Any()).Return(nil).Times(1)
@@ -194,7 +194,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(errors.New("error creating user")).Times(1)
+		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(nil, errors.New("error creating user")).Times(1)
 
 		result, err := service.CreateUser(req)
 
@@ -213,7 +213,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(&models.User{}, nil).Times(1)
 		profileRepo.EXPECT().CreateOrUpdateUserProfile(gomock.Any(), gomock.Any()).Return(errors.New("error creating profile")).Times(1)
 
 		result, err := service.CreateUser(req)
@@ -233,7 +233,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				return fn(db)
 			},
 		).Times(1)
-		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		userRepo.EXPECT().CreateOrUpdateUser(gomock.Any(), gomock.Any()).Return(&models.User{}, nil).Times(1)
 		profileRepo.EXPECT().CreateOrUpdateUserProfile(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		userRegisRepo.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(errors.New("error creating token")).Times(1)
 

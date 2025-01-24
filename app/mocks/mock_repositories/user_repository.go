@@ -42,11 +42,12 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 }
 
 // CreateOrUpdateUser mocks base method.
-func (m *MockUserRepository) CreateOrUpdateUser(tx *gorm.DB, user *models.User) error {
+func (m *MockUserRepository) CreateOrUpdateUser(tx *gorm.DB, user *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateOrUpdateUser", tx, user)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateOrUpdateUser indicates an expected call of CreateOrUpdateUser.

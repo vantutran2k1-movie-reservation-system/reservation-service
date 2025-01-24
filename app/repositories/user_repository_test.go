@@ -182,10 +182,14 @@ func TestUserRepository_CreateOrUpdateUser(t *testing.T) {
 		mock.ExpectCommit()
 
 		tx := db.Begin()
-		err := repo.CreateOrUpdateUser(tx, newUser)
+		result, err := repo.CreateOrUpdateUser(tx, newUser)
 		tx.Commit()
 
+		assert.NotNil(t, result)
 		assert.Nil(t, err)
+		assert.Equal(t, newUser.ID, result.ID)
+		assert.Equal(t, newUser.Email, result.Email)
+		assert.Equal(t, newUser.PasswordHash, result.PasswordHash)
 	})
 
 	t.Run("success updating existing user", func(t *testing.T) {
@@ -193,16 +197,20 @@ func TestUserRepository_CreateOrUpdateUser(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(newUser.Email, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(user))
-		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "is_active"=$1,"is_verified"=$2,"password_hash"=$3,"updated_at"=$4 WHERE "id" = $5`)).
-			WithArgs(newUser.IsActive, newUser.IsVerified, newUser.PasswordHash, sqlmock.AnyArg(), user.ID).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "email"=$1,"password_hash"=$2,"is_active"=$3,"is_verified"=$4,"created_at"=$5,"updated_at"=$6 WHERE "id" = $7`)).
+			WithArgs(newUser.Email, newUser.PasswordHash, newUser.IsActive, newUser.IsVerified, sqlmock.AnyArg(), sqlmock.AnyArg(), user.ID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
 		tx := db.Begin()
-		err := repo.CreateOrUpdateUser(tx, newUser)
+		result, err := repo.CreateOrUpdateUser(tx, newUser)
 		tx.Commit()
 
+		assert.NotNil(t, result)
 		assert.Nil(t, err)
+		assert.Equal(t, user.ID, result.ID)
+		assert.Equal(t, newUser.Email, result.Email)
+		assert.Equal(t, newUser.PasswordHash, result.PasswordHash)
 	})
 
 	t.Run("error getting user", func(t *testing.T) {
@@ -213,9 +221,10 @@ func TestUserRepository_CreateOrUpdateUser(t *testing.T) {
 		mock.ExpectRollback()
 
 		tx := db.Begin()
-		err := repo.CreateOrUpdateUser(tx, newUser)
+		result, err := repo.CreateOrUpdateUser(tx, newUser)
 		tx.Rollback()
 
+		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, "error getting user", err.Error())
 	})
@@ -231,9 +240,10 @@ func TestUserRepository_CreateOrUpdateUser(t *testing.T) {
 		mock.ExpectRollback()
 
 		tx := db.Begin()
-		err := repo.CreateOrUpdateUser(tx, newUser)
+		result, err := repo.CreateOrUpdateUser(tx, newUser)
 		tx.Rollback()
 
+		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, "error creating new user", err.Error())
 	})
@@ -243,15 +253,16 @@ func TestUserRepository_CreateOrUpdateUser(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
 			WithArgs(newUser.Email, 1).
 			WillReturnRows(utils.GenerateSqlMockRow(user))
-		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "is_active"=$1,"is_verified"=$2,"password_hash"=$3,"updated_at"=$4 WHERE "id" = $5`)).
-			WithArgs(newUser.IsActive, newUser.IsVerified, newUser.PasswordHash, sqlmock.AnyArg(), user.ID).
+		mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "email"=$1,"password_hash"=$2,"is_active"=$3,"is_verified"=$4,"created_at"=$5,"updated_at"=$6 WHERE "id" = $7`)).
+			WithArgs(newUser.Email, newUser.PasswordHash, newUser.IsActive, newUser.IsVerified, sqlmock.AnyArg(), sqlmock.AnyArg(), user.ID).
 			WillReturnError(errors.New("error updating existing user"))
 		mock.ExpectRollback()
 
 		tx := db.Begin()
-		err := repo.CreateOrUpdateUser(tx, newUser)
+		result, err := repo.CreateOrUpdateUser(tx, newUser)
 		tx.Rollback()
 
+		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, "error updating existing user", err.Error())
 	})
