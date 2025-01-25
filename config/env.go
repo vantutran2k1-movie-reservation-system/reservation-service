@@ -33,6 +33,7 @@ type Env struct {
 	LoginTokenExpireTime            int
 	PassResetTokenExpireTime        int
 	UserRegistrationTokenExpireTime int
+	MaxRequestsPerMinute            int
 	UserLocationApiTimeout          int
 	UserLocationApiUrl              string
 	KafkaBroker                     string
@@ -72,6 +73,8 @@ func InitAppEnv() {
 	AppEnv.LoginTokenExpireTime = getOrDefaultInt("LOGIN_TOKEN_EXPIRES_AFTER_MINUTES", 60)
 	AppEnv.PassResetTokenExpireTime = getOrDefaultInt("PASSWORD_RESET_TOKEN_EXPIRES_AFTER_MINUTES", 5)
 	AppEnv.UserRegistrationTokenExpireTime = getOrDefaultInt("USER_REGISTRATION_TOKEN_EXPIRES_AFTER_MINUTES", 5)
+
+	AppEnv.MaxRequestsPerMinute = getOrDefaultInt("MAX_REQUESTS_PER_MINUTE", 100)
 
 	AppEnv.UserLocationApiTimeout = getOrDefaultInt("USER_LOCATION_API_TIMEOUT_SECONDS", 10)
 	AppEnv.UserLocationApiUrl = getOrDefault("USER_LOCATION_API_URL", "http://ip-api.com/json/")

@@ -11,6 +11,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
+	"time"
 )
 
 var r *Repositories
@@ -50,6 +51,7 @@ type Services struct {
 	GenreService       services.GenreService
 	LocationService    services.LocationService
 	TheaterService     services.TheaterService
+	RateLimiterService services.RateLimiterService
 }
 
 type Controllers struct {
@@ -65,6 +67,7 @@ type Middlewares struct {
 	AuthMiddleware        middlewares.AuthMiddleware
 	FilesUploadMiddleware middlewares.FilesUploadMiddleware
 	ContextMiddleware     middlewares.ContextMiddleware
+	RateLimitMiddleware   middlewares.RateLimitMiddleware
 }
 
 func setupRepositories() {
@@ -142,6 +145,11 @@ func setupServices(repositories *Repositories) {
 			repositories.CityRepository,
 			services.NewUserLocationService(config.AppEnv.UserLocationApiUrl, config.AppEnv.UserLocationApiTimeout),
 		),
+		RateLimiterService: services.NewRateLimiterService(
+			config.RedisClient,
+			config.AppEnv.MaxRequestsPerMinute,
+			time.Minute,
+		),
 	}
 }
 
@@ -161,6 +169,7 @@ func setupMiddlewares(repositories *Repositories) {
 		AuthMiddleware:        *middlewares.NewAuthMiddleware(repositories.UserSessionRepository, repositories.FeatureFlagRepository),
 		FilesUploadMiddleware: *middlewares.NewFilesUploadMiddleware(),
 		ContextMiddleware:     *middlewares.NewContextMiddleware(),
+		RateLimitMiddleware:   *middlewares.NewRateLimitMiddleware(),
 	}
 }
 

@@ -12,6 +12,7 @@ func RegisterRoutes() *gin.Engine {
 
 	apiV1 := router.Group("/api/v1")
 	apiV1.Use(m.ContextMiddleware.AddRequestContext())
+	apiV1.Use(m.RateLimitMiddleware.NotExceedMaxRequests(s.RateLimiterService))
 	{
 		users := apiV1.Group("/users")
 		{

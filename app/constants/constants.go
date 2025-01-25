@@ -9,6 +9,7 @@ const (
 	ProfilePictureRequestFormKey = "Profile-Picture"
 	UserPasswordResetToken       = "Reset-Token"
 	UserVerificationToken        = "Verification-Token"
+	RetryAfter                   = "Retry-After"
 
 	// Request query params
 	Limit                  = "limit"
