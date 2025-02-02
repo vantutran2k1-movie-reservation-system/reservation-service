@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"time"
 )
 
@@ -32,8 +33,8 @@ type rateLimiterService struct {
 }
 
 func (s *rateLimiterService) Allow(clientIp string) (bool, time.Duration) {
-	redisKey := fmt.Sprintf("rate_limit:%s", clientIp)
-	
+	redisKey := fmt.Sprintf("%s:%s", constants.ClientRateLimit, clientIp)
+
 	count, err := s.redisClient.Incr(ctx, redisKey).Result()
 	if err != nil {
 		return false, 0

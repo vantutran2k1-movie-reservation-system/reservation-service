@@ -32,6 +32,9 @@ const (
 	CanModifyGenres    = "canModifyGenres"
 	CanModifyLocations = "canModifyLocations"
 	CanModifyTheaters  = "canModifyTheaters"
+
+	// Redis key
+	ClientRateLimit = "rateLimit"
 )
 
 type SeatType string
@@ -39,4 +42,15 @@ type SeatType string
 const (
 	Regular SeatType = "REGULAR"
 	Vip     SeatType = "VIP"
+)
+
+type ShowStatus string
+
+const (
+	Active    ShowStatus = "ACTIVE"
+	Cancelled ShowStatus = "CANCELLED"
+	Completed ShowStatus = "COMPLETED"
+	Expired   ShowStatus = "EXPIRED"
+	Scheduled ShowStatus = "SCHEDULED"
+	OnHold    ShowStatus = "ON-HOLD"
 )
