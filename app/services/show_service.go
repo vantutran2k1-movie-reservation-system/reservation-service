@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/google/uuid"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
@@ -13,6 +14,7 @@ import (
 )
 
 type ShowService interface {
+	GetShows(status constants.ShowStatus, limit, offset int) ([]*models.Show, *errors.ApiError)
 	CreateShow(req payloads.CreateShowRequest) (*models.Show, *errors.ApiError)
 }
 
@@ -38,6 +40,18 @@ type showService struct {
 	showRepo           repositories.ShowRepository
 	movieRepo          repositories.MovieRepository
 	theaterRepo        repositories.TheaterRepository
+}
+
+func (s *showService) GetShows(status constants.ShowStatus, limit, offset int) ([]*models.Show, *errors.ApiError) {
+	shows, err := s.showRepo.GetShows(filters.ShowFilter{
+		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+		Status: &filters.Condition{Operator: filters.OpEqual, Value: status},
+	})
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+
+	return shows, nil
 }
 
 func (s *showService) CreateShow(req payloads.CreateShowRequest) (*models.Show, *errors.ApiError) {

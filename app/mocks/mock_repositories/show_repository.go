@@ -72,6 +72,21 @@ func (mr *MockShowRepositoryMockRecorder) GetShow(filter any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShow", reflect.TypeOf((*MockShowRepository)(nil).GetShow), filter)
 }
 
+// GetShows mocks base method.
+func (m *MockShowRepository) GetShows(filter filters.ShowFilter) ([]*models.Show, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetShows", filter)
+	ret0, _ := ret[0].([]*models.Show)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetShows indicates an expected call of GetShows.
+func (mr *MockShowRepositoryMockRecorder) GetShows(filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShows", reflect.TypeOf((*MockShowRepository)(nil).GetShows), filter)
+}
+
 // IsShowInValidTimeRange mocks base method.
 func (m *MockShowRepository) IsShowInValidTimeRange(theaterId uuid.UUID, startTime, endTime time.Time) (bool, error) {
 	m.ctrl.T.Helper()

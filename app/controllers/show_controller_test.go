@@ -16,6 +16,47 @@ import (
 	"testing"
 )
 
+func TestShowController_GetActiveShows(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockShowService(ctrl)
+	controller := ShowController{
+		ShowService: service,
+	}
+
+	router := gin.Default()
+	router.GET("/shows/active", controller.GetActiveShows)
+
+	limit := 3
+	offset := 0
+	shows := utils.GenerateShows(3)
+
+	t.Run("success", func(t *testing.T) {
+		service.EXPECT().GetShows(constants.Active, limit, offset).Return(shows, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/shows/active?%s=%d&%s=%d", constants.Limit, limit, constants.Offset, offset), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		for _, show := range shows {
+			assert.Contains(t, w.Body.String(), show.Id.String())
+		}
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		service.EXPECT().GetShows(constants.Active, limit, offset).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/shows/active?%s=%d&%s=%d", constants.Limit, limit, constants.Offset, offset), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
+
 func TestShowController_CreateShow(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

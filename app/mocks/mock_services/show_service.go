@@ -12,6 +12,7 @@ package mock_services
 import (
 	reflect "reflect"
 
+	constants "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	errors "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	payloads "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
@@ -54,4 +55,19 @@ func (m *MockShowService) CreateShow(req payloads.CreateShowRequest) (*models.Sh
 func (mr *MockShowServiceMockRecorder) CreateShow(req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateShow", reflect.TypeOf((*MockShowService)(nil).CreateShow), req)
+}
+
+// GetShows mocks base method.
+func (m *MockShowService) GetShows(status constants.ShowStatus, limit, offset int) ([]*models.Show, *errors.ApiError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetShows", status, limit, offset)
+	ret0, _ := ret[0].([]*models.Show)
+	ret1, _ := ret[1].(*errors.ApiError)
+	return ret0, ret1
+}
+
+// GetShows indicates an expected call of GetShows.
+func (mr *MockShowServiceMockRecorder) GetShows(status, limit, offset any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShows", reflect.TypeOf((*MockShowService)(nil).GetShows), status, limit, offset)
 }

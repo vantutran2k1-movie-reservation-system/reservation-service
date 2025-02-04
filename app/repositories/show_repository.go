@@ -12,6 +12,7 @@ import (
 
 type ShowRepository interface {
 	GetShow(filter filters.ShowFilter) (*models.Show, error)
+	GetShows(filter filters.ShowFilter) ([]*models.Show, error)
 	IsShowInValidTimeRange(theaterId uuid.UUID, startTime time.Time, endTime time.Time) (bool, error)
 	CreateShow(tx *gorm.DB, show *models.Show) error
 }
@@ -37,6 +38,15 @@ func (r *showRepository) GetShow(filter filters.ShowFilter) (*models.Show, error
 	return &show, nil
 }
 
+func (r *showRepository) GetShows(filter filters.ShowFilter) ([]*models.Show, error) {
+	var shows []*models.Show
+	if err := filter.GetFilterQuery(r.db).Find(&shows).Error; err != nil {
+		return nil, err
+	}
+
+	return shows, nil
+}
+
 func (r *showRepository) IsShowInValidTimeRange(theaterId uuid.UUID, startTime, endTime time.Time) (bool, error) {
 	var show models.Show
 	query := `
@@ -59,7 +69,7 @@ func (r *showRepository) IsShowInValidTimeRange(theaterId uuid.UUID, startTime, 
 
 		return false, err
 	}
-	
+
 	return false, nil
 }
 

@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql/driver"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -58,6 +59,49 @@ func TestShowRepository_GetShow(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, "error getting show")
+	})
+}
+
+func TestShowRepository_GetShows(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewShowRepository(db)
+
+	shows := utils.GenerateShows(3)
+	filter := filters.ShowFilter{
+		Filter: &filters.SingleFilter{},
+		Status: &filters.Condition{Operator: filters.OpEqual, Value: constants.Active},
+	}
+
+	// TODO: Refactor other tests to reduce duplicate
+	query := regexp.QuoteMeta(`SELECT * FROM "shows" WHERE status = $1`)
+	args := []driver.Value{constants.Active}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectQuery(query).
+			WithArgs(args...).
+			WillReturnRows(utils.GenerateSqlMockRows(shows))
+
+		result, err := repo.GetShows(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, shows, result)
+	})
+
+	t.Run("error getting shows", func(t *testing.T) {
+		mock.ExpectQuery(query).
+			WithArgs(args...).
+			WillReturnError(errors.New("error getting shows"))
+
+		result, err := repo.GetShows(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error getting shows")
 	})
 }
 

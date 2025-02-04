@@ -255,6 +255,15 @@ func GenerateShow() *models.Show {
 	}
 }
 
+func GenerateShows(count int) []*models.Show {
+	shows := make([]*models.Show, count)
+	for i := 0; i < count; i++ {
+		shows[i] = GenerateShow()
+	}
+
+	return shows
+}
+
 // Helpers
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
 const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_repositories"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_transaction"
@@ -14,6 +15,43 @@ import (
 	"net/http"
 	"testing"
 )
+
+func TestShowService_GetShows(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock_repositories.NewMockShowRepository(ctrl)
+	service := NewShowService(nil, nil, repo, nil, nil)
+
+	shows := utils.GenerateShows(3)
+	limit := 3
+	offset := 0
+	filter := filters.ShowFilter{
+		Filter: &filters.MultiFilter{Limit: &limit, Offset: &offset},
+		Status: &filters.Condition{Operator: filters.OpEqual, Value: constants.Active},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		repo.EXPECT().GetShows(filter).Return(shows, nil).Times(1)
+
+		result, err := service.GetShows(constants.Active, limit, offset)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, shows, result)
+	})
+
+	t.Run("error getting shows", func(t *testing.T) {
+		repo.EXPECT().GetShows(filter).Return(nil, errors.New("error getting shows")).Times(1)
+
+		result, err := service.GetShows(constants.Active, limit, offset)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.EqualError(t, err, "error getting shows")
+	})
+}
 
 func TestShowService_CreateShow(t *testing.T) {
 	ctrl := gomock.NewController(t)
