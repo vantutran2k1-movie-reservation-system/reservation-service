@@ -26,6 +26,7 @@ func SetupTestDB(t *testing.T) (*gorm.DB, sqlmock.Sqlmock) {
 
 func TearDownTestDB(db *gorm.DB, mock sqlmock.Sqlmock) error {
 	sqlDB, _ := db.DB()
+	// TODO: rearrange the expect close clause to above the closing db
 	err := sqlDB.Close()
 	if err != nil {
 		return err

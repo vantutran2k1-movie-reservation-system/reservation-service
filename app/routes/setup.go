@@ -41,6 +41,7 @@ type Repositories struct {
 	TheaterRepository               repositories.TheaterRepository
 	TheaterLocationRepository       repositories.TheaterLocationRepository
 	SeatRepository                  repositories.SeatRepository
+	ShowRepository                  repositories.ShowRepository
 	NotificationRepository          repositories.NotificationRepository
 }
 
@@ -51,6 +52,7 @@ type Services struct {
 	GenreService       services.GenreService
 	LocationService    services.LocationService
 	TheaterService     services.TheaterService
+	ShowService        services.ShowService
 	RateLimiterService services.RateLimiterService
 }
 
@@ -61,6 +63,7 @@ type Controllers struct {
 	GenreController       controllers.GenreController
 	LocationController    controllers.LocationController
 	TheaterController     controllers.TheaterController
+	ShowController        controllers.ShowController
 }
 
 type Middlewares struct {
@@ -89,6 +92,7 @@ func setupRepositories() {
 		TheaterRepository:               repositories.NewTheaterRepository(config.DB),
 		TheaterLocationRepository:       repositories.NewTheaterLocationRepository(config.DB),
 		SeatRepository:                  repositories.NewSeatRepository(config.DB),
+		ShowRepository:                  repositories.NewShowRepository(config.DB),
 		NotificationRepository:          repositories.NewNotificationRepository(config.KafkaProducerClient),
 	}
 }
@@ -145,6 +149,13 @@ func setupServices(repositories *Repositories) {
 			repositories.CityRepository,
 			services.NewUserLocationService(config.AppEnv.UserLocationApiUrl, config.AppEnv.UserLocationApiTimeout),
 		),
+		ShowService: services.NewShowService(
+			config.DB,
+			transactionManager,
+			repositories.ShowRepository,
+			repositories.MovieRepository,
+			repositories.TheaterRepository,
+		),
 		RateLimiterService: services.NewRateLimiterService(
 			config.RedisClient,
 			config.AppEnv.MaxRequestsPerMinute,
@@ -161,6 +172,7 @@ func setupControllers(services *Services) {
 		GenreController:       *controllers.NewGenreController(&services.GenreService),
 		LocationController:    *controllers.NewLocationController(&services.LocationService),
 		TheaterController:     *controllers.NewTheaterController(&services.TheaterService),
+		ShowController:        *controllers.NewShowController(&services.ShowService),
 	}
 }
 
@@ -183,7 +195,7 @@ func setupRouter() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{config.AppEnv.PlatformUiEndpoint},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Verification-Token"},
+		AllowHeaders:     []string{"Origin", constants.ContentType, "Authorization", constants.UserVerificationToken},
 		AllowCredentials: true,
 	}))
 }

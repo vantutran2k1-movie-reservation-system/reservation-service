@@ -177,6 +177,16 @@ func RegisterRoutes() *gin.Engine {
 				)
 			}
 		}
+
+		shows := apiV1.Group("/shows")
+		{
+			shows.POST(
+				"/",
+				m.AuthMiddleware.RequireAuthMiddleware(),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyMovies),
+				c.ShowController.CreateShow,
+			)
+		}
 	}
 
 	return router

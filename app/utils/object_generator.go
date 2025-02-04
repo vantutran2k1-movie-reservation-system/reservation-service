@@ -234,6 +234,27 @@ func GenerateSeat() *models.Seat {
 	}
 }
 
+func GenerateShow() *models.Show {
+	showStatuses := []constants.ShowStatus{
+		constants.Active,
+		constants.Cancelled,
+		constants.Completed,
+		constants.Expired,
+		constants.Scheduled,
+		constants.OnHold,
+	}
+	return &models.Show{
+		Id:        generateUUID(),
+		MovieId:   GetPointerOf(generateUUID()),
+		TheaterId: GetPointerOf(generateUUID()),
+		StartTime: generateCurrentTime(),
+		EndTime:   generateCurrentTime().Add(60 * time.Minute),
+		Status:    showStatuses[generateInt(0, len(showStatuses)-1)],
+		CreatedAt: generateCurrentTime(),
+		UpdatedAt: generateCurrentTime(),
+	}
+}
+
 // Helpers
 const lowercaseChars = "abcdefghijklmnopqrstuvwxyz"
 const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

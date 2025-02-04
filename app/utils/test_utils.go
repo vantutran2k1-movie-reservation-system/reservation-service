@@ -9,6 +9,10 @@ import (
 )
 
 func GenerateSqlMockRow(data any) *sqlmock.Rows {
+	if data == nil {
+		return sqlmock.NewRows(nil)
+	}
+
 	columns, values := structToColumnsAndValues(data)
 	return sqlmock.NewRows(columns).AddRow(values...)
 }
