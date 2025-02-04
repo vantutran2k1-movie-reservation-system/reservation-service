@@ -14,7 +14,7 @@ import (
 func TestCountryRepository_GetCountry(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewCountryRepository(db)
@@ -66,7 +66,7 @@ func TestCountryRepository_GetCountry(t *testing.T) {
 func TestCountryRepository_GetCountries(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewCountryRepository(db)
@@ -113,7 +113,7 @@ func TestCountryRepository_GetCountries(t *testing.T) {
 func TestCountryRepository_CreateCountry(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewCountryRepository(db)

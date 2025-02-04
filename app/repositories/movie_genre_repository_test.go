@@ -14,7 +14,7 @@ import (
 func TestMovieGenreRepository_UpdateGenresOfMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieGenreRepository(db)
@@ -94,7 +94,7 @@ func TestMovieGenreRepository_UpdateGenresOfMovie(t *testing.T) {
 func TestMovieGenreRepository_DeleteByMovieId(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieGenreRepository(db)
@@ -134,7 +134,7 @@ func TestMovieGenreRepository_DeleteByMovieId(t *testing.T) {
 func TestMovieGenreRepository_DeleteByGenreId(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieGenreRepository(db)

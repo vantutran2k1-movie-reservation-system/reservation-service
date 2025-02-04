@@ -15,7 +15,7 @@ import (
 func TestStateRepository_GetState(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewStateRepository(db)
@@ -67,7 +67,7 @@ func TestStateRepository_GetState(t *testing.T) {
 func TestStateRepository_GetStates(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewStateRepository(db)
@@ -107,7 +107,7 @@ func TestStateRepository_GetStates(t *testing.T) {
 func TestStateRepository_CreateState(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewStateRepository(db)

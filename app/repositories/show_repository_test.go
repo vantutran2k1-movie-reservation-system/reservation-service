@@ -15,7 +15,7 @@ import (
 func TestShowRepository_GetShow(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewShowRepository(db)
@@ -64,7 +64,7 @@ func TestShowRepository_GetShow(t *testing.T) {
 func TestShowRepository_IsShowInValidTimeRange(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewShowRepository(db)
@@ -124,7 +124,7 @@ func TestShowRepository_IsShowInValidTimeRange(t *testing.T) {
 func TestShowRepository_CreateShow(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewShowRepository(db)

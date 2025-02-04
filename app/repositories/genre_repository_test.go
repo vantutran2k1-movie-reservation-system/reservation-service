@@ -16,7 +16,7 @@ import (
 func TestGenreRepository_GetGenre(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -56,7 +56,7 @@ func TestGenreRepository_GetGenre(t *testing.T) {
 func TestGenreRepository_GetGenres(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -97,7 +97,7 @@ func TestGenreRepository_GetGenres(t *testing.T) {
 func TestGenreRepository_GetGenreIDs(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -147,7 +147,7 @@ func TestGenreRepository_GetGenreIDs(t *testing.T) {
 func TestGenreRepository_CreateGenre(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -186,7 +186,7 @@ func TestGenreRepository_CreateGenre(t *testing.T) {
 func TestGenreRepository_UpdateGenre(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)
@@ -225,7 +225,7 @@ func TestGenreRepository_UpdateGenre(t *testing.T) {
 func TestGenreRepository_DeleteGenre(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewGenreRepository(db)

@@ -15,7 +15,7 @@ import (
 func TestUserProfileRepository_GetProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)
@@ -65,7 +65,7 @@ func TestUserProfileRepository_GetProfile(t *testing.T) {
 func TestUserProfileRepository_CreateUserProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)
@@ -105,7 +105,7 @@ func TestUserProfileRepository_CreateUserProfile(t *testing.T) {
 func TestUserProfileRepository_UpdateUserProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)
@@ -145,7 +145,8 @@ func TestUserProfileRepository_UpdateUserProfile(t *testing.T) {
 func TestUserProfileRepository_CreateOrUpdateUserProfile(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		mock.ExpectClose()
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)
@@ -243,7 +244,7 @@ func TestUserProfileRepository_CreateOrUpdateUserProfile(t *testing.T) {
 func TestUserRepository_UpdateProfilePicture(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserProfileRepository(db)

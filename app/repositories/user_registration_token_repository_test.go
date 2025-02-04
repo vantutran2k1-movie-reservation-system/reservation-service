@@ -14,7 +14,7 @@ import (
 func TestUserRegistrationTokenRepository_GetToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserRegistrationTokenRepository(db)
@@ -64,7 +64,7 @@ func TestUserRegistrationTokenRepository_GetToken(t *testing.T) {
 func TestUserRegistrationTokenRepository_CreateToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserRegistrationTokenRepository(db)
@@ -104,7 +104,7 @@ func TestUserRegistrationTokenRepository_CreateToken(t *testing.T) {
 func TestUserRegistrationTokenRepository_UseToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewUserRegistrationTokenRepository(db)

@@ -14,7 +14,7 @@ import (
 func TestTheaterLocationRepository_GetLocation(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewTheaterLocationRepository(db)
@@ -64,7 +64,7 @@ func TestTheaterLocationRepository_GetLocation(t *testing.T) {
 func TestTheaterLocationRepository_CreateTheaterLocation(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewTheaterLocationRepository(db)
@@ -104,7 +104,7 @@ func TestTheaterLocationRepository_CreateTheaterLocation(t *testing.T) {
 func TestTheaterLocationRepository_UpdateTheaterLocation(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewTheaterLocationRepository(db)

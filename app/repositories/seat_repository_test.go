@@ -14,7 +14,7 @@ import (
 func TestSeatRepository_GetSeat(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewSeatRepository(db)
@@ -69,7 +69,7 @@ func TestSeatRepository_GetSeat(t *testing.T) {
 func TestSeatRepository_CreateSeat(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewSeatRepository(db)

@@ -15,7 +15,7 @@ import (
 func TestPasswordResetTokenRepository_GetToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -67,7 +67,7 @@ func TestPasswordResetTokenRepository_GetToken(t *testing.T) {
 func TestPasswordResetTokenRepository_GetTokens(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -114,7 +114,7 @@ func TestPasswordResetTokenRepository_GetTokens(t *testing.T) {
 func TestPasswordResetTokenRepository_CreateToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -154,7 +154,7 @@ func TestPasswordResetTokenRepository_CreateToken(t *testing.T) {
 func TestPasswordResetTokenRepository_UseToken(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)
@@ -194,7 +194,7 @@ func TestPasswordResetTokenRepository_UseToken(t *testing.T) {
 func TestPasswordResetTokenRepository_RevokeTokens(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewPasswordResetTokenRepository(db)

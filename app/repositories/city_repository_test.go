@@ -15,7 +15,7 @@ import (
 func TestCityRepository_GetCity(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewCityRepository(db)
@@ -67,7 +67,7 @@ func TestCityRepository_GetCity(t *testing.T) {
 func TestCityRepository_GetCities(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewCityRepository(db)
@@ -106,7 +106,7 @@ func TestCityRepository_GetCities(t *testing.T) {
 func TestCityRepository_CreateCity(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewCityRepository(db)

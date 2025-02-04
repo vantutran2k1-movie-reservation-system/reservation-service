@@ -16,7 +16,7 @@ import (
 func TestMovieRepository_GetMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -94,7 +94,7 @@ func TestMovieRepository_GetMovie(t *testing.T) {
 func TestMovieRepository_GetMovies(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -136,7 +136,7 @@ func TestMovieRepository_GetMovies(t *testing.T) {
 func TestMovieRepository_GetMoviesWithGenres(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -218,7 +218,7 @@ func TestMovieRepository_GetMoviesWithGenres(t *testing.T) {
 func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -253,7 +253,7 @@ func TestMovieRepository_GetNumbersOfMovie(t *testing.T) {
 func TestMovieRepository_CreateMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -293,7 +293,7 @@ func TestMovieRepository_CreateMovie(t *testing.T) {
 func TestMovieRepository_UpdateMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
@@ -333,7 +333,7 @@ func TestMovieRepository_UpdateMovie(t *testing.T) {
 func TestMovieRepository_DeleteMovie(t *testing.T) {
 	db, mock := mock_db.SetupTestDB(t)
 	defer func() {
-		assert.NotNil(t, mock_db.TearDownTestDB(db, mock))
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
 	}()
 
 	repo := NewMovieRepository(db)
