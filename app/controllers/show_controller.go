@@ -43,6 +43,28 @@ func (c *ShowController) GetActiveShows(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": utils.SliceToMaps(shows)})
 }
 
+func (c *ShowController) GetScheduledShows(ctx *gin.Context) {
+	limitParam := ctx.DefaultQuery(constants.Limit, "10")
+	limit, e := strconv.Atoi(limitParam)
+	if e != nil || limit <= 0 || limit > 10 {
+		limit = 10
+	}
+
+	offsetParam := ctx.DefaultQuery(constants.Offset, "0")
+	offset, e := strconv.Atoi(offsetParam)
+	if e != nil || offset < 0 {
+		offset = 0
+	}
+
+	shows, err := c.ShowService.GetShows(constants.Scheduled, limit, offset)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.SliceToMaps(shows)})
+}
+
 func (c *ShowController) CreateShow(ctx *gin.Context) {
 	var req payloads.CreateShowRequest
 	if errs := errors.BindAndValidate(ctx, &req); len(errs) > 0 {

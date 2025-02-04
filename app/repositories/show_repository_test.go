@@ -76,7 +76,6 @@ func TestShowRepository_GetShows(t *testing.T) {
 		Status: &filters.Condition{Operator: filters.OpEqual, Value: constants.Active},
 	}
 
-	// TODO: Refactor other tests to reduce duplicate
 	query := regexp.QuoteMeta(`SELECT * FROM "shows" WHERE status = $1`)
 	args := []driver.Value{constants.Active}
 

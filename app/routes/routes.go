@@ -181,6 +181,7 @@ func RegisterRoutes() *gin.Engine {
 		shows := apiV1.Group("/shows")
 		{
 			shows.GET("/active", c.ShowController.GetActiveShows)
+			shows.GET("/scheduled", c.ShowController.GetScheduledShows)
 			shows.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),
