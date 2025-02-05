@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestShowService_GetShows(t *testing.T) {
@@ -191,5 +192,57 @@ func TestShowService_CreateShow(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
 		assert.EqualError(t, err, "error creating show")
+	})
+}
+
+func TestShowService_ScheduleUpdateShowStatus(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	transaction := mock_transaction.NewMockTransactionManager(ctrl)
+	repo := mock_repositories.NewMockShowRepository(ctrl)
+	service := NewShowService(nil, transaction, repo, nil, nil)
+
+	t.Run("success", func(t *testing.T) {
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		repo.EXPECT().ScheduleActivateShows(gomock.Any(), time.Hour*72).Return(nil).Times(1)
+		repo.EXPECT().ScheduleCompleteShows(gomock.Any()).Return(nil).Times(1)
+
+		err := service.ScheduleUpdateShowStatus()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error activating shows", func(t *testing.T) {
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		repo.EXPECT().ScheduleActivateShows(gomock.Any(), time.Hour*72).Return(errors.New("error activating shows")).Times(1)
+
+		err := service.ScheduleUpdateShowStatus()
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error activating shows")
+	})
+
+	t.Run("error completing shows", func(t *testing.T) {
+		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(db *gorm.DB, fn func(tx *gorm.DB) error) error {
+				return fn(db)
+			},
+		).Times(1)
+		repo.EXPECT().ScheduleActivateShows(gomock.Any(), time.Hour*72).Return(nil).Times(1)
+		repo.EXPECT().ScheduleCompleteShows(gomock.Any()).Return(errors.New("error completing shows")).Times(1)
+
+		err := service.ScheduleUpdateShowStatus()
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error completing shows")
 	})
 }

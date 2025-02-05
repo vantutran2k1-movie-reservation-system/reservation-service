@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/IBM/sarama"
+	"github.com/robfig/cron/v3"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	"gorm.io/gorm/logger"
 	"log"
@@ -22,6 +23,7 @@ var RedisClient *redis.Client
 var MinioClient *minio.Client
 var ConfigcatClient *configcat.Client
 var KafkaProducerClient sarama.SyncProducer
+var CronJobManager *cron.Cron
 
 func InitDB() {
 	l := logger.Default.LogMode(logger.Silent)
@@ -93,4 +95,9 @@ func InitKafkaProducer() {
 	}
 
 	KafkaProducerClient = producer
+}
+
+func InitCronjobManager() {
+	c := cron.New(cron.WithSeconds())
+	CronJobManager = c
 }

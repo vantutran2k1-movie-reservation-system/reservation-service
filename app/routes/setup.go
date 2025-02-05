@@ -11,6 +11,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/transaction"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/config"
+	"log"
 	"time"
 )
 
@@ -200,10 +201,22 @@ func setupRouter() {
 	}))
 }
 
+func registerCronJobs() {
+	_, err := config.CronJobManager.AddFunc("0 0 * * * *", func() {
+		if err := s.ShowService.ScheduleUpdateShowStatus(); err != nil {
+			log.Println(err)
+		}
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func setupRoutes() {
 	setupRepositories()
 	setupServices(r)
 	setupControllers(s)
 	setupMiddlewares(r)
+	registerCronJobs()
 	setupRouter()
 }

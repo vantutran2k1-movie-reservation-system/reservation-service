@@ -11,6 +11,7 @@ import (
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/utils"
 	"regexp"
 	"testing"
+	"time"
 )
 
 func TestShowRepository_GetShow(t *testing.T) {
@@ -201,5 +202,119 @@ func TestShowRepository_CreateShow(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, "db error")
+	})
+}
+
+func TestShowRepository_UpdateShowStatus(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewShowRepository(db)
+
+	show := utils.GenerateShow()
+	show.Status = constants.Scheduled
+
+	statement := regexp.QuoteMeta(`UPDATE "shows" SET "status"=$1,"updated_at"=$2 WHERE id = $3`)
+	args := []driver.Value{constants.Active, sqlmock.AnyArg(), show.Id}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(statement).WithArgs(args...).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.UpdateShowStatus(tx, show.Id, constants.Active)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error update show", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(statement).WithArgs(args...).WillReturnError(errors.New("error updating show"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.UpdateShowStatus(tx, show.Id, constants.Active)
+		tx.Rollback()
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error updating show")
+	})
+}
+
+func TestShowRepository_ScheduleActivateShows(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewShowRepository(db)
+
+	statement := regexp.QuoteMeta(`UPDATE "shows" SET "status"=$1,"updated_at"=$2 WHERE start_time <= $3 AND status = $4`)
+	args := []driver.Value{constants.Active, sqlmock.AnyArg(), sqlmock.AnyArg(), constants.Scheduled}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(statement).WithArgs(args...).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.ScheduleActivateShows(tx, time.Hour*24)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error updating shows", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(statement).WithArgs(args...).WillReturnError(errors.New("error updating shows"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.ScheduleActivateShows(tx, time.Hour*24)
+		tx.Rollback()
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error updating shows")
+	})
+}
+
+func TestShowRepository_ScheduleCompleteShows(t *testing.T) {
+	db, mock := mock_db.SetupTestDB(t)
+	defer func() {
+		assert.Nil(t, mock_db.TearDownTestDB(db, mock))
+	}()
+
+	repo := NewShowRepository(db)
+
+	statement := regexp.QuoteMeta(`UPDATE "shows" SET "status"=$1,"updated_at"=$2 WHERE end_time <= $3 AND status = $4`)
+	args := []driver.Value{constants.Completed, sqlmock.AnyArg(), sqlmock.AnyArg(), constants.Active}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(statement).WithArgs(args...).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx := db.Begin()
+		err := repo.ScheduleCompleteShows(tx)
+		tx.Commit()
+
+		assert.Nil(t, err)
+	})
+
+	t.Run("error updating shows", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(statement).WithArgs(args...).WillReturnError(errors.New("error updating shows"))
+		mock.ExpectRollback()
+
+		tx := db.Begin()
+		err := repo.ScheduleCompleteShows(tx)
+		tx.Rollback()
+
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error updating shows")
 	})
 }

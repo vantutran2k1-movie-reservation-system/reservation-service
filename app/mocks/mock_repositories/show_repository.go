@@ -14,6 +14,7 @@ import (
 	time "time"
 
 	uuid "github.com/google/uuid"
+	constants "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
 	filters "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/filters"
 	models "github.com/vantutran2k1-movie-reservation-system/reservation-service/app/models"
 	gomock "go.uber.org/mock/gomock"
@@ -100,4 +101,46 @@ func (m *MockShowRepository) IsShowInValidTimeRange(theaterId uuid.UUID, startTi
 func (mr *MockShowRepositoryMockRecorder) IsShowInValidTimeRange(theaterId, startTime, endTime any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsShowInValidTimeRange", reflect.TypeOf((*MockShowRepository)(nil).IsShowInValidTimeRange), theaterId, startTime, endTime)
+}
+
+// ScheduleActivateShows mocks base method.
+func (m *MockShowRepository) ScheduleActivateShows(tx *gorm.DB, beforeStart time.Duration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ScheduleActivateShows", tx, beforeStart)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ScheduleActivateShows indicates an expected call of ScheduleActivateShows.
+func (mr *MockShowRepositoryMockRecorder) ScheduleActivateShows(tx, beforeStart any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScheduleActivateShows", reflect.TypeOf((*MockShowRepository)(nil).ScheduleActivateShows), tx, beforeStart)
+}
+
+// ScheduleCompleteShows mocks base method.
+func (m *MockShowRepository) ScheduleCompleteShows(tx *gorm.DB) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ScheduleCompleteShows", tx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ScheduleCompleteShows indicates an expected call of ScheduleCompleteShows.
+func (mr *MockShowRepositoryMockRecorder) ScheduleCompleteShows(tx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScheduleCompleteShows", reflect.TypeOf((*MockShowRepository)(nil).ScheduleCompleteShows), tx)
+}
+
+// UpdateShowStatus mocks base method.
+func (m *MockShowRepository) UpdateShowStatus(tx *gorm.DB, showId uuid.UUID, status constants.ShowStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateShowStatus", tx, showId, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateShowStatus indicates an expected call of UpdateShowStatus.
+func (mr *MockShowRepositoryMockRecorder) UpdateShowStatus(tx, showId, status any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateShowStatus", reflect.TypeOf((*MockShowRepository)(nil).UpdateShowStatus), tx, showId, status)
 }

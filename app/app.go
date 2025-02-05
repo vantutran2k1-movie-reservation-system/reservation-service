@@ -27,6 +27,7 @@ func InitApp() *App {
 	config.InitMinio()
 	config.InitConfigcat()
 	config.InitKafkaProducer()
+	config.InitCronjobManager()
 
 	router := routes.RegisterRoutes()
 	return &App{

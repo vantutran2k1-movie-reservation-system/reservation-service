@@ -16,6 +16,7 @@ import (
 type ShowService interface {
 	GetShows(status constants.ShowStatus, limit, offset int) ([]*models.Show, *errors.ApiError)
 	CreateShow(req payloads.CreateShowRequest) (*models.Show, *errors.ApiError)
+	ScheduleUpdateShowStatus() error
 }
 
 func NewShowService(
@@ -103,4 +104,18 @@ func (s *showService) CreateShow(req payloads.CreateShowRequest) (*models.Show, 
 	}
 
 	return show, nil
+}
+
+func (s *showService) ScheduleUpdateShowStatus() error {
+	if err := s.transactionManager.ExecuteInTransaction(s.db, func(tx *gorm.DB) error {
+		if err := s.showRepo.ScheduleActivateShows(tx, time.Hour*72); err != nil {
+			return err
+		}
+
+		return s.showRepo.ScheduleCompleteShows(tx)
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }

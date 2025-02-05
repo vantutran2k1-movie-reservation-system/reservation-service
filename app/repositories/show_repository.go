@@ -15,6 +15,9 @@ type ShowRepository interface {
 	GetShows(filter filters.ShowFilter) ([]*models.Show, error)
 	IsShowInValidTimeRange(theaterId uuid.UUID, startTime time.Time, endTime time.Time) (bool, error)
 	CreateShow(tx *gorm.DB, show *models.Show) error
+	UpdateShowStatus(tx *gorm.DB, showId uuid.UUID, status constants.ShowStatus) error
+	ScheduleActivateShows(tx *gorm.DB, beforeStart time.Duration) error
+	ScheduleCompleteShows(tx *gorm.DB) error
 }
 
 func NewShowRepository(db *gorm.DB) ShowRepository {
@@ -75,4 +78,28 @@ func (r *showRepository) IsShowInValidTimeRange(theaterId uuid.UUID, startTime, 
 
 func (r *showRepository) CreateShow(tx *gorm.DB, show *models.Show) error {
 	return tx.Create(show).Error
+}
+
+func (r *showRepository) UpdateShowStatus(tx *gorm.DB, showId uuid.UUID, status constants.ShowStatus) error {
+	return tx.Model(&models.Show{}).
+		Where("id = ?", showId).
+		Updates(map[string]any{"status": status, "updated_at": time.Now().UTC()}).
+		Error
+}
+
+func (r *showRepository) ScheduleActivateShows(tx *gorm.DB, beforeStart time.Duration) error {
+	currentTime := time.Now().UTC()
+	maxStartTime := currentTime.Add(beforeStart)
+	return tx.Model(&models.Show{}).
+		Where("start_time <= ? AND status = ?", maxStartTime, constants.Scheduled).
+		Updates(map[string]interface{}{"status": constants.Active, "updated_at": currentTime}).
+		Error
+}
+
+func (r *showRepository) ScheduleCompleteShows(tx *gorm.DB) error {
+	currentTime := time.Now().UTC()
+	return tx.Model(&models.Show{}).
+		Where("end_time <= ? AND status = ?", currentTime, constants.Active).
+		Updates(map[string]interface{}{"status": constants.Completed, "updated_at": currentTime}).
+		Error
 }
