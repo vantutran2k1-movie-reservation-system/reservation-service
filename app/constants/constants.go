@@ -32,6 +32,7 @@ const (
 	CanModifyGenres    = "canModifyGenres"
 	CanModifyLocations = "canModifyLocations"
 	CanModifyTheaters  = "canModifyTheaters"
+	CanModifyShows     = "canModifyShows"
 
 	// Redis key
 	ClientRateLimit = "rateLimit"

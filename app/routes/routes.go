@@ -185,7 +185,7 @@ func RegisterRoutes() *gin.Engine {
 			shows.POST(
 				"/",
 				m.AuthMiddleware.RequireAuthMiddleware(),
-				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyMovies),
+				m.AuthMiddleware.RequireFeatureFlagMiddleware(constants.CanModifyShows),
 				c.ShowController.CreateShow,
 			)
 		}
