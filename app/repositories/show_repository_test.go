@@ -23,26 +23,32 @@ func TestShowRepository_GetShow(t *testing.T) {
 	repo := NewShowRepository(db)
 
 	show := utils.GenerateShow()
+	movie := utils.GenerateMovie()
+	show.MovieId = &movie.ID
 	filter := filters.ShowFilter{
 		Filter: &filters.SingleFilter{},
 		Id:     &filters.Condition{Operator: filters.OpEqual, Value: show.Id},
 	}
 
+	showQuery := regexp.QuoteMeta(`SELECT * FROM "shows" WHERE id = $1 ORDER BY "shows"."id" LIMIT $2`)
+	showArgs := []driver.Value{show.Id, 1}
+	movieQuery := regexp.QuoteMeta(`SELECT * FROM "movies" WHERE "movies"."id" = $1`)
+	movieArgs := []driver.Value{show.MovieId.String()}
+
 	t.Run("success", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "shows" WHERE id = $1 ORDER BY "shows"."id" LIMIT $2`)).
-			WithArgs(show.Id, 1).
-			WillReturnRows(utils.GenerateSqlMockRow(show))
+		mock.ExpectQuery(showQuery).WithArgs(showArgs...).WillReturnRows(utils.GenerateSqlMockRow(show))
+		mock.ExpectQuery(movieQuery).WithArgs(movieArgs...).WillReturnRows(utils.GenerateSqlMockRow(movie))
 
 		result, err := repo.GetShow(filter)
 
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
+		assert.Equal(t, show.Id, result.Id)
+		assert.Equal(t, show.MovieId, &result.Movie.ID)
 	})
 
 	t.Run("show not found", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "shows" WHERE id = $1 ORDER BY "shows"."id" LIMIT $2`)).
-			WithArgs(show.Id, 1).
-			WillReturnRows(sqlmock.NewRows(nil))
+		mock.ExpectQuery(showQuery).WithArgs(showArgs...).WillReturnRows(sqlmock.NewRows(nil))
 
 		result, err := repo.GetShow(filter)
 
@@ -51,15 +57,35 @@ func TestShowRepository_GetShow(t *testing.T) {
 	})
 
 	t.Run("error getting show", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "shows" WHERE id = $1 ORDER BY "shows"."id" LIMIT $2`)).
-			WithArgs(show.Id, 1).
-			WillReturnError(errors.New("error getting show"))
+		mock.ExpectQuery(showQuery).WithArgs(showArgs...).WillReturnError(errors.New("error getting show"))
 
 		result, err := repo.GetShow(filter)
 
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, "error getting show")
+	})
+
+	t.Run("movie not found", func(t *testing.T) {
+		mock.ExpectQuery(showQuery).WithArgs(showArgs...).WillReturnRows(utils.GenerateSqlMockRow(show))
+		mock.ExpectQuery(movieQuery).WithArgs(movieArgs...).WillReturnRows(utils.GenerateSqlMockRow(nil))
+
+		result, err := repo.GetShow(filter)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, show.Id, result.Id)
+	})
+
+	t.Run("error getting movie", func(t *testing.T) {
+		mock.ExpectQuery(showQuery).WithArgs(showArgs...).WillReturnRows(utils.GenerateSqlMockRow(show))
+		mock.ExpectQuery(movieQuery).WithArgs(movieArgs...).WillReturnError(errors.New("error getting movie"))
+
+		result, err := repo.GetShow(filter)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "error getting movie")
 	})
 }
 

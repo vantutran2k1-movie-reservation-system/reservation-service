@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/services"
@@ -19,6 +21,28 @@ func NewShowController(showService *services.ShowService) *ShowController {
 	return &ShowController{
 		ShowService: *showService,
 	}
+}
+
+func (c *ShowController) GetShow(ctx *gin.Context) {
+	id, e := uuid.Parse(ctx.Param("id"))
+	if e != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid show id"})
+		return
+	}
+
+	var userEmail *string
+	reqContext, err := context.GetRequestContext(ctx)
+	if err == nil && reqContext.UserSession != nil {
+		userEmail = &reqContext.UserSession.Email
+	}
+
+	show, err := c.ShowService.GetShow(id, userEmail)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": utils.StructToMap(show)})
 }
 
 func (c *ShowController) GetActiveShows(ctx *gin.Context) {

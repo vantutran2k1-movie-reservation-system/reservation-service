@@ -156,6 +156,7 @@ func setupServices(repositories *Repositories) {
 			repositories.ShowRepository,
 			repositories.MovieRepository,
 			repositories.TheaterRepository,
+			repositories.FeatureFlagRepository,
 		),
 		RateLimiterService: services.NewRateLimiterService(
 			config.RedisClient,

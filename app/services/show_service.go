@@ -14,6 +14,7 @@ import (
 )
 
 type ShowService interface {
+	GetShow(id uuid.UUID, userEmail *string) (*models.Show, *errors.ApiError)
 	GetShows(status constants.ShowStatus, limit, offset int) ([]*models.Show, *errors.ApiError)
 	CreateShow(req payloads.CreateShowRequest) (*models.Show, *errors.ApiError)
 	ScheduleUpdateShowStatus() error
@@ -25,6 +26,7 @@ func NewShowService(
 	showRepo repositories.ShowRepository,
 	movieRepo repositories.MovieRepository,
 	theaterRepo repositories.TheaterRepository,
+	featureFlagRepo repositories.FeatureFlagRepository,
 ) ShowService {
 	return &showService{
 		db:                 db,
@@ -32,6 +34,7 @@ func NewShowService(
 		showRepo:           showRepo,
 		movieRepo:          movieRepo,
 		theaterRepo:        theaterRepo,
+		featureFlagRepo:    featureFlagRepo,
 	}
 }
 
@@ -41,6 +44,22 @@ type showService struct {
 	showRepo           repositories.ShowRepository
 	movieRepo          repositories.MovieRepository
 	theaterRepo        repositories.TheaterRepository
+	featureFlagRepo    repositories.FeatureFlagRepository
+}
+
+func (s *showService) GetShow(id uuid.UUID, userEmail *string) (*models.Show, *errors.ApiError) {
+	show, err := s.showRepo.GetShow(filters.ShowFilter{
+		Filter: &filters.SingleFilter{},
+		Id:     &filters.Condition{Operator: filters.OpEqual, Value: id.String()},
+	})
+	if err != nil {
+		return nil, errors.InternalServerError(err.Error())
+	}
+	if show == nil || !(show.Status == constants.Active || s.adminUser(userEmail)) {
+		return nil, errors.NotFoundError("show not found")
+	}
+
+	return show, nil
 }
 
 func (s *showService) GetShows(status constants.ShowStatus, limit, offset int) ([]*models.Show, *errors.ApiError) {
@@ -118,4 +137,8 @@ func (s *showService) ScheduleUpdateShowStatus() error {
 	}
 
 	return nil
+}
+
+func (s *showService) adminUser(email *string) bool {
+	return email != nil && s.featureFlagRepo.HasFlagEnabled(*email, constants.CanModifyShows)
 }

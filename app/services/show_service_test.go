@@ -17,12 +17,63 @@ import (
 	"time"
 )
 
+func TestShowService_GetShow(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	flagRepo := mock_repositories.NewMockFeatureFlagRepository(ctrl)
+	showRepo := mock_repositories.NewMockShowRepository(ctrl)
+	service := NewShowService(nil, nil, showRepo, nil, nil, flagRepo)
+
+	show := utils.GenerateShow()
+	show.Status = constants.Completed
+	email := utils.GetPointerOf("example@gmail.com")
+	filter := filters.ShowFilter{
+		Filter: &filters.SingleFilter{},
+		Id:     &filters.Condition{Operator: filters.OpEqual, Value: show.Id.String()},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		showRepo.EXPECT().GetShow(filter).Return(show, nil).Times(1)
+		flagRepo.EXPECT().HasFlagEnabled(*email, constants.CanModifyShows).Return(true).Times(1)
+
+		result, err := service.GetShow(show.Id, email)
+
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, show, result)
+	})
+
+	t.Run("error getting show", func(t *testing.T) {
+		showRepo.EXPECT().GetShow(filter).Return(nil, errors.New("error getting show")).Times(1)
+
+		result, err := service.GetShow(show.Id, email)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+		assert.Equal(t, "error getting show", err.Error())
+	})
+
+	t.Run("user not have permission", func(t *testing.T) {
+		showRepo.EXPECT().GetShow(filter).Return(show, nil).Times(1)
+		flagRepo.EXPECT().HasFlagEnabled(*email, constants.CanModifyShows).Return(false).Times(1)
+
+		result, err := service.GetShow(show.Id, email)
+
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		assert.Equal(t, "show not found", err.Error())
+	})
+}
+
 func TestShowService_GetShows(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	repo := mock_repositories.NewMockShowRepository(ctrl)
-	service := NewShowService(nil, nil, repo, nil, nil)
+	service := NewShowService(nil, nil, repo, nil, nil, nil)
 
 	shows := utils.GenerateShows(3)
 	limit := 3
@@ -62,7 +113,7 @@ func TestShowService_CreateShow(t *testing.T) {
 	showRepo := mock_repositories.NewMockShowRepository(ctrl)
 	movieRepo := mock_repositories.NewMockMovieRepository(ctrl)
 	theaterRepo := mock_repositories.NewMockTheaterRepository(ctrl)
-	service := NewShowService(nil, transaction, showRepo, movieRepo, theaterRepo)
+	service := NewShowService(nil, transaction, showRepo, movieRepo, theaterRepo, nil)
 
 	show := utils.GenerateShow()
 	req := payloads.CreateShowRequest{
@@ -201,7 +252,7 @@ func TestShowService_ScheduleUpdateShowStatus(t *testing.T) {
 
 	transaction := mock_transaction.NewMockTransactionManager(ctrl)
 	repo := mock_repositories.NewMockShowRepository(ctrl)
-	service := NewShowService(nil, transaction, repo, nil, nil)
+	service := NewShowService(nil, transaction, repo, nil, nil, nil)
 
 	t.Run("success", func(t *testing.T) {
 		transaction.EXPECT().ExecuteInTransaction(gomock.Any(), gomock.Any()).DoAndReturn(

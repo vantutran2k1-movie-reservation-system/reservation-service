@@ -15,4 +15,5 @@ type Show struct {
 	Status    constants.ShowStatus `json:"status" gorm:"column:status"`
 	CreatedAt time.Time            `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt time.Time            `json:"updated_at" gorm:"column:updated_at"`
+	Movie     *Movie               `json:"movie,omitempty" gorm:"foreignKey:MovieId;references:ID"`
 }

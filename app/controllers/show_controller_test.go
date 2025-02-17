@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/constants"
+	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/context"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/errors"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/mocks/mock_services"
 	"github.com/vantutran2k1-movie-reservation-system/reservation-service/app/payloads"
@@ -15,6 +16,48 @@ import (
 	"net/http/httptest"
 	"testing"
 )
+
+func TestShowController_GetShow(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	service := mock_services.NewMockShowService(ctrl)
+	controller := ShowController{
+		ShowService: service,
+	}
+
+	show := utils.GenerateShow()
+	session := utils.GenerateUserSession()
+
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		context.SetRequestContext(c, context.RequestContext{UserSession: session})
+		c.Next()
+	})
+	router.GET("/shows/:id", controller.GetShow)
+
+	t.Run("success", func(t *testing.T) {
+		service.EXPECT().GetShow(show.Id, &session.Email).Return(show, nil).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/shows/%s", show.Id.String()), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), show.Id.String())
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		service.EXPECT().GetShow(show.Id, &session.Email).Return(nil, errors.InternalServerError("service error")).Times(1)
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/shows/%s", show.Id.String()), nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Contains(t, w.Body.String(), "service error")
+	})
+}
 
 func TestShowController_GetActiveShows(t *testing.T) {
 	ctrl := gomock.NewController(t)

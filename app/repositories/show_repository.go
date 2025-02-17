@@ -30,7 +30,7 @@ type showRepository struct {
 
 func (r *showRepository) GetShow(filter filters.ShowFilter) (*models.Show, error) {
 	var show models.Show
-	if err := filter.GetFilterQuery(r.db).First(&show).Error; err != nil {
+	if err := filter.GetFilterQuery(r.db).Preload("Movie").First(&show).Error; err != nil {
 		if errors.IsRecordNotFoundError(err) {
 			return nil, nil
 		}
